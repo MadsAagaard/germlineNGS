@@ -1349,7 +1349,9 @@ workflow SUB_VARIANTCALL_WGS {
     .collectFile(name: "collectfileTEST_scatter.txt", newLine: false)
     .map {it.text.trim()}.set {gvcfsamples_for_GATK_scatter}
 
-    //jointgenoScatter(gvcfsamples_for_GATK_scatter)
+    if (!params.single) {
+        jointgenoScatter(gvcfsamples_for_GATK_scatter)
+    }
 }
 
 workflow SUB_CNV_SV {

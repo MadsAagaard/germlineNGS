@@ -28,6 +28,7 @@ params.skipSMN                  =null
 //Preset parameters:
 params.gatk                     =null
 params.copyCram                 =null
+params.single                   =null
 params.server                   = "lnx01"
 params.genome                   = "hg38"
 params.outdir                   = "${launchDir.baseName}.Results"
