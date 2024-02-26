@@ -294,6 +294,19 @@ process inputFiles_symlinks_cram{
     """
 }
 
+process inputCram_copy{
+    errorStrategy 'ignore'
+    publishDir "${outputDir}/input_CRAM/", mode: 'copy', pattern: '*.{ba,cr}*'
+    input:
+    tuple val(sampleID), path(aln), path(index)// from symlink_input
+    
+    output:
+    tuple val(sampleID), path(aln),path(index)
+    script:
+    """
+    """
+}
+
 
 
 

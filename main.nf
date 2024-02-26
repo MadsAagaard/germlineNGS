@@ -466,19 +466,39 @@ workflow {
         }
 
         if (!params.fastqInput && !params.fastq) {
-            inputFiles_symlinks_cram(meta_aln_index)
 
-            if (!params.skipVariants) {
-                SUB_VARIANTCALL_WGS(meta_aln_index)
+            if (params.useLinks) {
+                inputFiles_symlinks_cram(meta_aln_index)
+
+                if (!params.skipVariants) {
+                    SUB_VARIANTCALL_WGS(meta_aln_index)
+                }
+                if (!params.skipSV) {
+                    SUB_CNV_SV(meta_aln_index)
+                }
+                if (!params.skipSTR) {
+                    SUB_STR(meta_aln_index)
+                }
+                if (!params.skipSMN) {
+                SUB_SMN(meta_aln_index)
+                }
             }
-            if (!params.skipSV) {
-                SUB_CNV_SV(meta_aln_index)
-            }
-            if (!params.skipSTR) {
-                SUB_STR(meta_aln_index)
-            }
-            if (!params.skipSMN) {
-            SUB_SMN(meta_aln_index)
+
+            if (!params.useLinks) {
+                inputCram_copy(meta_aln_index)
+            
+                if (!params.skipVariants) {
+                    SUB_VARIANTCALL_WGS(inputCram_copy.out)
+                }
+                if (!params.skipSV) {
+                    SUB_CNV_SV(inputCram_copy.out)
+                }
+                if (!params.skipSTR) {
+                    SUB_STR(inputCram_copy.out)
+                }
+                if (!params.skipSMN) {
+                    SUB_SMN(inputCram_copy.out)
+                }
             }
         }
     }
