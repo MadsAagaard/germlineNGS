@@ -518,6 +518,7 @@ workflow {
     }
 }
 
+/*
 workflow.onComplete {
     if (System.getenv("USER") in ["raspau", "mmaj"]) {
         // Custom message to be sent when the workflow completes
@@ -549,7 +550,7 @@ workflow.onComplete {
         }
     }
 }
-
+*/
 workflow.onError {
     if (System.getenv("USER") in ["raspau", "mmaj"]) {
         // Custom message to be sent when the workflow completes
