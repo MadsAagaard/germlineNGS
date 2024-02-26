@@ -376,7 +376,6 @@ if (params.samplesheet) {
 ////////////////////////////////////////////////////
 
 
-
 if (!params.samplesheet && params.fastq) {
     read_pairs_ch
     .set { fq_read_input }
@@ -495,7 +494,58 @@ workflow {
             SUB_VARIANTCALL(meta_aln_index)
         }
     }
+}
 
+workflow.onComplete {
+    if (System.getenv("USER") in ["raspau", "mmaj"]) {
+        // Custom message to be sent when the workflow completes
+        def sequencingRun = params.cram ? new File(params.cram).getName().take(6) :
+                   params.fastq ? new File(params.fastq).getName().take(6) : 'Not provided'
 
+    
+        def body = """\
+        Pipeline execution summary
+        ---------------------------
+        Pipeline completed  : ${params.panel}
+        Sequencing run      : ${sequencingRun}
+        Completed at        : ${workflow.complete}
+        Duration            : ${workflow.duration}
+        Success             : ${workflow.success}
+        WorkDir             : ${workflow.workDir}
+        OutputDir           : ${params.outdir ?: 'Not specified'}
+        Exit status         : ${workflow.exitStatus}
+        """.stripIndent()
 
+        // Send the email using the built-in sendMail function
+        sendMail(to: 'Rasmus.Hojrup.Pausgaard@rsyd.dk', subject: 'Pipeline Update', body: body)
+
+        // Check if --keepwork was specified
+        if (!params.keepwork) {
+            // If --keepwork was not specified, delete the work directory
+            println("Deleting work directory: ${workflow.workDir}")
+            "rm -rf ${workflow.workDir}".execute()
+        }
+    }
+}
+
+workflow.onError {
+    if (System.getenv("USER") in ["raspau", "mmaj"]) {
+        // Custom message to be sent when the workflow completes
+        def sequencingRun = params.cram ? new File(params.cram).getName().take(6) :
+                   params.fastq ? new File(params.fastq).getName().take(6) : 'Not provided'
+
+        def body = """\
+        Pipeline execution summary
+        ---------------------------
+        Pipeline completed  : ${params.panel}
+        Sequencing run      : ${sequencingRun}
+        Duration            : ${workflow.duration}
+        Failed              : ${workflow.failed}
+        WorkDir             : ${workflow.workDir}
+        Exit status         : ${workflow.exitStatus}
+        """.stripIndent()
+
+        // Send the email using the built-in sendMail function
+        sendMail(to: 'Mads.Jorgensen@rsyd.dk,Rasmus.Hojrup.Pausgaard@rsyd.dk', subject: 'Pipeline Update', body: body)
+    }
 }

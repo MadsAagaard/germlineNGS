@@ -79,6 +79,7 @@ switch (params.genome) {
         assembly="hg38"
         spliceai_assembly="grch38"
         smncaller_assembly="38"
+        svdb_databases="/data/shared/genomes/hg38/inhouse_DBs/hg38v3/svdb_AF"
         // Genome assembly files:
         if (params.hg38v1) {
         genome_fasta = "${refFilesDir}/hg38/GRCh38.primary.fa"
@@ -122,6 +123,13 @@ switch (params.genome) {
         
         smoove_exclude="/data/shared/genomes/hg38/interval.files/smoove/smoove.hg38.excluderegions.bed"
         smoove_gff="/data/shared/genomes/hg38/gene.annotations/GRCh38_latest_genomic.gff.gz"
+
+
+        //inhouse SV AF databases: 
+        mantaSVDB="{svdb_databases}/mantaSVDB.db"
+        lumpySVDB="{svdb_databases}/lumpySVDB.db"
+        cnvkitSVDB="{svdb_databases}/cnvkitSVDB.db"
+        tidditSVDB="{svdb_databases}/tidditSVDB.db"
 
 
 
@@ -795,7 +803,7 @@ process manta {
     tag "$sampleID"
     publishDir "${inhouse_SV}/manta/raw_calls/", mode: 'copy', pattern: " ${sampleID}.manta.diploidSV.*"
     publishDir "${outputDir}/structuralVariants/manta/allOutput/", mode: 'copy'
-
+    publishDir "${outputDir}/structuralVariants/manta/", mode: 'copy', pattern: "*.AFanno.*"
     cpus 10
     maxForks 6
 
@@ -808,6 +816,7 @@ process manta {
     
    //  tuple val(sampleID), path("${sampleID}.manta.INVconverted.vcf"), emit: manta
     tuple val(sampleID), path("${sampleID}.manta.diploidSV.vcf.gz"), path("${sampleID}.manta.diploidSV.vcf.gz.tbi"), emit: manta
+    tuple val(sampleID), path("${sampleID}.manta.diploidSV.vcf"), emit: svdbAF
     script:
     """
     singularity run -B ${s_bind} ${simgpath}/manta1.6_strelka2.9.10.sif configManta.py \
@@ -838,10 +847,17 @@ process manta {
 
     gzip -dc ${sampleID}.manta.diploidSV.vcf.gz > ${sampleID}.manta.diploidSV.vcf
     
+    singularity exec  \
+    --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
+    --query \
+    --query_vcf ${sampleID}.manta.diploidSV.vcf \
+    --sqdb ${mantaSVDB} \
+    --out_frq manta_FRQ \
+    --out_occ manta_OCC > ${sampleID}.manta.AFanno.vcf 
 
     """
 }
-
+// INCOMPLETE SV MERGE AF AND FILTERING
 process filter_manta {
     tag "$sampleID"
     errorStrategy 'ignore'
@@ -931,6 +947,17 @@ process tiddit361 {
     -o ${sampleID}_tiddit
 
     cat ${sampleID}_tiddit.vcf | grep -E "#|PASS" > ${sampleID}_tiddit.PASS.vcf
+
+    singularity exec  \
+    --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
+    --query \
+    --query_vcf ${sampleID}_tiddit.PASS.vcf \
+    --sqdb ${tidditSVDB} \
+    --out_frq TIDDIT_FRQ \
+    --out_occ TIDDIT_OCC > ${sampleID}_tiddit.AFanno.vcf
+
+
+
     """
 }
 
