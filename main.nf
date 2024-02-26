@@ -486,6 +486,7 @@ workflow {
             }
 
             if (!params.useLinks) {
+                inputFiles_symlinks_cram(meta_aln_index)
                 inputCram_copy(meta_aln_index)
             
                 if (!params.skipVariants) {
