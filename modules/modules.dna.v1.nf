@@ -1339,16 +1339,18 @@ workflow SUB_VARIANTCALL_WGS {
     meta_aln_index
     main:
     haplotypecallerSplitIntervals(meta_aln_index.combine(haplotypecallerIntervalList))
+    haplotypecallerSplitIntervals.out.view()
     mergeScatteredGVCF(haplotypecallerSplitIntervals.out)
     
     mergeScatteredGVCF.out.sample_gvcf_list_scatter
     .map{" -V "+ it }
     .set{gvcflist_scatter_done}
-
+    
     gvcflist_scatter_done
     .collectFile(name: "collectfileTEST_scatter.txt", newLine: false)
     .map {it.text.trim()}.set {gvcfsamples_for_GATK_scatter}
 
+gvcfsamples_for_GATK_scatter.view()
     if (!params.single) {
         jointgenoScatter(gvcfsamples_for_GATK_scatter)
     }
