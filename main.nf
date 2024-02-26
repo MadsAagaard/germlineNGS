@@ -412,6 +412,7 @@ channel
 include { 
          // Symlinks:
          inputFiles_symlinks_cram;
+         inputCram_copy;
          // Preprocess tools:
          //QC tools
          samtools;
