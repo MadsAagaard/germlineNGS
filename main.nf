@@ -28,7 +28,7 @@ params.skipSTR                  =null
 params.skipSMN                  =null
 //Preset parameters:
 params.gatk                     =null
-
+params.copyCram                 =null
 params.server                   = "lnx01"
 params.genome                   = "hg38"
 params.outdir                   = "${launchDir.baseName}.Results"
@@ -468,7 +468,7 @@ workflow {
 
         if (!params.fastqInput && !params.fastq) {
 
-            if (params.useLinks) {
+            if (!params.copyCram) {
                 inputFiles_symlinks_cram(meta_aln_index)
 
                 if (!params.skipVariants) {
@@ -485,7 +485,7 @@ workflow {
                 }
             }
 
-            if (!params.useLinks) {
+            if (params.copyCram) {
                 inputFiles_symlinks_cram(meta_aln_index)
                 inputCram_copy(meta_aln_index)
             
