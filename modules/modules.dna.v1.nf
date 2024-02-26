@@ -1357,12 +1357,13 @@ workflow SUB_CNV_SV {
     meta_aln_index
     main:
     manta(meta_aln_index)
-    filter_manta(manta.out.manta)   // mantafiltered for SVDB
+   // filter_manta(manta.out.manta)   // mantafiltered for SVDB
     lumpy(meta_aln_index)
     cnvkit(meta_aln_index)
     cnvkitExportFiles(cnvkit.out.CNVcalls, cnvkit.out.CNVcnr)
     tiddit361(meta_aln_index)
-    merge4callerSVDB(filter_manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(tiddit361.out.tidditForSVDB))
+   //merge4callerSVDB(filter_manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(tiddit361.out.tidditForSVDB))
+    merge4callerSVDB(manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(tiddit361.out.tidditForSVDB))
 }
 
 workflow SUB_STR {
