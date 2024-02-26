@@ -817,7 +817,7 @@ process manta {
     tag "$sampleID"
     publishDir "${inhouse_SV}/manta/raw_calls/", mode: 'copy', pattern: " ${sampleID}.manta.diploidSV.*"
     publishDir "${outputDir}/structuralVariants/manta/allOutput/", mode: 'copy'
-    publishDir "${outputDir}/structuralVariants/manta/", mode: 'copy', pattern: "*.AFanno.*"
+    publishDir "${outputDir}/structuralVariants/manta/", mode: 'copy', pattern: "*.{AFanno,filtered}.*"
     cpus 10
     maxForks 6
 
@@ -829,8 +829,8 @@ process manta {
     path("${sampleID}.manta.*.{vcf,vcf.gz,gz.tbi}")
     
    //  tuple val(sampleID), path("${sampleID}.manta.INVconverted.vcf"), emit: manta
-    tuple val(sampleID), path("${sampleID}.manta.diploidSV.vcf.gz"), path("${sampleID}.manta.diploidSV.vcf.gz.tbi"), emit: manta
-    tuple val(sampleID), path("${sampleID}.manta.diploidSV.vcf"), emit: svdbAF
+//    tuple val(sampleID), path("${sampleID}.manta.diploidSV.vcf.gz"), path("${sampleID}.manta.diploidSV.vcf.gz.tbi"), emit: manta
+    tuple val(sampleID), path("${sampleID}.manta.AFanno.frq_below5pct.vcf"), emit: mantaForSVDB
     script:
     """
     singularity run -B ${s_bind} ${simgpath}/manta1.6_strelka2.9.10.sif configManta.py \
@@ -860,18 +860,23 @@ process manta {
     ${sampleID}.manta.diploidSV.vcf.gz.tbi
 
     gzip -dc ${sampleID}.manta.diploidSV.vcf.gz > ${sampleID}.manta.diploidSV.vcf
-    
+
     singularity exec  \
     --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
     --query \
     --query_vcf ${sampleID}.manta.diploidSV.vcf \
-    --sqdb ${mantaSVDB} \
-    --out_frq manta_FRQ \
-    --out_occ manta_OCC > ${sampleID}.manta.AFanno.vcf 
+    --sqdb ${mantaSVDB} > ${sampleID}.manta.AFanno.vcf 
+
+    ${gatk_exec} SelectVariants -R ${genome_fasta} \
+    -V ${sampleID}.manta.AFanno.vcf \
+    --exclude-filtered \
+    -select "FRQ<0.05" \
+    -O ${sampleID}.manta.AFanno.frq_below5pct.vcf
 
     """
 }
 // INCOMPLETE SV MERGE AF AND FILTERING
+/*
 process filter_manta {
     tag "$sampleID"
     errorStrategy 'ignore'
@@ -893,7 +898,7 @@ process filter_manta {
     -O ${sampleID}.manta.filtered.vcf
     """
 }
-
+*/
 process lumpy {
     errorStrategy 'ignore'
     tag "$sampleID"
@@ -911,7 +916,7 @@ process lumpy {
     //    path(genome_fasta_dict)
 
     output:
-    tuple val(sampleID), path("${sampleID}.Lumpy_altmode_step1.vcf"), emit: lumpyForSVDB
+    tuple val(sampleID), path("${sampleID}.lumpy.AFanno.frq_below5pct.vcf"), emit: lumpyForSVDB
     path("*.Lumpy_altmode_step1.vcf.gz") 
 
     script:
@@ -931,6 +936,18 @@ process lumpy {
 
     mv ${params.rundir}.LumpyAltSingle/${sampleID}*.csi \
     ${sampleID}.Lumpy_altmode_step1.vcf.gz.csi
+
+    singularity exec  \
+    --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
+    --query \
+    --query_vcf ${sampleID}.Lumpy_altmode_step1.vcf \
+    --sqdb ${lumpySVDB} > ${sampleID}.lumpy.AFanno.vcf 
+
+    ${gatk_exec} SelectVariants -R ${genome_fasta} \
+    -V ${sampleID}.lumpy.AFanno.vcf  \
+    -select "FRQ<0.05" \
+    -O ${sampleID}.lumpy.AFanno.frq_below5pct.vcf
+
     """
 }
 
@@ -949,7 +966,7 @@ process tiddit361 {
 
     output:
     tuple val(sampleID), path("*.{vcf,tab}"), emit: tiddit_out_ch
-    tuple val(sampleID), path("*.PASS.vcf"), emit: tidditForSVDB
+    tuple val(sampleID), path("${sampleID}.tiddit.AFanno.frq_below5pct.vcf"), emit: tidditForSVDB
     script:
     """
     singularity run -B ${s_bind} ${simgpath}/tiddit361.sif tiddit \
@@ -966,11 +983,12 @@ process tiddit361 {
     --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
     --query \
     --query_vcf ${sampleID}_tiddit.PASS.vcf \
-    --sqdb ${tidditSVDB} \
-    --out_frq TIDDIT_FRQ \
-    --out_occ TIDDIT_OCC > ${sampleID}_tiddit.AFanno.vcf
+    --sqdb ${tidditSVDB} > ${sampleID}.tiddit.AFanno.vcf 
 
-
+    ${gatk_exec} SelectVariants -R ${genome_fasta} \
+    -V ${sampleID}.tiddit.AFanno.vcf  \
+    -select "FRQ<0.05" \
+    -O ${sampleID}.tiddit.AFanno.frq_below5pct.vcf
 
     """
 }
@@ -1025,7 +1043,7 @@ process cnvkitExportFiles {
     output:
     path("*.vcf")
     path("*.seg")
-    tuple val(sampleID), path("${sampleID}.cnvkit.vcf"), emit: cnvkitForSVDB
+    tuple val(sampleID), path("${sampleID}.cnvkit.AFanno.frq_below5pct.vcf"), emit: cnvkitForSVDB
 
     script:
     """
@@ -1037,6 +1055,18 @@ process cnvkitExportFiles {
     singularity run -B ${s_bind} ${simgpath}/cnvkit.sif cnvkit.py export seg \
     ${cnvkit_cnr} \
     -o ${sampleID}.cnvkit.cnr.seg
+
+    singularity exec  \
+    --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
+    --query \
+    --query_vcf ${sampleID}.cnvkit.vcf \
+    --sqdb ${cnvkitSVDB} > ${sampleID}.cnvkit.AFanno.vcf 
+
+    ${gatk_exec} SelectVariants -R ${genome_fasta} \
+    -V ${sampleID}.cnvkit.AFanno.vcf  \
+    -select "FRQ<0.05" \
+    -O ${sampleID}.cnvkit.AFanno.frq_below5pct.vcf
+
     """
 }
 
@@ -1065,14 +1095,14 @@ process merge4callerSVDB {
     --merge \
     --overlap 0.6 \
     --vcf ${manta_vcf}:MANTA ${lumpy_vcf}:LUMPY ${cnvkit_vcf}:CNVKIT ${tiddit_vcf}:TIDDIT \
-    --priority LUMPY,MANTA,CNVKIT,TIDDIT > ${sampleID}.4caller.SVDB.merged.60pctOverlap.vcf
+    --priority LUMPY,MANTA,CNVKIT,TIDDIT > ${sampleID}.4caller.SVDB.5pctAF.60pctOverlap.vcf
 
     singularity exec  \
     --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
     --merge \
     --overlap 0.8 \
     --vcf ${manta_vcf}:MANTA ${lumpy_vcf}:LUMPY ${cnvkit_vcf}:CNVKIT ${tiddit_vcf}:TIDDIT \
-    --priority LUMPY,MANTA,CNVKIT,TIDDIT > ${sampleID}.4caller.SVDB.merged.80pctOverlap.vcf
+    --priority LUMPY,MANTA,CNVKIT,TIDDIT > ${sampleID}.4caller.SVDB.5pctAF.80pctOverlap.vcf
 
 
     singularity exec  \
@@ -1080,7 +1110,7 @@ process merge4callerSVDB {
     --merge \
     --overlap 1.0 \
     --vcf ${manta_vcf}:MANTA ${lumpy_vcf}:LUMPY ${cnvkit_vcf}:CNVKIT ${tiddit_vcf}:TIDDIT \
-    --priority LUMPY,MANTA,CNVKIT,TIDDIT > ${sampleID}.4caller.SVDB.merged.100pctOverlap.vcf
+    --priority LUMPY,MANTA,CNVKIT,TIDDIT > ${sampleID}.4caller.SVDB.5pctAF.100pctOverlap.vcf
     """
 }
 
