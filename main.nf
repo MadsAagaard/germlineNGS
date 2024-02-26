@@ -517,7 +517,7 @@ workflow.onComplete {
         """.stripIndent()
 
         // Send the email using the built-in sendMail function
-        sendMail(to: 'Rasmus.Hojrup.Pausgaard@rsyd.dk', subject: 'Pipeline Update', body: body)
+        sendMail(to: 'Rasmus.Hojrup.Pausgaard@rsyd.dk,Mads.Jorgensen@rsyd.dk', subject: 'Pipeline Update', body: body)
 
         // Check if --keepwork was specified
         if (!params.keepwork) {
