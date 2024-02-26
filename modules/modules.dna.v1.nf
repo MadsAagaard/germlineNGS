@@ -126,10 +126,10 @@ switch (params.genome) {
 
 
         //inhouse SV AF databases: 
-        mantaSVDB="{svdb_databases}/mantaSVDB.db"
-        lumpySVDB="{svdb_databases}/lumpySVDB.db"
-        cnvkitSVDB="{svdb_databases}/cnvkitSVDB.db"
-        tidditSVDB="{svdb_databases}/tidditSVDB.db"
+        mantaSVDB="${svdb_databases}/mantaSVDB.db"
+        lumpySVDB="${svdb_databases}/lumpySVDB.db"
+        cnvkitSVDB="${svdb_databases}/cnvkitSVDB.db"
+        tidditSVDB="${svdb_databases}/tidditSVDB.db"
 
 
 
