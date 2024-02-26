@@ -1086,7 +1086,7 @@ process merge4callerSVDB {
     input:
     tuple val(sampleID), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(tiddit_vcf) // from single_4caller_for_svdb
     output:
-    path("${sampleID}.4caller.SVDB.merged.*")
+    path("${sampleID}.4caller.SVDB.*")
 
     script:
     """
