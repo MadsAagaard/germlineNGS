@@ -304,6 +304,7 @@ process inputCram_copy{
     tuple val(sampleID), path(aln),path(index)
     script:
     """
+    sleep 120
     """
 }
 
