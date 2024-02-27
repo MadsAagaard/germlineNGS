@@ -912,7 +912,8 @@ process manta {
     ${gatk_exec} SelectVariants -R ${genome_fasta} \
     -V ${sampleID}.manta.AFanno.vcf \
     --exclude-filtered \
-    -select "FRQ<0.05" \
+    -select "FRQ>0.05" \
+    -invert-select \
     -O ${sampleID}.manta.AFanno.frq_below5pct.vcf
 
     """
@@ -987,7 +988,8 @@ process lumpy {
 
     ${gatk_exec} SelectVariants -R ${genome_fasta} \
     -V ${sampleID}.lumpy.AFanno.vcf  \
-    -select "FRQ<0.05" \
+    -select "FRQ>0.05" \
+    -invert-select \
     -O ${sampleID}.lumpy.AFanno.frq_below5pct.vcf
 
     """
@@ -1029,7 +1031,8 @@ process tiddit361 {
 
     ${gatk_exec} SelectVariants -R ${genome_fasta} \
     -V ${sampleID}.tiddit.AFanno.vcf  \
-    -select "FRQ<0.05" \
+    -select "FRQ>0.05" \
+    -invert-select \
     -O ${sampleID}.tiddit.AFanno.frq_below5pct.vcf
 
     """
@@ -1106,7 +1109,8 @@ process cnvkitExportFiles {
 
     ${gatk_exec} SelectVariants -R ${genome_fasta} \
     -V ${sampleID}.cnvkit.AFanno.vcf  \
-    -select "FRQ<0.05" \
+    -select "FRQ>0.05" \
+    -invert-select \
     -O ${sampleID}.cnvkit.AFanno.frq_below5pct.vcf
 
     """
