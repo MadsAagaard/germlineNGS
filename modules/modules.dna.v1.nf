@@ -819,9 +819,6 @@ process jointgenoScatter{
     path("${params.rundir}.merged.RAW.{vcf,vcf.idx}")// into merged_RAW_vcf_scatter
     path("${params.rundir}.merged.WES_ROI.*")
     
-    when:
-    !params.single
-
     script:
     """
     ${gatk_exec} CombineGVCFs \
