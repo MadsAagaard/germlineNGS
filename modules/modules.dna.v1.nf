@@ -788,7 +788,7 @@ process mergeScatteredGVCF{
     ${gatk_exec} CombineGVCFs \
     -R ${genome_fasta} \
     ${sub_gvcf.collect { "-V $it " }.join()} \
-    --OUTPUT ${sampleID}.g.vcf
+    -O ${sampleID}.g.vcf
     
     ${gatk_exec} --java-options "-Xmx4G -XX:+UseParallelGC -XX:ParallelGCThreads=30" GenotypeGVCFs \
     -R ${genome_fasta} \
