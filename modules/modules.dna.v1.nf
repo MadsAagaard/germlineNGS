@@ -727,7 +727,7 @@ process haplotypecallerSplitIntervals {
     -O ${sampleID}.${sub_intID}.g.vcf
     """
 }
-
+/*
 process mergeScatteredGVCF{
     errorStrategy 'ignore'
     tag "$sampleID"
@@ -748,6 +748,46 @@ process mergeScatteredGVCF{
     """
     ${gatk_exec} SortVcf \
     ${sub_gvcf.collect { "--INPUT $it " }.join()} \
+    --OUTPUT ${sampleID}.g.vcf
+    
+    ${gatk_exec} --java-options "-Xmx4G -XX:+UseParallelGC -XX:ParallelGCThreads=30" GenotypeGVCFs \
+    -R ${genome_fasta} \
+    -V ${sampleID}.g.vcf \
+    -O ${sampleID}.HC.vcf 
+
+    ${gatk_exec} SelectVariants \
+    -R ${genome_fasta} \
+    -V ${sampleID}.HC.vcf \
+    -L ${ROI} \
+    -O ${sampleID}.WES_ROI.vcf
+
+    ${gatk_exec} IndexFeatureFile \
+    -I ${sampleID}.WES_ROI.vcf
+    """
+}
+*/
+
+process mergeScatteredGVCF{
+    errorStrategy 'ignore'
+    tag "$sampleID"
+    publishDir "${outputDir}/Variants/", mode: 'copy'
+    maxForks 9
+
+    input:
+
+    tuple val(sampleID), path(sub_gvcf), path(sub_gvcf_idx)// from hc_split_output.groupTuple()
+    
+    output:
+    path("${sampleID}.*")
+    tuple val(sampleID), path("${sampleID}.HC.vcf"),path("${sampleID}.HC*.idx"), emit: hc_singlesamplevcf_ch1
+
+    path("${sampleID}.g.vcf"), emit: sample_gvcf_list_scatter
+    path("*.WES_ROI.*")
+    script:
+    """
+    ${gatk_exec} CombineGVCFs \
+    -R ${genome_fasta} \
+    ${sub_gvcf.collect { "-V $it " }.join()} \
     --OUTPUT ${sampleID}.g.vcf
     
     ${gatk_exec} --java-options "-Xmx4G -XX:+UseParallelGC -XX:ParallelGCThreads=30" GenotypeGVCFs \
