@@ -35,7 +35,8 @@ switch (params.server) {
         multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
         tank_storage="/home/mmaj/tank.kga/data/data.storage.archive/";
         refFilesDir="/fast/shared/genomes";
-        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";
+        //params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";
+        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/scattertest/*.interval_list"
      //   params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter10_IntervalSubdiv/*.interval_list";
 
         //modules_dir="/home/mmaj/scripts_lnx01/nextflow_lnx01/dsl2/modules/";
@@ -258,6 +259,7 @@ GATK ver.    : $gatk_image
 Server       : $params.server
 RunID        : $runID
 PanelID      : $panelID
+IntervalList : $params.intervals_list
 Script start : $date2
 """
 
@@ -773,7 +775,7 @@ process jointgenoScatter{
     val x //from gvcfsamples_for_GATK_scatter
 
     output:
-    path("${params.rundir}.merged.g.{vcf,idx}") //into merged_gVCF_scatter
+    //path("${params.rundir}.merged.g.{vcf,idx}") //into merged_gVCF_scatter
     path("${params.rundir}.merged.RAW.{vcf,vcf.idx}")// into merged_RAW_vcf_scatter
     path("${params.rundir}.merged.WES_ROI.*")
     
@@ -1339,8 +1341,8 @@ workflow SUB_VARIANTCALL_WGS {
     meta_aln_index
     main:
     haplotypecallerSplitIntervals(meta_aln_index.combine(haplotypecallerIntervalList))
-    haplotypecallerSplitIntervals.out.view()
-    mergeScatteredGVCF(haplotypecallerSplitIntervals.out)
+    haplotypecallerSplitIntervals.out.groupTuple().view()
+    mergeScatteredGVCF(haplotypecallerSplitIntervals.out.groupTuple())
     
     mergeScatteredGVCF.out.sample_gvcf_list_scatter
     .map{" -V "+ it }
@@ -1350,10 +1352,9 @@ workflow SUB_VARIANTCALL_WGS {
     .collectFile(name: "collectfileTEST_scatter.txt", newLine: false)
     .map {it.text.trim()}.set {gvcfsamples_for_GATK_scatter}
 
-gvcfsamples_for_GATK_scatter.view()
-    if (!params.single) {
+//    if (!params.single) {
         jointgenoScatter(gvcfsamples_for_GATK_scatter)
-    }
+//    }
 }
 
 workflow SUB_CNV_SV {
