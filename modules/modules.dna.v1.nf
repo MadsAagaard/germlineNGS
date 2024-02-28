@@ -36,8 +36,8 @@ switch (params.server) {
         tank_storage="/home/mmaj/tank.kga/data/data.storage.archive/";
         refFilesDir="/fast/shared/genomes";
         //params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";
-        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/scattertest/*.interval_list"
-     //   params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter10_IntervalSubdiv/*.interval_list";
+
+        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter10_IntervalSubdiv/*.interval_list";
 
         //modules_dir="/home/mmaj/scripts_lnx01/nextflow_lnx01/dsl2/modules/";
     break;
