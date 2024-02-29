@@ -127,11 +127,11 @@ switch (params.genome) {
 
 
         //inhouse SV AF databases: 
-        mantaSVDB="${svdb_databases}/mantaSVDB.db"
-        lumpySVDB="${svdb_databases}/lumpySVDB.db"
-        cnvkitSVDB="${svdb_databases}/cnvkitSVDB.db"
-        tidditSVDB="${svdb_databases}/tidditSVDB.db"
-
+        mantaSVDB="${svdb_databases}/mantaSVDB315.db"
+        lumpySVDB="${svdb_databases}/lumpySVDB218.db"
+        cnvkitSVDB="${svdb_databases}/cnvkitSVDB313.db"
+        //tidditSVDB="${svdb_databases}/tidditSVDB.db"
+        dellySVDB="${svdb_databases}/dellySVDB112.db
 
 
         //Repeat Expansions:
@@ -248,7 +248,7 @@ channel
 
 log.info """\
 ===============================================
-Clinical Genetics Vejle: Germline NGS v1
+Clinical Genetics Vejle: GermlineNGS main
 Panels or WGS analysis
 ===============================================
 Genome       : $params.genome
@@ -367,9 +367,9 @@ process markAdapters {
 process align {
     tag "$sampleID"
 
-    maxForks 5
+    maxForks 6
     errorStrategy 'ignore'
-    cpus 20
+    cpus 40
 
     input:
     tuple val(sampleID), path(uBAM), path(metrics)
@@ -992,6 +992,44 @@ process lumpy {
     """
 }
 
+process delly126 {
+    errorStrategy 'ignore'
+    tag "$sampleID"
+    publishDir "${inhouse_SV}/delly/raw_calls/", mode: 'copy', pattern: "*.raw.*"
+    publishDir "${outputDir}/structuralVariants/delly/", mode: 'copy'
+    //publishDir "${outputDir}/structuralVariants/manta/", mode: 'copy', pattern: "*.{AFanno,filtered}.*"
+    cpus 1
+    maxForks 20
+
+    input:
+    tuple val(sampleID), path(aln), path(index)
+
+    output:
+    tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.delly.raw.vcf")
+    tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.delly.AFanno.frq_below5pct.vcf"), emit: dellyForSVDB
+    script:
+    """
+    /data/shared/programmer/BIN/delly126 call \
+    -g ${genome_fasta} \
+    ${aln} > ${sampleID}.${params.genome}.${genome_version}.delly.raw.vcf
+
+    singularity exec  \
+    --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
+    --query \
+    --query_vcf ${sampleID}.${params.genome}.${genome_version}.delly.raw.vcf \
+    --sqdb ${dellySVDB} > ${sampleID}.${params.genome}.${genome_version}.delly.AFanno.vcf 
+
+    ${gatk_exec} SelectVariants -R ${genome_fasta} \
+    -V ${sampleID}.${params.genome}.${genome_version}.delly.AFanno.vcf  \
+    -select "FRQ>0.05" \
+    -invert-select \
+    -O ${sampleID}.${params.genome}.${genome_version}.delly.AFanno.frq_below5pct.vcf
+
+    """
+
+}
+
+
 process tiddit361 {
     errorStrategy 'ignore'
     tag "$sampleID"
@@ -1127,7 +1165,8 @@ process merge4callerSVDB {
     //container 'kfdrc/manta:1.6.0'
     maxForks 12
     input:
-    tuple val(sampleID), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(tiddit_vcf) // from single_4caller_for_svdb
+   // tuple val(sampleID), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(tiddit_vcf) // from single_4caller_for_svdb
+   tuple val(sampleID), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(delly_vcf)
     output:
     path("${sampleID}.4caller.SVDB.*")
 
@@ -1137,23 +1176,23 @@ process merge4callerSVDB {
     --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
     --merge \
     --overlap 0.6 \
-    --vcf ${manta_vcf}:MANTA ${lumpy_vcf}:LUMPY ${cnvkit_vcf}:CNVKIT ${tiddit_vcf}:TIDDIT \
-    --priority LUMPY,MANTA,CNVKIT,TIDDIT > ${sampleID}.4caller.SVDB.5pctAF.60pctOverlap.vcf
+    --vcf ${manta_vcf}:MANTA ${lumpy_vcf}:LUMPY ${cnvkit_vcf}:CNVKIT ${delly_vcf}:DELLY \
+    --priority LUMPY,MANTA,CNVKIT,DELLY > ${sampleID}.4callerNEW.SVDB.5pctAF.60pctOverlap.vcf
 
     singularity exec  \
     --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
     --merge \
     --overlap 0.8 \
-    --vcf ${manta_vcf}:MANTA ${lumpy_vcf}:LUMPY ${cnvkit_vcf}:CNVKIT ${tiddit_vcf}:TIDDIT \
-    --priority LUMPY,MANTA,CNVKIT,TIDDIT > ${sampleID}.4caller.SVDB.5pctAF.80pctOverlap.vcf
+    --vcf ${manta_vcf}:MANTA ${lumpy_vcf}:LUMPY ${cnvkit_vcf}:CNVKIT ${delly_vcf}:DELLY \
+    --priority LUMPY,MANTA,CNVKIT,DELLY > ${sampleID}.4callerNEW.SVDB.5pctAF.80pctOverlap.vcf
 
 
     singularity exec  \
     --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
     --merge \
     --overlap 1.0 \
-    --vcf ${manta_vcf}:MANTA ${lumpy_vcf}:LUMPY ${cnvkit_vcf}:CNVKIT ${tiddit_vcf}:TIDDIT \
-    --priority LUMPY,MANTA,CNVKIT,TIDDIT > ${sampleID}.4caller.SVDB.5pctAF.100pctOverlap.vcf
+    --vcf ${manta_vcf}:MANTA ${lumpy_vcf}:LUMPY ${cnvkit_vcf}:CNVKIT ${delly_vcf}:DELLY \
+    --priority LUMPY,MANTA,CNVKIT,DELLY > ${sampleID}.4callerNEW.SVDB.5pctAF.100pctOverlap.vcf
     """
 }
 
@@ -1407,9 +1446,10 @@ workflow SUB_CNV_SV {
     lumpy(meta_aln_index)
     cnvkit(meta_aln_index)
     cnvkitExportFiles(cnvkit.out.CNVcalls, cnvkit.out.CNVcnr)
-    tiddit361(meta_aln_index)
-   //merge4callerSVDB(filter_manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(tiddit361.out.tidditForSVDB))
-    merge4callerSVDB(manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(tiddit361.out.tidditForSVDB))
+    //tiddit361(meta_aln_index)
+    delly126(meta_aln_index)
+    //merge4callerSVDB(filter_manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(tiddit361.out.tidditForSVDB))
+    merge4callerSVDB(manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(delly126.out.dellyForSVDB))
 }
 
 workflow SUB_STR {
