@@ -420,7 +420,7 @@ process markDup_bam {
     script:
     """
     samtools view -h ${aln} \
-    | samblaster | sambamba view -t 8 -S -f bam /dev/stdin | sambamba sort -t 8 --tmpdir=/data/TMP/TMP.${user}/ -o ${sampleID}.${params.genome}.${genome_version}.BWA.MD.bam /dev/stdin
+    | samblaster | sambamba view -t 8 -S -f bam /dev/stdin | sambamba sort -t 8 --tmpdir=${tmpDIR} -o ${sampleID}.${params.genome}.${genome_version}.BWA.MD.bam /dev/stdin
     sambamba index ${sampleID}.${params.genome}.${genome_version}.BWA.MD.bam
     
     samtools view \
@@ -447,7 +447,7 @@ process markDup_cram {
     script:
     """
     samtools view -h ${aln} \
-    | samblaster | sambamba view -t 8 -S -f bam /dev/stdin | sambamba sort -t 8 --tmpdir=/data/TMP/TMP.${user}/ -o /dev/stdout /dev/stdin \
+    | samblaster | sambamba view -t 8 -S -f bam /dev/stdin | sambamba sort -t 8 --tmpdir=${tmpDIR} -o /dev/stdout /dev/stdin \
     |  samtools view \
     -T ${genome_fasta} \
     -C \
