@@ -450,7 +450,7 @@ workflow {
 
         if (params.fastqInput||params.fastq) {
             SUB_PREPROCESS(fq_read_input)
-            
+
             if (!params.skipVariants) {
                 SUB_VARIANTCALL_WGS(SUB_PREPROCESS.out.finalAln)
             }

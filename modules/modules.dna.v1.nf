@@ -457,6 +457,53 @@ process markDup_cram {
     """
 }
 
+process fastp {
+    publishDir "${outputDir}/QC/", mode: 'copy', pattern: '*.{html,json}'
+    cpus 10
+    tag "$sampleID"
+
+    input:
+    tuple val(sampleID), path(r1), path(r2)
+
+    output:
+    path("*.{html,json}"),                                      emit: fastp_results
+    tuple val(sampleID), path("${r1.baseName}.fastp.fq.gz"),path("${r2.baseName}.fastp.fq.gz"),    emit: trimmed_reads
+
+    script:
+    """
+    singularity run -B ${s_bind} \
+    ${simgpath}/fastp.sif \
+    -i ${r1} -I ${r2} \
+    -o ${r1.baseName}.fastp.fq.gz -O ${r2.baseName}.fastp.fq.gz \
+    --json ${sampleID}.fastp.json \
+    --html ${sampleID}.fastp.html \
+    -w ${task.cpus}
+    """
+}
+
+process align_FAST {
+    //publishDir "${outputDir}/QC/", mode: 'copy', pattern: '*.{html,json}'
+    cpus 40
+    tag "$sampleID"
+
+    input:
+    tuple val(sampleID), path(r1), path(r2)
+
+    output:
+    tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.FAST.BWA.clean.bam")
+
+    script:
+    """
+    singularity run -B ${s_bind} ${simgpath}/bwa0717.sif bwa mem \
+    -t ${task.cpus} \
+    ${genome_fasta} \
+    -R "@RG\tID:${runID}\tLB:${runtype}\tPL:illumina\tSM:${sampleID}" \
+    ${r1} ${r2} \
+    -M \
+    | sambamba view -t 10 -S -f bam /dev/stdin -o ${sampleID}.${params.genome}.${genome_version}.FAST.BWA.clean.bam
+    """
+}
+
 
 // QC PROCESSES
 
@@ -1287,7 +1334,7 @@ process smnCopyNumberCaller {
 /////////////////////////////////////////////////////////////
 /// SUBWORKFLOWS meta r1 r2 input channel///////
 /////////////////////////////////////////////////////////////
-
+/*
 workflow SUB_PREPROCESS {
 
     take:
@@ -1299,6 +1346,21 @@ workflow SUB_PREPROCESS {
     markAdapters(fastq_to_ubam.out[0])
     align(markAdapters.out)
     markDup_cram(align.out)
+    //markDup_v3_cram.out.markDup_output.view()
+    emit:
+    finalAln=markDup_cram.out.markDup_output
+}
+*/
+workflow SUB_PREPROCESS {
+
+    take:
+    fq_read_input
+    
+    main:
+    inputFiles_symlinks_fq(fq_read_input)
+    fastp(fq_read_input)
+    align_FAST(fastp.out.trimmed_reads)
+    markDup_cram(align_FAST.out)
     //markDup_v3_cram.out.markDup_output.view()
     emit:
     finalAln=markDup_cram.out.markDup_output
