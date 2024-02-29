@@ -498,7 +498,6 @@ process align_FAST {
     singularity run -B ${s_bind} ${simgpath}/bwa0717.sif bwa mem \
     -t ${task.cpus} \
     ${genome_fasta} \
-    -R "@RG\tID:${runID}\tLB:${panelID}\tPL:illumina\tSM:${sampleID}" \
     ${r1} ${r2} \
     -M \
     | sambamba view -t 10 -S -f bam /dev/stdin -o ${sampleID}.${params.genome}.${genome_version}.FAST.BWA.clean.bam
