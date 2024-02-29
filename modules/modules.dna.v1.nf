@@ -131,7 +131,7 @@ switch (params.genome) {
         lumpySVDB="${svdb_databases}/lumpySVDB218.db"
         cnvkitSVDB="${svdb_databases}/cnvkitSVDB313.db"
         //tidditSVDB="${svdb_databases}/tidditSVDB.db"
-        dellySVDB="${svdb_databases}/dellySVDB112.db
+        dellySVDB="${svdb_databases}/dellySVDB112.db"
 
 
         //Repeat Expansions:
