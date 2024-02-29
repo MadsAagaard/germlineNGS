@@ -460,6 +460,7 @@ process markDup_cram {
 process fastp {
     publishDir "${outputDir}/QC/", mode: 'copy', pattern: '*.{html,json}'
     cpus 20
+    maxForks 8
     tag "$sampleID"
 
     input:
