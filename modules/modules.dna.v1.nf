@@ -813,7 +813,58 @@ process mergeScatteredGVCF{
     """
 }
 */
+process combineGVCF {
+    errorStrategy 'ignore'
+    tag "$sampleID"
+    publishDir "${outputDir}/Variants/", mode: 'copy'
+    maxForks 9
 
+    input:
+
+    tuple val(sampleID), path(sub_gvcf), path(sub_gvcf_idx)// from hc_split_output.groupTuple()
+    
+    output:
+    tuple val(sampleID), path("${sampleID}.g.vcf"), emit: singleGVCF
+    path("${sampleID}.g.vcf"), emit: sample_gvcf_list_scatter
+    script:
+    """
+    ${gatk_exec} CombineGVCFs \
+    -R ${genome_fasta} \
+    ${sub_gvcf.collect { "-V $it " }.join()} \
+    -O ${sampleID}.g.vcf
+    """
+}
+process genotypeSingle {
+    errorStrategy 'ignore'
+    tag "$sampleID"
+    publishDir "${outputDir}/Variants/", mode: 'copy'
+    maxForks 9
+
+    input:
+    tuple val(sampleID), path(gvcf)
+    output:
+    path("${sampleID}.*")
+    script:
+    """
+    ${gatk_exec} --java-options "-Xmx4G -XX:+UseParallelGC -XX:ParallelGCThreads=30" GenotypeGVCFs \
+    -R ${genome_fasta} \
+    -V ${gvcf} \
+    -O ${sampleID}.HC.vcf 
+
+    ${gatk_exec} SelectVariants \
+    -R ${genome_fasta} \
+    -V ${sampleID}.HC.vcf \
+    -L ${ROI} \
+    -O ${sampleID}.WES_ROI.vcf
+
+    ${gatk_exec} IndexFeatureFile \
+    -I ${sampleID}.WES_ROI.vcf
+    """
+
+
+}
+
+/*
 process mergeScatteredGVCF{
     errorStrategy 'ignore'
     tag "$sampleID"
@@ -852,7 +903,7 @@ process mergeScatteredGVCF{
     -I ${sampleID}.WES_ROI.vcf
     """
 }
-
+*/
 
 process jointgenoScatter{
     errorStrategy 'ignore'
@@ -862,7 +913,6 @@ process jointgenoScatter{
     val x //from gvcfsamples_for_GATK_scatter
 
     output:
-    //path("${params.rundir}.merged.g.{vcf,idx}") //into merged_gVCF_scatter
     path("${params.rundir}.merged.RAW.{vcf,vcf.idx}")// into merged_RAW_vcf_scatter
     path("${params.rundir}.merged.WES_ROI.*")
     
@@ -911,12 +961,9 @@ process manta {
     tuple val(sampleID), path(aln), path(index)
 
     output:
-
     path("${sampleID}.manta.*.{vcf,vcf.gz,gz.tbi}")
-    
-   //  tuple val(sampleID), path("${sampleID}.manta.INVconverted.vcf"), emit: manta
-//    tuple val(sampleID), path("${sampleID}.manta.diploidSV.vcf.gz"), path("${sampleID}.manta.diploidSV.vcf.gz.tbi"), emit: manta
     tuple val(sampleID), path("${sampleID}.manta.AFanno.frq_below5pct.vcf"), emit: mantaForSVDB
+
     script:
     """
     singularity run -B ${s_bind} ${simgpath}/manta1.6_strelka2.9.10.sif configManta.py \
@@ -962,30 +1009,7 @@ process manta {
 
     """
 }
-// INCOMPLETE SV MERGE AF AND FILTERING
-/*
-process filter_manta {
-    tag "$sampleID"
-    errorStrategy 'ignore'
 
-    publishDir "${inhouse_SV}/manta/filtered/", mode: 'copy', pattern: "*.filtered.vcf"
-    publishDir "${outputDir}/structuralVariants/manta/", mode: 'copy', pattern: "*.filtered.vcf"
-    
-    input:
-    tuple val(sampleID), path(vcf), path(idx)
-
-    output:
-    tuple val(sampleID), path("${sampleID}.manta.filtered.vcf"), emit: mantaForSVDB
-    
-    script:
-    """
-    ${gatk_exec} SelectVariants -R ${genome_fasta} \
-    -V ${vcf} \
-    --exclude-filtered \
-    -O ${sampleID}.manta.filtered.vcf
-    """
-}
-*/
 process lumpy {
     errorStrategy 'ignore'
     tag "$sampleID"
@@ -996,11 +1020,7 @@ process lumpy {
     maxForks 6
 
     input:
-
     tuple val(sampleID), path(aln), path(index)
-    //    path(genome_fasta)
-    //    path(genome_fasta_fai)
-    //    path(genome_fasta_dict)
 
     output:
     tuple val(sampleID), path("${sampleID}.lumpy.AFanno.frq_below5pct.vcf"), emit: lumpyForSVDB
@@ -1076,49 +1096,6 @@ process delly126 {
 
 }
 
-
-process tiddit361 {
-    errorStrategy 'ignore'
-    tag "$sampleID"
-    publishDir "${inhouse_SV}/tiddit/PASSED_calls/", mode: 'copy', pattern: "*.PASS.vcf"
-    publishDir "${inhouse_SV}/tiddit/RAW_calls/", mode: 'copy', pattern: "*.tiddit.vcf"
-    publishDir "${outputDir}/structuralVariants/tiddit/", mode: 'copy'
-    
-    cpus 2
-    maxForks 15
-
-    input:
-    tuple val(sampleID), path(aln), path(index) 
-
-    output:
-    tuple val(sampleID), path("*.{vcf,tab}"), emit: tiddit_out_ch
-    tuple val(sampleID), path("${sampleID}.tiddit.AFanno.frq_below5pct.vcf"), emit: tidditForSVDB
-    script:
-    """
-    singularity run -B ${s_bind} ${simgpath}/tiddit361.sif tiddit \
-    --sv \
-    --bam ${aln} \
-    --threads ${task.cpus} \
-    -q 10 \
-    --ref ${genome_fasta} \
-    -o ${sampleID}_tiddit
-
-    cat ${sampleID}_tiddit.vcf | grep -E "#|PASS" > ${sampleID}_tiddit.PASS.vcf
-
-    singularity exec  \
-    --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
-    --query \
-    --query_vcf ${sampleID}_tiddit.PASS.vcf \
-    --sqdb ${tidditSVDB} > ${sampleID}.tiddit.AFanno.vcf 
-
-    ${gatk_exec} SelectVariants -R ${genome_fasta} \
-    -V ${sampleID}.tiddit.AFanno.vcf  \
-    -select "FRQ>0.05" \
-    -invert-select \
-    -O ${sampleID}.tiddit.AFanno.frq_below5pct.vcf
-
-    """
-}
 
 process cnvkit {
     errorStrategy 'ignore'
@@ -1334,7 +1311,7 @@ process smnCopyNumberCaller {
 /////////////////////////////////////////////////////////////
 /// SUBWORKFLOWS meta r1 r2 input channel///////
 /////////////////////////////////////////////////////////////
-/*
+
 workflow SUB_PREPROCESS {
 
     take:
@@ -1350,7 +1327,7 @@ workflow SUB_PREPROCESS {
     emit:
     finalAln=markDup_cram.out.markDup_output
 }
-*/
+/*
 workflow SUB_PREPROCESS {
 
     take:
@@ -1365,7 +1342,7 @@ workflow SUB_PREPROCESS {
     emit:
     finalAln=markDup_cram.out.markDup_output
 }
-
+*/
 
 /////////////////////////////////////////////////////////////
 /// SUBWORKFLOWS meta-aln-index input channel///////
@@ -1477,13 +1454,13 @@ workflow SUB_VARIANTCALL {
         spliceAI(jointgenotyping.out.spliceAI_input)
     }
 }
-
+/*
 workflow SUB_VARIANTCALL_WGS {
     take:
     meta_aln_index
     main:
     haplotypecallerSplitIntervals(meta_aln_index.combine(haplotypecallerIntervalList))
-    haplotypecallerSplitIntervals.out.groupTuple().view()
+    haplotypecallerSplitIntervals.out.groupTuple()
     mergeScatteredGVCF(haplotypecallerSplitIntervals.out.groupTuple())
     
     mergeScatteredGVCF.out.sample_gvcf_list_scatter
@@ -1494,11 +1471,32 @@ workflow SUB_VARIANTCALL_WGS {
     .collectFile(name: "collectfileTEST_scatter.txt", newLine: false)
     .map {it.text.trim()}.set {gvcfsamples_for_GATK_scatter}
 
-//    if (!params.single) {
+    //    if (!params.single) {
         jointgenoScatter(gvcfsamples_for_GATK_scatter)
-//    }
+    //    }
 }
+*/
 
+workflow SUB_VARIANTCALL_WGS {
+    take:
+    meta_aln_index
+    main:
+    haplotypecallerSplitIntervals(meta_aln_index.combine(haplotypecallerIntervalList))
+    combineGVCF(haplotypecallerSplitIntervals.out.groupTuple())
+    genotypeSingle(combineGVCF.out.singleGVCF)
+
+    //    if (!params.single) {
+    combineGVCF.out.sample_gvcf_list_scatter
+    .map{" -V "+ it }
+    .set{gvcflist_scatter_done}
+    
+    gvcflist_scatter_done
+    .collectFile(name: "collectfileTEST_scatter.txt", newLine: false)
+    .map {it.text.trim()}.set {gvcfsamples_for_GATK_scatter}
+
+    jointgenoScatter(gvcfsamples_for_GATK_scatter)
+    //    }
+}
 workflow SUB_CNV_SV {
     take:
     meta_aln_index
