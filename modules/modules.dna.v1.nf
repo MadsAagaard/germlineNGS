@@ -341,6 +341,7 @@ process fastq_to_ubam {
     -PL illumina \
     -PU KGA_PU \
     -RG KGA_RG \
+    --TMP_DIR ${tmpDIR} \
     -O ${sampleID}.unmapped.from.fq.bam
     """
 }
@@ -398,6 +399,7 @@ process align {
     -MAX_GAPS -1 \
     -ORIENTATIONS FR \
     -SO queryname \
+    --TMP_DIR ${tmpDIR} \
     -O ${sampleID}.${params.genome}.${genome_version}.QNsort.BWA.clean.bam
     """
 }
