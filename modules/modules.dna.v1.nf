@@ -370,7 +370,7 @@ process align {
 
     maxForks 6
     errorStrategy 'ignore'
-    cpus 40
+    cpus 60
 
     input:
     tuple val(sampleID), path(uBAM), path(metrics)
