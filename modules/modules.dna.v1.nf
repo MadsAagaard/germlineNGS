@@ -1299,7 +1299,7 @@ workflow SUB_PREPROCESS {
     markAdapters(fastq_to_ubam.out[0])
     align(markAdapters.out)
     markDup_cram(align.out)
-    //markDup_v3_cram.out.markDup_output.view()
+    //markDup_v3_cram.out.markDup_output
     emit:
     finalAln=markDup_cram.out.markDup_output
 }
@@ -1421,7 +1421,7 @@ workflow SUB_VARIANTCALL_WGS {
     meta_aln_index
     main:
     haplotypecallerSplitIntervals(meta_aln_index.combine(haplotypecallerIntervalList))
-    haplotypecallerSplitIntervals.out.groupTuple().view()
+    haplotypecallerSplitIntervals.out.groupTuple()
     mergeScatteredGVCF(haplotypecallerSplitIntervals.out.groupTuple())
     
     mergeScatteredGVCF.out.sample_gvcf_list_scatter
