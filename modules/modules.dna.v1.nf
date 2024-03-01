@@ -1194,7 +1194,7 @@ process merge4callerSVDB {
    // tuple val(sampleID), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(tiddit_vcf) // from single_4caller_for_svdb
    tuple val(sampleID), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(delly_vcf)
     output:
-    path("${sampleID}.4caller.SVDB.*")
+    path("${sampleID}.4callerNEW.SVDB.*")
 
     script:
     """
