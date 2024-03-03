@@ -244,7 +244,7 @@ if (params.fastq) {
 
 if (!params.fastq && params.fastqInput) {
 
-    params.reads="${dataArchive}/{lnx01,kga01_novaRuns,tank_kga_external_archive}/**/${reads_pattern_fastq}"
+    params.reads="${dataArchive}/{lnx01,lnx02,kga01_novaRuns,tank_kga_external_archive}/**/${reads_pattern_fastq}"
 }
 
 
@@ -332,8 +332,8 @@ if (params.cram && !params.panel) {
 // If only samplesheet is provided, use CRAM from archive as input (default setup)!
 
 if (params.samplesheet && !params.cram && !params.fastqInput && !params.fastq) {
-    cramfiles="${dataArchive}/{lnx01,tank_kga_external_archive}/**/${reads_pattern_cram}"
-    craifiles="${dataArchive}/{lnx01,tank_kga_external_archive}/**/${reads_pattern_crai}"
+    cramfiles="${dataArchive}/{lnx01,lnx02,tank_kga_external_archive}/**/${reads_pattern_cram}"
+    craifiles="${dataArchive}/{lnx01,lnx02,tank_kga_external_archive}/**/${reads_pattern_crai}"
 
     Channel
     .fromPath(cramfiles)
