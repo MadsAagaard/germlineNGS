@@ -1191,8 +1191,8 @@ process merge4callerSVDB {
     //container 'kfdrc/manta:1.6.0'
     maxForks 12
     input:
-   // tuple val(sampleID), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(tiddit_vcf) // from single_4caller_for_svdb
-   tuple val(sampleID), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(delly_vcf)
+    // tuple val(sampleID), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(tiddit_vcf) // from single_4caller_for_svdb
+    tuple val(sampleID), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(delly_vcf)
     output:
     path("${sampleID}.4callerNEW.SVDB.*")
 
