@@ -508,14 +508,15 @@ workflow {
 
 }
 
+
 workflow.onComplete {
-    // only send email if --nomail is not specified and duration is longer than 20 minutes /1200000 milliseconds
+    // only send email if --nomail is not specified, the user is mmaj or raspau and duration is longer than 20 minutes / 1200000 milliseconds
     if (!params.nomail && workflow.duration > 1200000) {
         if (System.getenv("USER") in ["raspau", "mmaj"]) {
             def sequencingRun = params.cram ? new File(params.cram).getName().take(6) :
                                params.fastq ? new File(params.fastq).getName().take(6) : 'Not provided'
 
-            // checks if there is OBS samples in the cram folder
+            // Checks if there are OBS samples in the cram folder
             def obsSampleMessage = ""
             if (params.panel == "AV1" && params.cram) {
                 def cramDir = new File(params.cram)
@@ -527,52 +528,53 @@ workflow.onComplete {
 
             def workDirMessage = params.keepwork ? "WorkDir             : ${workflow.workDir}" : "WorkDir             : Deleted"
 
-            
+            // Correctly set the outputDir
+            def outputDir = "${launchDir}/Results"
+
             def body = """\
             Pipeline execution summary
             ---------------------------
             Pipeline completed  : ${params.panel}
-            Sequencing run      : ${sequencingRun}
-            Duration            : ${workflow.duration}
+            Sequencing run      : ${sequencingRun}${obsSampleMessage}
             Completed at        : ${workflow.complete}
+            Duration            : ${workflow.duration}
             Success             : ${workflow.success}
             ${workDirMessage}
-            OutputDir           : ${params.outdir ?: 'Not specified'}
+            OutputDir           : ${outputDir}
             Exit status         : ${workflow.exitStatus}
             ${obsSampleMessage}
             """.stripIndent()
 
-            // Send email using the built-in sendMail function
+            // Send the email using the built-in sendMail function
             sendMail(to: 'Andreas.Braae.Holmgaard@rsyd.dk,Annabeth.Hogh.Petersen@rsyd.dk,Isabella.Almskou@rsyd.dk,Jesper.Graakjaer@rsyd.dk,Lene.Bjornkjaer@rsyd.dk,Martin.Sokol@rsyd.dk,Mads.Jorgensen@rsyd.dk,Rasmus.Hojrup.Pausgaard@rsyd.dk,Signe.Skou.Tofteng@rsyd.dk', subject: 'Pipeline Update', body: body)
-        }
-    }
 
-    // Håndter sletning af WorkDir baseret på --keepwork parameter
-    if (!params.keepwork) {
-        println("Deleting work directory: ${workflow.workDir}")
-        "rm -rf ${workflow.workDir}".execute()
-    }
+            // Check if --keepwork was specified
+            if (!params.keepwork) {
+                // If --keepwork was not specified, delete the work directory
+                println("Deleting work directory: ${workflow.workDir}")
+                "rm -rf ${workflow.workDir}".execute()
+            }
+        }
+    }    
 }
 
-
 workflow.onError {
-    if (System.getenv("USER") in ["raspau", "mmaj"]) {
-        // Custom message to be sent when the workflow completes
-        def sequencingRun = params.cram ? new File(params.cram).getName().take(6) :
+    // Custom message to be sent when the workflow completes
+    def sequencingRun = params.cram ? new File(params.cram).getName().take(6) :
                    params.fastq ? new File(params.fastq).getName().take(6) : 'Not provided'
 
-        def body = """\
-        Pipeline execution summary
-        ---------------------------
-        Pipeline completed  : ${params.panel}
-        Sequencing run      : ${sequencingRun}
-        Duration            : ${workflow.duration}
-        Failed              : ${workflow.failed}
-        WorkDir             : ${workflow.workDir}
-        Exit status         : ${workflow.exitStatus}
-        """.stripIndent()
+    def body = """\
+    Pipeline execution summary
+    ---------------------------
+    Pipeline completed  : ${params.panel}
+    Sequencing run      : ${sequencingRun}
+    Duration            : ${workflow.duration}
+    Failed              : ${workflow.failed}
+    WorkDir             : ${workflow.workDir}
+    Exit status         : ${workflow.exitStatus}
+    """.stripIndent()
 
-        // Send the email using the built-in sendMail function
-        sendMail(to: 'Mads.Jorgensen@rsyd.dk,Rasmus.Hojrup.Pausgaard@rsyd.dk', subject: 'Pipeline Update', body: body)
-    }
+    // Send the email using the built-in sendMail function
+    sendMail(to: 'Mads.Jorgensen@rsyd.dk,Rasmus.Hojrup.Pausgaard@rsyd.dk', subject: 'Pipeline Update', body: body)
+
 }
