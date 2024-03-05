@@ -1090,6 +1090,7 @@ process delly126 {
 
     ${gatk_exec} SelectVariants -R ${genome_fasta} \
     -V ${sampleID}.${params.genome}.${genome_version}.delly.AFanno.vcf  \
+    --exclude-filtered \
     -select "FRQ>0.05" \
     -invert-select \
     -O ${sampleID}.${params.genome}.${genome_version}.delly.AFanno.frq_below5pct.vcf
