@@ -1195,7 +1195,7 @@ process merge4callerSVDB {
     tuple val(sampleID), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(delly_vcf)
     output:
     path("${sampleID}.4callerNEW.SVDB.*")
-
+    path("${sampleID}.*.SVDB.*")
     script:
     """
     singularity exec  \
