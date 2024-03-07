@@ -35,11 +35,10 @@ switch (params.server) {
         multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
         tank_storage="/home/mmaj/tank.kga/data/data.storage.archive/";
         refFilesDir="/fast/shared/genomes";
+        dataStorage="/lnx01_data3/storage/";
         params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";
 
-        //params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter10_IntervalSubdiv/*.interval_list";
 
-        //modules_dir="/home/mmaj/scripts_lnx01/nextflow_lnx01/dsl2/modules/";
     break;
     case 'lnx01':
         s_bind="/data/:/data/,/lnx01_data2/:/lnx01_data2/";
@@ -48,7 +47,7 @@ switch (params.server) {
         gatk_exec="singularity run -B ${s_bind} ${simgpath}/${gatk_image} gatk";
         multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
         tank_storage="/home/mmaj/tank.kga2/data/data.storage.archive/";
-        modules_dir="/home/mmaj/scripts_lnx01/nextflow_lnx01/dsl2/modules/";
+        dataStorage="/lnx01_data3/storage/";
         refFilesDir="/data/shared/genomes";
         params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter10_IntervalSubdiv/*.interval_list";
 //        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/wgs_splitinterval_BWI_subdivision3/*.interval_list";
@@ -185,59 +184,68 @@ switch (params.genome) {
 switch (params.panel) {
     case "AV1":
         ROI="${AV1_ROI}";
-        panelID="AV1"
+        panelID="AV1";
+        panelID_storage="AV1"
     break;
 
     case "CV5":
         ROI="${CV5_ROI}";
-        panelID="CV5"
+        panelID="CV5";
+        panelID_storage="deprecated_panels"
     break;
 
     case "GV3":
         ROI="${GV3_ROI}";
-        panelID="GV3"
+        panelID="GV3";
+        panelID_storage="deprecated_panels"
     break;
 
     case "GV_TEST":
         ROI="${GV3_ROI}";
-        panelID="GV_TEST"
+        panelID="GV_TEST";
+        panelID_storage="deprecated_panels"
     break;
 
     case "MUC1":
         ROI="${MV1_ROI}";
         panelID="MUC1_MV1"
+        panelID_storage="MV1"
     break;
 
     case "WES_2":
         ROI="${WES_ROI}";
-        panelID="WES"
+        panelID="WES";
+        panelID_storage="WES"
     break;
 
     case "WES":
         ROI="${WES_ROI}";
-        panelID="WES_subpanel"
+        panelID="WES_subpanel";
+        panelID_storage="WES"
     break;
 
     case "WGS_CNV":
         ROI="${WES_ROI}";
-        panelID="WGS_CNV"
+        panelID="WGS_CNV";
+        panelID_storage="WGS"
     break;
     
     default: 
         ROI="${WES_ROI}";
-        panelID="WGS"
+        panelID="WGS";
+        panelID_storage="WGS"
     break;
 }
 
 
 if (!params.archiveStorage) {
 outputDir="${params.outdir}/"
+storageDir="${dataStorage}/alignedData/${params.genome}/"
 }
 
 if (params.archiveStorage) {
 outputDir="${tank_storage}/alignedData/${params.genome}/${params.outdir}/"
 }
-
 
 
 channel
@@ -247,10 +255,10 @@ channel
 
 
 log.info """\
-===============================================
-Clinical Genetics Vejle: GermlineNGS main
+======================================================
+Clinical Genetics Vejle: GermlineNGS FAST revision
 Panels or WGS analysis
-===============================================
+======================================================
 Genome       : $params.genome
 Genome FASTA : $genome_fasta
 ROI          : $ROI
@@ -296,7 +304,8 @@ process inputFiles_symlinks_cram{
     """
 }
 
-process inputCram_copy{
+
+process inputFiles_cramCopy{
     errorStrategy 'ignore'
     publishDir "${outputDir}/input_CRAM/", mode: 'copy', pattern: '*.{ba,cr}*'
     input:
@@ -645,7 +654,7 @@ process haplotypecaller{
         publishDir "${outputDir}/Variants/per_sample/", mode: 'copy', pattern: "*.HC.*"
         publishDir "${outputDir}/Variants/GVCF_files/", mode: 'copy', pattern: "*.g.*"
         publishDir "${outputDir}/HaplotypeCallerBAMout/", mode: 'copy', pattern: "*.HCbamout.*"
-            
+        publishDir "${storageDir}/gVCF/${panelID_storage}/", mode: 'copy', pattern:'*.g.vc*' //
         input:
         tuple val(sampleID), path(aln), path(aln_index)
     
@@ -819,6 +828,7 @@ process combineGVCF {
     errorStrategy 'ignore'
     tag "$sampleID"
     publishDir "${outputDir}/Variants/", mode: 'copy'
+    publishDir "${storageDir}/gVCF/${panelID_storage}/", mode: 'copy', pattern:'*.g.vc*' // storageDir= /lnx01_data3/storage/alignedData/hg38/
     maxForks 9
 
     input:
@@ -1497,8 +1507,9 @@ workflow SUB_VARIANTCALL_WGS {
     .collectFile(name: "collectfileTEST_scatter.txt", newLine: false)
     .map {it.text.trim()}.set {gvcfsamples_for_GATK_scatter}
 
-    jointgenoScatter(gvcfsamples_for_GATK_scatter)
-    //    }
+    if (!params.skipJointGenotyping) {
+        jointgenoScatter(gvcfsamples_for_GATK_scatter)
+    }
 }
 workflow SUB_CNV_SV {
     take:

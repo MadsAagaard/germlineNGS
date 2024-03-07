@@ -412,7 +412,7 @@ channel
 include { 
          // Symlinks:
          inputFiles_symlinks_cram;
-         inputCram_copy;
+         inputFiles_cramCopy;
          // Preprocess tools:
          //QC tools
          samtools;
@@ -487,19 +487,19 @@ workflow {
 
             if (params.copyCram) {
                 inputFiles_symlinks_cram(meta_aln_index)
-                inputCram_copy(meta_aln_index)
+                inputFiles_cramCopy(meta_aln_index)
             
                 if (!params.skipVariants) {
-                    SUB_VARIANTCALL_WGS(inputCram_copy.out)
+                    SUB_VARIANTCALL_WGS(inputFiles_cramCopy.out)
                 }
                 if (!params.skipSV) {
-                    SUB_CNV_SV(inputCram_copy.out)
+                    SUB_CNV_SV(inputFiles_cramCopy.out)
                 }
                 if (!params.skipSTR) {
-                    SUB_STR(inputCram_copy.out)
+                    SUB_STR(inputFiles_cramCopy.out)
                 }
                 if (!params.skipSMN) {
-                    SUB_SMN(inputCram_copy.out)
+                    SUB_SMN(inputFiles_cramCopy.out)
                 }
             }
         }
