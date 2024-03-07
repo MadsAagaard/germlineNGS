@@ -19,6 +19,7 @@ params.fastq                    =null
 params.archiveStorage           =null
 params.lnx01_storage            =null
 params.skipSpliceAI             =null
+params.skipJointGenotyping      =null
 params.fastqInput               =null
 params.skipSV                   =null
 params.skipVariants             =null
@@ -427,8 +428,6 @@ include {
          SUB_CNV_SV;
          SUB_STR;
          SUB_SMN } from "./modules/modules.dna.v1.nf" 
-
-
 
 
 workflow QC {
