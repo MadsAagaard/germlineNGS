@@ -240,7 +240,8 @@ switch (params.panel) {
 
 if (!params.archiveStorage) {
 outputDir="${params.outdir}/"
-storageDir="${dataStorage}/alignedData/${params.genome}/"
+variantStorage="${dataStorage}/variantStorage/${params.genome}/"
+cramStorage="${dataStorage}/alignedData/${params.genome}/"
 }
 
 if (params.archiveStorage) {
@@ -654,7 +655,7 @@ process haplotypecaller{
         publishDir "${outputDir}/Variants/per_sample/", mode: 'copy', pattern: "*.HC.*"
         publishDir "${outputDir}/Variants/GVCF_files/", mode: 'copy', pattern: "*.g.*"
         publishDir "${outputDir}/HaplotypeCallerBAMout/", mode: 'copy', pattern: "*.HCbamout.*"
-        publishDir "${storageDir}/gVCF/${panelID_storage}/", mode: 'copy', pattern:'*.g.vc*' //
+        publishDir "${variantStorage}/gVCF/${panelID_storage}/", mode: 'copy', pattern:'*.g.vc*' //
         input:
         tuple val(sampleID), path(aln), path(aln_index)
     
@@ -828,7 +829,7 @@ process combineGVCF {
     errorStrategy 'ignore'
     tag "$sampleID"
     publishDir "${outputDir}/Variants/", mode: 'copy'
-    publishDir "${storageDir}/gVCF/${panelID_storage}/", mode: 'copy', pattern:'*.g.vc*' // storageDir= /lnx01_data3/storage/alignedData/hg38/
+    publishDir "${variantStorage}/gVCF/${panelID_storage}/", mode: 'copy', pattern:'*.g.vc*' // storageDir= /lnx01_data3/storage/alignedData/hg38/
     maxForks 9
 
     input:
