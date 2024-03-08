@@ -260,7 +260,7 @@ if (!params.samplesheet && params.fastq) {
     .filter {it =~/R1/}
     .map { tuple(it.baseName.tokenize('-').get(0)+"_"+it.baseName.tokenize('-').get(1),it) }
     .set { sampleid_R1}
-sampleid_R1.view()
+
     Channel
     .fromPath(params.reads, checkIfExists: true)
     .filter {it =~/R2/}
@@ -269,7 +269,7 @@ sampleid_R1.view()
 
     sampleid_R1.join(sampleid_R2)
     .set { read_pairs_ch }
-
+read_pairs_ch.view()
 }
 
 if (params.samplesheet && params.fastq || params.fastqInput) {
