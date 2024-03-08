@@ -257,13 +257,13 @@ if (!params.samplesheet && params.fastq) {
 // If NOT samplesheet (std panel run), set sampleID == NPN_PANEL_SUBPANEL
     Channel
     .fromPath(params.reads, checkIfExists: true)
-    .filter {it =~/_R1_/}
+    .filter {it =~/R1/}
     .map { tuple(it.baseName.tokenize('-').get(0)+"_"+it.baseName.tokenize('-').get(1),it) }
     .set { sampleid_R1}
 
     Channel
     .fromPath(params.reads, checkIfExists: true)
-    .filter {it =~/_R2_/}
+    .filter {it =~/R2/}
     .map { tuple(it.baseName.tokenize('-').get(0)+"_"+it.baseName.tokenize('-').get(1),it) }
     .set { sampleid_R2 }
 
