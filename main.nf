@@ -265,7 +265,6 @@ if (!params.samplesheet && params.fastq) {
 //    .map { it -> [it[0]+"_"+params.panel+"_"+params.genome, file(it[1][0]),file(it[1][1])] }
     .map { it -> [it[0], file(it[1][0]),file(it[1][1])] }
     .set { read_pairs_ch }
-read_pairs_ch.view()
 
 /*
 
