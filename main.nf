@@ -255,6 +255,20 @@ if (!params.fastq && params.fastqInput) {
 
 if (!params.samplesheet && params.fastq) {
 // If NOT samplesheet (std panel run), set sampleID == NPN_PANEL_SUBPANEL
+
+
+    params.reads="${params.fastq}/*{.,_,-}{R1,R2}*.gz"
+
+ Channel
+    .fromFilePairs(params.reads, checkIfExists: true)
+    .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
+//    .map { it -> [it[0]+"_"+params.panel+"_"+params.genome, file(it[1][0]),file(it[1][1])] }
+    .map { it -> [it[0], file(it[1][0]),file(it[1][1])] }
+    .set { read_pairs_ch }
+read_pairs_ch.view()
+
+/*
+
     Channel
     .fromPath(params.reads, checkIfExists: true)
     .filter {it =~/R1/}
@@ -270,6 +284,8 @@ if (!params.samplesheet && params.fastq) {
     sampleid_R1.join(sampleid_R2)
     .set { read_pairs_ch }
 read_pairs_ch.view()
+*/
+
 }
 
 if (params.samplesheet && params.fastq || params.fastqInput) {
