@@ -1462,11 +1462,10 @@ workflow SUB_VARIANTCALL {
             .set {gvcfsamples_for_GATK}
     }
 
-    jointgenotyping(gvcfsamples_for_GATK)
-    
-    if (panelID=="AV1" && params.server!="kga01"){
-        spliceAI(jointgenotyping.out.spliceAI_input)
+    if (!params.skipJointGenotyping) {
+        jointgenotyping(gvcfsamples_for_GATK)
     }
+
 }
 /*
 workflow SUB_VARIANTCALL_WGS {
