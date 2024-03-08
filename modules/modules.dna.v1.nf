@@ -1079,7 +1079,7 @@ process delly126 {
     publishDir "${outputDir}/structuralVariants/delly/", mode: 'copy'
     //publishDir "${outputDir}/structuralVariants/manta/", mode: 'copy', pattern: "*.{AFanno,filtered}.*"
     cpus 1
-    maxForks 20
+    maxForks 10
 
     input:
     tuple val(sampleID), path(aln), path(index)
