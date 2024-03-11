@@ -35,11 +35,10 @@ switch (params.server) {
         multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
         tank_storage="/home/mmaj/tank.kga/data/data.storage.archive/";
         refFilesDir="/fast/shared/genomes";
-        //params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";
+        dataStorage="/lnx01_data3/storage/";
+        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";
 
-        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter10_IntervalSubdiv/*.interval_list";
 
-        //modules_dir="/home/mmaj/scripts_lnx01/nextflow_lnx01/dsl2/modules/";
     break;
     case 'lnx01':
         s_bind="/data/:/data/,/lnx01_data2/:/lnx01_data2/";
@@ -48,7 +47,7 @@ switch (params.server) {
         gatk_exec="singularity run -B ${s_bind} ${simgpath}/${gatk_image} gatk";
         multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
         tank_storage="/home/mmaj/tank.kga2/data/data.storage.archive/";
-        modules_dir="/home/mmaj/scripts_lnx01/nextflow_lnx01/dsl2/modules/";
+        dataStorage="/lnx01_data3/storage/";
         refFilesDir="/data/shared/genomes";
         params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter10_IntervalSubdiv/*.interval_list";
 //        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/wgs_splitinterval_BWI_subdivision3/*.interval_list";
@@ -185,59 +184,69 @@ switch (params.genome) {
 switch (params.panel) {
     case "AV1":
         ROI="${AV1_ROI}";
-        panelID="AV1"
+        panelID="AV1";
+        panelID_storage="AV1"
     break;
 
     case "CV5":
         ROI="${CV5_ROI}";
-        panelID="CV5"
+        panelID="CV5";
+        panelID_storage="deprecated_panels"
     break;
 
     case "GV3":
         ROI="${GV3_ROI}";
-        panelID="GV3"
+        panelID="GV3";
+        panelID_storage="deprecated_panels"
     break;
 
     case "GV_TEST":
         ROI="${GV3_ROI}";
-        panelID="GV_TEST"
+        panelID="GV_TEST";
+        panelID_storage="deprecated_panels"
     break;
 
     case "MUC1":
         ROI="${MV1_ROI}";
         panelID="MUC1_MV1"
+        panelID_storage="MV1"
     break;
 
     case "WES_2":
         ROI="${WES_ROI}";
-        panelID="WES"
+        panelID="WES";
+        panelID_storage="WES"
     break;
 
     case "WES":
         ROI="${WES_ROI}";
-        panelID="WES_subpanel"
+        panelID="WES_subpanel";
+        panelID_storage="WES"
     break;
 
     case "WGS_CNV":
         ROI="${WES_ROI}";
-        panelID="WGS_CNV"
+        panelID="WGS_CNV";
+        panelID_storage="WGS"
     break;
     
     default: 
         ROI="${WES_ROI}";
-        panelID="WGS"
+        panelID="WGS";
+        panelID_storage="WGS"
     break;
 }
 
 
 if (!params.archiveStorage) {
 outputDir="${params.outdir}/"
+variantStorage="${dataStorage}/variantStorage/${params.genome}/"
+cramStorage="${dataStorage}/alignedData/${params.genome}/"
 }
 
 if (params.archiveStorage) {
 outputDir="${tank_storage}/alignedData/${params.genome}/${params.outdir}/"
 }
-
 
 
 channel
@@ -247,10 +256,10 @@ channel
 
 
 log.info """\
-===============================================
-Clinical Genetics Vejle: GermlineNGS main
+======================================================
+Clinical Genetics Vejle: GermlineNGS FAST revision
 Panels or WGS analysis
-===============================================
+======================================================
 Genome       : $params.genome
 Genome FASTA : $genome_fasta
 ROI          : $ROI
@@ -296,7 +305,8 @@ process inputFiles_symlinks_cram{
     """
 }
 
-process inputCram_copy{
+
+process inputFiles_cramCopy{
     errorStrategy 'ignore'
     publishDir "${outputDir}/input_CRAM/", mode: 'copy', pattern: '*.{ba,cr}*'
     input:
@@ -341,6 +351,7 @@ process fastq_to_ubam {
     -PL illumina \
     -PU KGA_PU \
     -RG KGA_RG \
+    --TMP_DIR ${tmpDIR} \
     -O ${sampleID}.unmapped.from.fq.bam
     """
 }
@@ -369,7 +380,7 @@ process align {
 
     maxForks 6
     errorStrategy 'ignore'
-    cpus 40
+    cpus 60
 
     input:
     tuple val(sampleID), path(uBAM), path(metrics)
@@ -398,6 +409,7 @@ process align {
     -MAX_GAPS -1 \
     -ORIENTATIONS FR \
     -SO queryname \
+    --TMP_DIR ${tmpDIR} \
     -O ${sampleID}.${params.genome}.${genome_version}.QNsort.BWA.clean.bam
     """
 }
@@ -454,6 +466,53 @@ process markDup_cram {
     -o ${sampleID}.${params.genome}.${genome_version}.BWA.MD.cram -
 
     samtools index ${sampleID}.${params.genome}.${genome_version}.BWA.MD.cram
+    """
+}
+
+process fastp {
+    publishDir "${outputDir}/QC/", mode: 'copy', pattern: '*.{html,json}'
+    cpus 20
+    maxForks 8
+    tag "$sampleID"
+
+    input:
+    tuple val(sampleID), path(r1), path(r2)
+
+    output:
+    path("*.{html,json}"),                                      emit: fastp_results
+    tuple val(sampleID), path("${r1.baseName}.fastp.fq.gz"),path("${r2.baseName}.fastp.fq.gz"),    emit: trimmed_reads
+
+    script:
+    """
+    singularity run -B ${s_bind} \
+    ${simgpath}/fastp.sif \
+    -i ${r1} -I ${r2} \
+    -o ${r1.baseName}.fastp.fq.gz -O ${r2.baseName}.fastp.fq.gz \
+    --json ${sampleID}.fastp.json \
+    --html ${sampleID}.fastp.html \
+    -w ${task.cpus}
+    """
+}
+
+process align_FAST {
+    //publishDir "${outputDir}/QC/", mode: 'copy', pattern: '*.{html,json}'
+    cpus 40
+    tag "$sampleID"
+
+    input:
+    tuple val(sampleID), path(r1), path(r2)
+
+    output:
+    tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.FAST.BWA.clean.bam")
+
+    script:
+    """
+    singularity run -B ${s_bind} ${simgpath}/bwa0717.sif bwa mem \
+    -t ${task.cpus} \
+    ${genome_fasta} \
+    ${r1} ${r2} \
+    -M \
+    | sambamba view -t 10 -S -f bam /dev/stdin -o ${sampleID}.${params.genome}.${genome_version}.FAST.BWA.clean.bam
     """
 }
 
@@ -596,7 +655,7 @@ process haplotypecaller{
         publishDir "${outputDir}/Variants/per_sample/", mode: 'copy', pattern: "*.HC.*"
         publishDir "${outputDir}/Variants/GVCF_files/", mode: 'copy', pattern: "*.g.*"
         publishDir "${outputDir}/HaplotypeCallerBAMout/", mode: 'copy', pattern: "*.HCbamout.*"
-            
+        publishDir "${variantStorage}/gVCF/${panelID_storage}/", mode: 'copy', pattern:'*.g.vc*' //
         input:
         tuple val(sampleID), path(aln), path(aln_index)
     
@@ -605,7 +664,7 @@ process haplotypecaller{
 
         tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.g.vcf"), emit: HC_sid_gvcf
     
-        tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.HC.vcf"), path("${sampleID}.${params.genome}.${genome_version}.HC.vcf.idx"), emit: HC_sid_vcf
+        tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.HC.*")
 
         path("${sampleID}.${params.genome}.${genome_version}.g.*")
         path("${sampleID}.${params.genome}.${genome_version}.HCbamout.*")
@@ -624,13 +683,13 @@ process haplotypecaller{
         --native-pair-hmm-threads 4 \
         -pairHMM FASTEST_AVAILABLE \
         --dont-use-soft-clipped-bases \
-        -O ${sampleID}.${params.genome}.${genome_version}.g.vcf \
+        -O ${sampleID}.${params.genome}.${genome_version}.g.vcf.gz \
         -bamout ${sampleID}.${params.genome}.${genome_version}.HCbamout.bam
     
         ${gatk_exec} GenotypeGVCFs \
         -R ${genome_fasta} \
-        -V ${sampleID}.${params.genome}.${genome_version}.g.vcf \
-        -O ${sampleID}.${params.genome}.${genome_version}.HC.vcf \
+        -V ${sampleID}.${params.genome}.${genome_version}.g.vcf.gz \
+        -O ${sampleID}.${params.genome}.${genome_version}.HC.vcf.gz \
         -G StandardAnnotation \
         -G AS_StandardAnnotation
         """
@@ -648,23 +707,23 @@ process jointgenotyping {
         tuple val(panelID), val(subpanel_gvcf) 
         //tuple val(sampleID),  path(vcf),path(idx) from joint_geno_dummy_ch
         output:
-        //path("${params.rundir}.${params.panel}.merged.g.*") into merged_gVCF
+
         path("*.for.VarSeq.*")
-        tuple val(panelID), path("${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.for.VarSeq.vcf"), emit: spliceAI_input
+//        tuple val(panelID), path("${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.for.VarSeq.*"), emit: spliceAI_input
 
         script:
         """
         ${gatk_exec} --java-options "-Xmx64g" CombineGVCFs \
         -R ${genome_fasta} \
         ${subpanel_gvcf} \
-        -O ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.g.vcf \
+        -O ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.g.vcf.gz \
         -L ${ROI} \
         -G StandardAnnotation -G AS_StandardAnnotation 
 
         ${gatk_exec} GenotypeGVCFs \
         -R ${genome_fasta} \
-        -V ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.g.vcf \
-        -O ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.for.VarSeq.vcf  \
+        -V ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.g.vcf.gz \
+        -O ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.for.VarSeq.vcf.gz  \
         -L ${ROI} \
         -G StandardAnnotation -G AS_StandardAnnotation -A SampleList \
         -D ${dbsnp}
@@ -766,7 +825,59 @@ process mergeScatteredGVCF{
     """
 }
 */
+process combineGVCF {
+    errorStrategy 'ignore'
+    tag "$sampleID"
+    //publishDir "${outputDir}/Variants/", mode: 'copy', pattern:
+    publishDir "${variantStorage}/gVCF/${panelID_storage}/", mode: 'copy', pattern:'*.g.vc*' // storageDir= /lnx01_data3/storage/alignedData/hg38/
+    maxForks 9
 
+    input:
+
+    tuple val(sampleID), path(sub_gvcf), path(sub_gvcf_idx)// from hc_split_output.groupTuple()
+    
+    output:
+    tuple val(sampleID), path("${sampleID}.g.vcf.gz"), emit: singleGVCF
+    path("${sampleID}.g.vcf.gz"), emit: sample_gvcf_list_scatter
+    script:
+    """
+    ${gatk_exec} CombineGVCFs \
+    -R ${genome_fasta} \
+    ${sub_gvcf.collect { "-V $it " }.join()} \
+    -O ${sampleID}.g.vcf.gz
+    """
+}
+process genotypeSingle {
+    errorStrategy 'ignore'
+    tag "$sampleID"
+    publishDir "${outputDir}/Variants/", mode: 'copy'
+    maxForks 9
+
+    input:
+    tuple val(sampleID), path(gvcf)
+    output:
+    path("${sampleID}.*")
+    script:
+    """
+    ${gatk_exec} --java-options "-Xmx4G -XX:+UseParallelGC -XX:ParallelGCThreads=30" GenotypeGVCFs \
+    -R ${genome_fasta} \
+    -V ${gvcf} \
+    -O ${sampleID}.HC.vcf 
+
+    ${gatk_exec} SelectVariants \
+    -R ${genome_fasta} \
+    -V ${sampleID}.HC.vcf \
+    -L ${ROI} \
+    -O ${sampleID}.WES_ROI.vcf
+
+    ${gatk_exec} IndexFeatureFile \
+    -I ${sampleID}.WES_ROI.vcf
+    """
+
+
+}
+
+/*
 process mergeScatteredGVCF{
     errorStrategy 'ignore'
     tag "$sampleID"
@@ -805,7 +916,7 @@ process mergeScatteredGVCF{
     -I ${sampleID}.WES_ROI.vcf
     """
 }
-
+*/
 
 process jointgenoScatter{
     errorStrategy 'ignore'
@@ -815,31 +926,30 @@ process jointgenoScatter{
     val x //from gvcfsamples_for_GATK_scatter
 
     output:
-    //path("${params.rundir}.merged.g.{vcf,idx}") //into merged_gVCF_scatter
-    path("${params.rundir}.merged.RAW.{vcf,vcf.idx}")// into merged_RAW_vcf_scatter
+    path("${params.rundir}.merged.RAW.*}")// into merged_RAW_vcf_scatter
     path("${params.rundir}.merged.WES_ROI.*")
     
     script:
     """
     ${gatk_exec} CombineGVCFs \
     -R ${genome_fasta} ${x} \
-    -O ${params.rundir}.merged.g.vcf \
+    -O ${params.rundir}.merged.g.vcf.gz \
     -G StandardAnnotation -G AS_StandardAnnotation 
 
     ${gatk_exec} GenotypeGVCFs \
     -R ${genome_fasta} \
-    -V ${params.rundir}.merged.g.vcf \
-    -O ${params.rundir}.merged.RAW.vcf  \
+    -V ${params.rundir}.merged.g.vcf.gz \
+    -O ${params.rundir}.merged.RAW.vcf.gz  \
     -G StandardAnnotation -G AS_StandardAnnotation -A SampleList -D ${dbsnp}
     
     ${gatk_exec} SelectVariants \
     -R ${genome_fasta} \
-    -V ${params.rundir}.merged.RAW.vcf \
+    -V ${params.rundir}.merged.RAW.vcf.gz \
     -L ${ROI} \
-    -O ${params.rundir}.merged.WES_ROI.vcf
+    -O ${params.rundir}.merged.WES_ROI.vcf.gz
 
     ${gatk_exec} IndexFeatureFile \
-    -I ${params.rundir}.merged.WES_ROI.vcf
+    -I ${params.rundir}.merged.WES_ROI.vcf.gz
     """     
 }
 
@@ -864,12 +974,9 @@ process manta {
     tuple val(sampleID), path(aln), path(index)
 
     output:
-
     path("${sampleID}.manta.*.{vcf,vcf.gz,gz.tbi}")
-    
-   //  tuple val(sampleID), path("${sampleID}.manta.INVconverted.vcf"), emit: manta
-//    tuple val(sampleID), path("${sampleID}.manta.diploidSV.vcf.gz"), path("${sampleID}.manta.diploidSV.vcf.gz.tbi"), emit: manta
     tuple val(sampleID), path("${sampleID}.manta.AFanno.frq_below5pct.vcf"), emit: mantaForSVDB
+
     script:
     """
     singularity run -B ${s_bind} ${simgpath}/manta1.6_strelka2.9.10.sif configManta.py \
@@ -915,30 +1022,7 @@ process manta {
 
     """
 }
-// INCOMPLETE SV MERGE AF AND FILTERING
-/*
-process filter_manta {
-    tag "$sampleID"
-    errorStrategy 'ignore'
 
-    publishDir "${inhouse_SV}/manta/filtered/", mode: 'copy', pattern: "*.filtered.vcf"
-    publishDir "${outputDir}/structuralVariants/manta/", mode: 'copy', pattern: "*.filtered.vcf"
-    
-    input:
-    tuple val(sampleID), path(vcf), path(idx)
-
-    output:
-    tuple val(sampleID), path("${sampleID}.manta.filtered.vcf"), emit: mantaForSVDB
-    
-    script:
-    """
-    ${gatk_exec} SelectVariants -R ${genome_fasta} \
-    -V ${vcf} \
-    --exclude-filtered \
-    -O ${sampleID}.manta.filtered.vcf
-    """
-}
-*/
 process lumpy {
     errorStrategy 'ignore'
     tag "$sampleID"
@@ -949,11 +1033,7 @@ process lumpy {
     maxForks 6
 
     input:
-
     tuple val(sampleID), path(aln), path(index)
-    //    path(genome_fasta)
-    //    path(genome_fasta_fai)
-    //    path(genome_fasta_dict)
 
     output:
     tuple val(sampleID), path("${sampleID}.lumpy.AFanno.frq_below5pct.vcf"), emit: lumpyForSVDB
@@ -999,7 +1079,7 @@ process delly126 {
     publishDir "${outputDir}/structuralVariants/delly/", mode: 'copy'
     //publishDir "${outputDir}/structuralVariants/manta/", mode: 'copy', pattern: "*.{AFanno,filtered}.*"
     cpus 1
-    maxForks 20
+    maxForks 6
 
     input:
     tuple val(sampleID), path(aln), path(index)
@@ -1021,6 +1101,7 @@ process delly126 {
 
     ${gatk_exec} SelectVariants -R ${genome_fasta} \
     -V ${sampleID}.${params.genome}.${genome_version}.delly.AFanno.vcf  \
+    --exclude-filtered \
     -select "FRQ>0.05" \
     -invert-select \
     -O ${sampleID}.${params.genome}.${genome_version}.delly.AFanno.frq_below5pct.vcf
@@ -1029,49 +1110,6 @@ process delly126 {
 
 }
 
-
-process tiddit361 {
-    errorStrategy 'ignore'
-    tag "$sampleID"
-    publishDir "${inhouse_SV}/tiddit/PASSED_calls/", mode: 'copy', pattern: "*.PASS.vcf"
-    publishDir "${inhouse_SV}/tiddit/RAW_calls/", mode: 'copy', pattern: "*.tiddit.vcf"
-    publishDir "${outputDir}/structuralVariants/tiddit/", mode: 'copy'
-    
-    cpus 2
-    maxForks 15
-
-    input:
-    tuple val(sampleID), path(aln), path(index) 
-
-    output:
-    tuple val(sampleID), path("*.{vcf,tab}"), emit: tiddit_out_ch
-    tuple val(sampleID), path("${sampleID}.tiddit.AFanno.frq_below5pct.vcf"), emit: tidditForSVDB
-    script:
-    """
-    singularity run -B ${s_bind} ${simgpath}/tiddit361.sif tiddit \
-    --sv \
-    --bam ${aln} \
-    --threads ${task.cpus} \
-    -q 10 \
-    --ref ${genome_fasta} \
-    -o ${sampleID}_tiddit
-
-    cat ${sampleID}_tiddit.vcf | grep -E "#|PASS" > ${sampleID}_tiddit.PASS.vcf
-
-    singularity exec  \
-    --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
-    --query \
-    --query_vcf ${sampleID}_tiddit.PASS.vcf \
-    --sqdb ${tidditSVDB} > ${sampleID}.tiddit.AFanno.vcf 
-
-    ${gatk_exec} SelectVariants -R ${genome_fasta} \
-    -V ${sampleID}.tiddit.AFanno.vcf  \
-    -select "FRQ>0.05" \
-    -invert-select \
-    -O ${sampleID}.tiddit.AFanno.frq_below5pct.vcf
-
-    """
-}
 
 process cnvkit {
     errorStrategy 'ignore'
@@ -1165,10 +1203,11 @@ process merge4callerSVDB {
     //container 'kfdrc/manta:1.6.0'
     maxForks 12
     input:
-   // tuple val(sampleID), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(tiddit_vcf) // from single_4caller_for_svdb
-   tuple val(sampleID), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(delly_vcf)
+    // tuple val(sampleID), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(tiddit_vcf) // from single_4caller_for_svdb
+    tuple val(sampleID), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(delly_vcf)
     output:
     path("${sampleID}.4callerNEW.SVDB.*")
+    path("${sampleID}.*.SVDB.*")
 
     script:
     """
@@ -1303,7 +1342,22 @@ workflow SUB_PREPROCESS {
     emit:
     finalAln=markDup_cram.out.markDup_output
 }
+/*
+workflow SUB_PREPROCESS {
 
+    take:
+    fq_read_input
+    
+    main:
+    inputFiles_symlinks_fq(fq_read_input)
+    fastp(fq_read_input)
+    align_FAST(fastp.out.trimmed_reads)
+    markDup_cram(align_FAST.out)
+    //markDup_v3_cram.out.markDup_output.view()
+    emit:
+    finalAln=markDup_cram.out.markDup_output
+}
+*/
 
 /////////////////////////////////////////////////////////////
 /// SUBWORKFLOWS meta-aln-index input channel///////
@@ -1409,13 +1463,12 @@ workflow SUB_VARIANTCALL {
             .set {gvcfsamples_for_GATK}
     }
 
-    jointgenotyping(gvcfsamples_for_GATK)
-    
-    if (panelID=="AV1" && params.server!="kga01"){
-        spliceAI(jointgenotyping.out.spliceAI_input)
+    if (!params.skipJointGenotyping) {
+        jointgenotyping(gvcfsamples_for_GATK)
     }
-}
 
+}
+/*
 workflow SUB_VARIANTCALL_WGS {
     take:
     meta_aln_index
@@ -1432,11 +1485,33 @@ workflow SUB_VARIANTCALL_WGS {
     .collectFile(name: "collectfileTEST_scatter.txt", newLine: false)
     .map {it.text.trim()}.set {gvcfsamples_for_GATK_scatter}
 
-//    if (!params.single) {
+    //    if (!params.single) {
         jointgenoScatter(gvcfsamples_for_GATK_scatter)
-//    }
+    //    }
 }
+*/
 
+workflow SUB_VARIANTCALL_WGS {
+    take:
+    meta_aln_index
+    main:
+    haplotypecallerSplitIntervals(meta_aln_index.combine(haplotypecallerIntervalList))
+    combineGVCF(haplotypecallerSplitIntervals.out.groupTuple())
+    genotypeSingle(combineGVCF.out.singleGVCF)
+
+    //    if (!params.single) {
+    combineGVCF.out.sample_gvcf_list_scatter
+    .map{" -V "+ it }
+    .set{gvcflist_scatter_done}
+    
+    gvcflist_scatter_done
+    .collectFile(name: "collectfileTEST_scatter.txt", newLine: false)
+    .map {it.text.trim()}.set {gvcfsamples_for_GATK_scatter}
+
+    if (!params.skipJointGenotyping) {
+        jointgenoScatter(gvcfsamples_for_GATK_scatter)
+    }
+}
 workflow SUB_CNV_SV {
     take:
     meta_aln_index

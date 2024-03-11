@@ -19,6 +19,7 @@ params.fastq                    =null
 params.archiveStorage           =null
 params.lnx01_storage            =null
 params.skipSpliceAI             =null
+params.skipJointGenotyping      =null
 params.fastqInput               =null
 params.skipSV                   =null
 params.skipVariants             =null
@@ -244,7 +245,7 @@ if (params.fastq) {
 
 if (!params.fastq && params.fastqInput) {
 
-    params.reads="${dataArchive}/{lnx01,kga01_novaRuns,tank_kga_external_archive}/**/${reads_pattern_fastq}"
+    params.reads="${dataArchive}/{lnx01,lnx02,kga01_novaRuns,tank_kga_external_archive}/**/${reads_pattern_fastq}"
 }
 
 
@@ -254,20 +255,35 @@ if (!params.fastq && params.fastqInput) {
 
 if (!params.samplesheet && params.fastq) {
 // If NOT samplesheet (std panel run), set sampleID == NPN_PANEL_SUBPANEL
+
+
+    params.reads="${params.fastq}/*{.,_,-}{R1,R2}*.gz"
+
+ Channel
+    .fromFilePairs(params.reads, checkIfExists: true)
+    .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
+//    .map { it -> [it[0]+"_"+params.panel+"_"+params.genome, file(it[1][0]),file(it[1][1])] }
+    .map { it -> [it[0], file(it[1][0]),file(it[1][1])] }
+    .set { read_pairs_ch }
+
+/*
+
     Channel
     .fromPath(params.reads, checkIfExists: true)
-    .filter {it =~/_R1_/}
+    .filter {it =~/R1/}
     .map { tuple(it.baseName.tokenize('-').get(0)+"_"+it.baseName.tokenize('-').get(1),it) }
     .set { sampleid_R1}
 
     Channel
     .fromPath(params.reads, checkIfExists: true)
-    .filter {it =~/_R2_/}
+    .filter {it =~/R2/}
     .map { tuple(it.baseName.tokenize('-').get(0)+"_"+it.baseName.tokenize('-').get(1),it) }
     .set { sampleid_R2 }
 
     sampleid_R1.join(sampleid_R2)
     .set { read_pairs_ch }
+read_pairs_ch.view()
+*/
 
 }
 
@@ -332,8 +348,8 @@ if (params.cram && !params.panel) {
 // If only samplesheet is provided, use CRAM from archive as input (default setup)!
 
 if (params.samplesheet && !params.cram && !params.fastqInput && !params.fastq) {
-    cramfiles="${dataArchive}/{lnx01,tank_kga_external_archive}/**/${reads_pattern_cram}"
-    craifiles="${dataArchive}/{lnx01,tank_kga_external_archive}/**/${reads_pattern_crai}"
+    cramfiles="${dataArchive}/{lnx01,lnx02,tank_kga_external_archive}/**/${reads_pattern_cram}"
+    craifiles="${dataArchive}/{lnx01,lnx02,tank_kga_external_archive}/**/${reads_pattern_crai}"
 
     Channel
     .fromPath(cramfiles)
@@ -412,7 +428,7 @@ channel
 include { 
          // Symlinks:
          inputFiles_symlinks_cram;
-         inputCram_copy;
+         inputFiles_cramCopy;
          // Preprocess tools:
          //QC tools
          samtools;
@@ -427,8 +443,6 @@ include {
          SUB_CNV_SV;
          SUB_STR;
          SUB_SMN } from "./modules/modules.dna.v1.nf" 
-
-
 
 
 workflow QC {
@@ -450,7 +464,7 @@ workflow {
 
         if (params.fastqInput||params.fastq) {
             SUB_PREPROCESS(fq_read_input)
-            
+
             if (!params.skipVariants) {
                 SUB_VARIANTCALL_WGS(SUB_PREPROCESS.out.finalAln)
             }
@@ -487,19 +501,19 @@ workflow {
 
             if (params.copyCram) {
                 inputFiles_symlinks_cram(meta_aln_index)
-                inputCram_copy(meta_aln_index)
+                inputFiles_cramCopy(meta_aln_index)
             
                 if (!params.skipVariants) {
-                    SUB_VARIANTCALL_WGS(inputCram_copy.out)
+                    SUB_VARIANTCALL_WGS(inputFiles_cramCopy.out)
                 }
                 if (!params.skipSV) {
-                    SUB_CNV_SV(inputCram_copy.out)
+                    SUB_CNV_SV(inputFiles_cramCopy.out)
                 }
                 if (!params.skipSTR) {
-                    SUB_STR(inputCram_copy.out)
+                    SUB_STR(inputFiles_cramCopy.out)
                 }
                 if (!params.skipSMN) {
-                    SUB_SMN(inputCram_copy.out)
+                    SUB_SMN(inputFiles_cramCopy.out)
                 }
             }
         }
