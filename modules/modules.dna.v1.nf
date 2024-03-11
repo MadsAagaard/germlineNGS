@@ -1208,6 +1208,7 @@ process merge4callerSVDB {
     output:
     path("${sampleID}.4callerNEW.SVDB.*")
     path("${sampleID}.*.SVDB.*")
+
     script:
     """
     singularity exec  \
@@ -1337,7 +1338,7 @@ workflow SUB_PREPROCESS {
     markAdapters(fastq_to_ubam.out[0])
     align(markAdapters.out)
     markDup_cram(align.out)
-    //markDup_v3_cram.out.markDup_output.view()
+    //markDup_v3_cram.out.markDup_output
     emit:
     finalAln=markDup_cram.out.markDup_output
 }
