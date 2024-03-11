@@ -529,7 +529,7 @@ workflow.onComplete {
             def workDirMessage = params.keepwork ? "WorkDir             : ${workflow.workDir}" : "WorkDir             : Deleted"
 
             // Correctly set the outputDir
-            def outputDir = "${launchDir}/${launchDir.baseName}/Results"
+            def outputDir = "${launchDir}/${launchDir.baseName}.Results"
 
             def body = """\
             Pipeline execution summary
