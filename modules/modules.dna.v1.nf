@@ -36,8 +36,8 @@ switch (params.server) {
         tank_storage="/home/mmaj/tank.kga/data/data.storage.archive/";
         refFilesDir="/fast/shared/genomes";
         dataStorage="/lnx01_data3/storage/";
-        //params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";
-        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/scattertest/*.interval_list";
+        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";
+        //params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/scattertest/*.interval_list";
 
 
     break;
@@ -745,7 +745,7 @@ process combineGVCF {
     errorStrategy 'ignore'
     tag "$sampleID"
     //publishDir "${outputDir}/Variants/", mode: 'copy', pattern:
-    //publishDir "${variantStorage}/gVCF/${panelID_storage}/", mode: 'copy', pattern:'*.g.vc*' // storageDir= /lnx01_data3/storage/alignedData/hg38/
+    publishDir "${variantStorage}/gVCF/${panelID_storage}/", mode: 'copy', pattern:'*.g.vc*' // storageDir= /lnx01_data3/storage/alignedData/hg38/
     maxForks 9
 
     input:
