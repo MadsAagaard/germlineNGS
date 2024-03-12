@@ -817,14 +817,14 @@ process jointgenoScatter{
     ${gatk_exec} GenotypeGVCFs \
     -R ${genome_fasta} \
     -V ${params.rundir}.merged.g.vcf.gz \
-    -O ${params.rundir}.merged.RAW.vcf.gz  \
+    -O ${params.rundir}.merged.RAW.vcf  \
     -G StandardAnnotation -G AS_StandardAnnotation -A SampleList -D ${dbsnp}
     
     ${gatk_exec} SelectVariants \
     -R ${genome_fasta} \
-    -V ${params.rundir}.merged.RAW.vcf.gz \
+    -V ${params.rundir}.merged.RAW.vcf \
     -L ${ROI} \
-    -O ${params.rundir}.merged.WES_ROI.vcf.gz
+    -O ${params.rundir}.merged.WES_ROI.vcf
 
     """     
 }
