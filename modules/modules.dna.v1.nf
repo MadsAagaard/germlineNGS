@@ -814,8 +814,6 @@ process jointgenoScatter{
     -O ${params.rundir}.merged.g.vcf.gz \
     -G StandardAnnotation -G AS_StandardAnnotation 
 
-    tabix -p vcf ${params.rundir}.merged.g.vcf.gz
-
     ${gatk_exec} GenotypeGVCFs \
     -R ${genome_fasta} \
     -V ${params.rundir}.merged.g.vcf.gz \
