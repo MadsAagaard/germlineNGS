@@ -762,8 +762,7 @@ process combineGVCF {
     ${sub_gvcf.collect { "-V $it " }.join()} \
     -O ${sampleID}.g.vcf.gz
 
-    tabix -p vcf ${sampleID}.g.vcf.gz
-    """
+        """
 }
 
 process genotypeSingle {
