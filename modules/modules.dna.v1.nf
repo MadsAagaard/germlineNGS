@@ -37,6 +37,7 @@ switch (params.server) {
         refFilesDir="/fast/shared/genomes";
         dataStorage="/lnx01_data3/storage/";
         params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";
+        //params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/scattertest/*.interval_list";
 
 
     break;
@@ -469,54 +470,6 @@ process markDup_cram {
     """
 }
 
-process fastp {
-    publishDir "${outputDir}/QC/", mode: 'copy', pattern: '*.{html,json}'
-    cpus 20
-    maxForks 8
-    tag "$sampleID"
-
-    input:
-    tuple val(sampleID), path(r1), path(r2)
-
-    output:
-    path("*.{html,json}"),                                      emit: fastp_results
-    tuple val(sampleID), path("${r1.baseName}.fastp.fq.gz"),path("${r2.baseName}.fastp.fq.gz"),    emit: trimmed_reads
-
-    script:
-    """
-    singularity run -B ${s_bind} \
-    ${simgpath}/fastp.sif \
-    -i ${r1} -I ${r2} \
-    -o ${r1.baseName}.fastp.fq.gz -O ${r2.baseName}.fastp.fq.gz \
-    --json ${sampleID}.fastp.json \
-    --html ${sampleID}.fastp.html \
-    -w ${task.cpus}
-    """
-}
-
-process align_FAST {
-    //publishDir "${outputDir}/QC/", mode: 'copy', pattern: '*.{html,json}'
-    cpus 40
-    tag "$sampleID"
-
-    input:
-    tuple val(sampleID), path(r1), path(r2)
-
-    output:
-    tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.FAST.BWA.clean.bam")
-
-    script:
-    """
-    singularity run -B ${s_bind} ${simgpath}/bwa0717.sif bwa mem \
-    -t ${task.cpus} \
-    ${genome_fasta} \
-    ${r1} ${r2} \
-    -M \
-    | sambamba view -t 10 -S -f bam /dev/stdin -o ${sampleID}.${params.genome}.${genome_version}.FAST.BWA.clean.bam
-    """
-}
-
-
 // QC PROCESSES
 
 process bamtools {
@@ -683,13 +636,13 @@ process haplotypecaller{
         --native-pair-hmm-threads 4 \
         -pairHMM FASTEST_AVAILABLE \
         --dont-use-soft-clipped-bases \
-        -O ${sampleID}.${params.genome}.${genome_version}.g.vcf.gz \
+        -O ${sampleID}.${params.genome}.${genome_version}.g.vcf \
         -bamout ${sampleID}.${params.genome}.${genome_version}.HCbamout.bam
     
         ${gatk_exec} GenotypeGVCFs \
         -R ${genome_fasta} \
-        -V ${sampleID}.${params.genome}.${genome_version}.g.vcf.gz \
-        -O ${sampleID}.${params.genome}.${genome_version}.HC.vcf.gz \
+        -V ${sampleID}.${params.genome}.${genome_version}.g.vcf \
+        -O ${sampleID}.${params.genome}.${genome_version}.HC.vcf \
         -G StandardAnnotation \
         -G AS_StandardAnnotation
         """
@@ -716,14 +669,14 @@ process jointgenotyping {
         ${gatk_exec} --java-options "-Xmx64g" CombineGVCFs \
         -R ${genome_fasta} \
         ${subpanel_gvcf} \
-        -O ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.g.vcf.gz \
+        -O ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.g.vcf \
         -L ${ROI} \
         -G StandardAnnotation -G AS_StandardAnnotation 
 
         ${gatk_exec} GenotypeGVCFs \
         -R ${genome_fasta} \
-        -V ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.g.vcf.gz \
-        -O ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.for.VarSeq.vcf.gz  \
+        -V ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.g.vcf \
+        -O ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.for.VarSeq.vcf  \
         -L ${ROI} \
         -G StandardAnnotation -G AS_StandardAnnotation -A SampleList \
         -D ${dbsnp}
@@ -786,45 +739,8 @@ process haplotypecallerSplitIntervals {
     -O ${sampleID}.${sub_intID}.g.vcf
     """
 }
-/*
-process mergeScatteredGVCF{
-    errorStrategy 'ignore'
-    tag "$sampleID"
-    publishDir "${outputDir}/Variants/", mode: 'copy'
-    maxForks 9
 
-    input:
 
-    tuple val(sampleID), path(sub_gvcf), path(sub_gvcf_idx)// from hc_split_output.groupTuple()
-    
-    output:
-    path("${sampleID}.*")
-    tuple val(sampleID), path("${sampleID}.HC.vcf"),path("${sampleID}.HC*.idx"), emit: hc_singlesamplevcf_ch1
-
-    path("${sampleID}.g.vcf"), emit: sample_gvcf_list_scatter
-    path("*.WES_ROI.*")
-    script:
-    """
-    ${gatk_exec} SortVcf \
-    ${sub_gvcf.collect { "--INPUT $it " }.join()} \
-    --OUTPUT ${sampleID}.g.vcf
-    
-    ${gatk_exec} --java-options "-Xmx4G -XX:+UseParallelGC -XX:ParallelGCThreads=30" GenotypeGVCFs \
-    -R ${genome_fasta} \
-    -V ${sampleID}.g.vcf \
-    -O ${sampleID}.HC.vcf 
-
-    ${gatk_exec} SelectVariants \
-    -R ${genome_fasta} \
-    -V ${sampleID}.HC.vcf \
-    -L ${ROI} \
-    -O ${sampleID}.WES_ROI.vcf
-
-    ${gatk_exec} IndexFeatureFile \
-    -I ${sampleID}.WES_ROI.vcf
-    """
-}
-*/
 process combineGVCF {
     errorStrategy 'ignore'
     tag "$sampleID"
@@ -837,7 +753,7 @@ process combineGVCF {
     tuple val(sampleID), path(sub_gvcf), path(sub_gvcf_idx)// from hc_split_output.groupTuple()
     
     output:
-    tuple val(sampleID), path("${sampleID}.g.vcf.gz"), emit: singleGVCF
+    tuple val(sampleID), path("${sampleID}.g.vcf.gz"), path("${sampleID}.g.*.tbi"), emit: singleGVCF
     path("${sampleID}.g.vcf.gz"), emit: sample_gvcf_list_scatter
     script:
     """
@@ -845,8 +761,10 @@ process combineGVCF {
     -R ${genome_fasta} \
     ${sub_gvcf.collect { "-V $it " }.join()} \
     -O ${sampleID}.g.vcf.gz
-    """
+
+        """
 }
+
 process genotypeSingle {
     errorStrategy 'ignore'
     tag "$sampleID"
@@ -854,7 +772,7 @@ process genotypeSingle {
     maxForks 9
 
     input:
-    tuple val(sampleID), path(gvcf)
+    tuple val(sampleID), path(gvcf),path(index)
     output:
     path("${sampleID}.*")
     script:
@@ -877,46 +795,6 @@ process genotypeSingle {
 
 }
 
-/*
-process mergeScatteredGVCF{
-    errorStrategy 'ignore'
-    tag "$sampleID"
-    publishDir "${outputDir}/Variants/", mode: 'copy'
-    maxForks 9
-
-    input:
-
-    tuple val(sampleID), path(sub_gvcf), path(sub_gvcf_idx)// from hc_split_output.groupTuple()
-    
-    output:
-    path("${sampleID}.*")
-    tuple val(sampleID), path("${sampleID}.HC.vcf"),path("${sampleID}.HC*.idx"), emit: hc_singlesamplevcf_ch1
-
-    path("${sampleID}.g.vcf"), emit: sample_gvcf_list_scatter
-    path("*.WES_ROI.*")
-    script:
-    """
-    ${gatk_exec} CombineGVCFs \
-    -R ${genome_fasta} \
-    ${sub_gvcf.collect { "-V $it " }.join()} \
-    -O ${sampleID}.g.vcf
-    
-    ${gatk_exec} --java-options "-Xmx4G -XX:+UseParallelGC -XX:ParallelGCThreads=30" GenotypeGVCFs \
-    -R ${genome_fasta} \
-    -V ${sampleID}.g.vcf \
-    -O ${sampleID}.HC.vcf 
-
-    ${gatk_exec} SelectVariants \
-    -R ${genome_fasta} \
-    -V ${sampleID}.HC.vcf \
-    -L ${ROI} \
-    -O ${sampleID}.WES_ROI.vcf
-
-    ${gatk_exec} IndexFeatureFile \
-    -I ${sampleID}.WES_ROI.vcf
-    """
-}
-*/
 
 process jointgenoScatter{
     errorStrategy 'ignore'
@@ -926,8 +804,8 @@ process jointgenoScatter{
     val x //from gvcfsamples_for_GATK_scatter
 
     output:
-    path("${params.rundir}.merged.RAW.*}")// into merged_RAW_vcf_scatter
-    path("${params.rundir}.merged.WES_ROI.*")
+    path("*.merged.RAW.*")// into merged_RAW_vcf_scatter
+    path("*.merged.WES_ROI.*")
     
     script:
     """
@@ -939,17 +817,15 @@ process jointgenoScatter{
     ${gatk_exec} GenotypeGVCFs \
     -R ${genome_fasta} \
     -V ${params.rundir}.merged.g.vcf.gz \
-    -O ${params.rundir}.merged.RAW.vcf.gz  \
+    -O ${params.rundir}.merged.RAW.vcf  \
     -G StandardAnnotation -G AS_StandardAnnotation -A SampleList -D ${dbsnp}
     
     ${gatk_exec} SelectVariants \
     -R ${genome_fasta} \
-    -V ${params.rundir}.merged.RAW.vcf.gz \
+    -V ${params.rundir}.merged.RAW.vcf \
     -L ${ROI} \
-    -O ${params.rundir}.merged.WES_ROI.vcf.gz
+    -O ${params.rundir}.merged.WES_ROI.vcf
 
-    ${gatk_exec} IndexFeatureFile \
-    -I ${params.rundir}.merged.WES_ROI.vcf.gz
     """     
 }
 
