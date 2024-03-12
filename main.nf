@@ -527,7 +527,7 @@ workflow {
         }
     }
 
-    if (params.panel) {
+    if (params.panel && params.panel!="WGS_CNV") {
 
         if (params.fastqInput||params.fastq) {
             SUB_PREPROCESS(fq_read_input)
