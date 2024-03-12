@@ -740,7 +740,7 @@ process haplotypecallerSplitIntervals {
     """
 }
 
-/*
+
 process combineGVCF {
     errorStrategy 'ignore'
     tag "$sampleID"
@@ -753,7 +753,7 @@ process combineGVCF {
     tuple val(sampleID), path(sub_gvcf), path(sub_gvcf_idx)// from hc_split_output.groupTuple()
     
     output:
-    tuple val(sampleID), path("${sampleID}.g.vcf.gz"), path("${sampleID}.g.*.tbi") emit: singleGVCF
+    tuple val(sampleID), path("${sampleID}.g.vcf.gz"), path("${sampleID}.g.*.tbi"), emit: singleGVCF
     path("${sampleID}.g.vcf.gz"), emit: sample_gvcf_list_scatter
     script:
     """
@@ -765,31 +765,6 @@ process combineGVCF {
     tabix -p vcf ${sampleID}.g.vcf.gz
     """
 }
-*/
-
-process combineGVCF {
-    errorStrategy 'ignore'
-    tag "$sampleID"
-    //publishDir "${outputDir}/Variants/", mode: 'copy', pattern:
-    publishDir "${variantStorage}/gVCF/${panelID_storage}/", mode: 'copy', pattern:'*.g.vc*' // storageDir= /lnx01_data3/storage/alignedData/hg38/
-    maxForks 9
-
-    input:
-
-    tuple val(sampleID), path(sub_gvcf), path(sub_gvcf_idx)// from hc_split_output.groupTuple()
-    
-    output:
-    tuple val(sampleID), path("${sampleID}.g.vcf.gz"), emit: singleGVCF
-    path("${sampleID}.g.vcf.gz"), emit: sample_gvcf_list_scatter
-    script:
-    """
-    ${gatk_exec} CombineGVCFs \
-    -R ${genome_fasta} \
-    ${sub_gvcf.collect { "-V $it " }.join()} \
-    -O ${sampleID}.g.vcf.gz
-    """
-}
-
 
 process genotypeSingle {
     errorStrategy 'ignore'
