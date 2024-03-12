@@ -804,7 +804,7 @@ process jointgenoScatter{
     val x //from gvcfsamples_for_GATK_scatter
 
     output:
-    path("*.merged.RAW.*}")// into merged_RAW_vcf_scatter
+    path("*.merged.RAW.*")// into merged_RAW_vcf_scatter
     path("*.merged.WES_ROI.*")
     
     script:
