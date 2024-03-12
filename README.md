@@ -2,10 +2,10 @@
 
 ## General info:
 This pipeline is used for the following NGS designs at KG Vejle:
-1. Panels (AV1 and CV5 currently supported)
+1. Panels (AV1, MV1 and CV5 currently supported)
 2. WES
-3. WGS CNV (simple pipeline for WGS CNV)
-4. WGS (full analysis)
+3. WGS & WGS CNV
+
 
 The script takes mapped data (CRAM files) or raw data (fastq) as input.
 Hg38 (v3) assembly is used by default. Hg19 is no longer supported. 
@@ -18,25 +18,22 @@ The tools used and output generated depends on how the pipeline is run, i.e. if 
 
 
 
-## Panels (AV1, WGS_CNV, CV5, WES)
+## Panels (AV1, CV5, WES)
 
 Analysis steps:
 - If fastq is used as input (using --fastq /path/to/fastq/) perform read preprocessing, alignment, variantcalling and joint genotyping.
-- If CRAM is used as input (using --cram /path/to/cram/) perform Variantcalling and joint genotyping.
+- If CRAM is used as input (using --cram /path/to/cram/) perform variantcalling and joint genotyping.
 - Creates a merged (joint Genotyped) VCF for all analyzed samples.
 - For AV1 panels and WES (ALM and ONK), joint genotyping is also run per subpanel.
-- for AV1 panels, SpliceAI is run by default (spliceAI can be skipped with "--skipSpliceAI", see usage below).
 
 NOTE: CRAM should be used as input, if possible.
 
-NOTE: This pipeline can be run from both servers (kga01 and lnx01) when analyzing paneldata, except for SpliceAI. The pipeline assumes the lnx01 server is used by default. If this pipeline is run from kga01, make sure to set the "--server kga01" parameter. 
+NOTE: This pipeline can be run from both servers (lnx1 and lnx02).
 
-NOTE: SpliceAI is disabled when running this pipeline for paneldata at the kga01 server.
 
 #### Run the pipeline with --help to see available options and default parameters:
 
     nextflow run KGVejle/germlineNGS -r main --help
-
 
 
 ### Common use cases:
@@ -47,9 +44,9 @@ For panel analysis, the user must use either --cram /path/to/cram/ or --fastq /p
    
     nextflow run KGVejle/germlineNGS -r main --panel AV1 --cram /path/to/cram/
 
-#### Analyze AV1 samples, starting with fastq, do not run SpliceAI
+#### Analyze AV1 samples, starting with fastq
    
-    nextflow run KGVejle/germlineNGS -r main --panel AV1 --fastq /path/to/fastq/ --skipSpliceAI
+    nextflow run KGVejle/germlineNGS -r main --panel AV1 --fastq /path/to/fastq/
 
 #### Analyze ALM / ONK WES samples, starting with fastq:
 
@@ -59,16 +56,13 @@ For panel analysis, the user must use either --cram /path/to/cram/ or --fastq /p
 
     nextflow run KGVejle/germlineNGS -r main --panel WES_2 --cram /path/to/cram/
 
-#### Analyze WGS CNV (minimal pipeline, CNV calls in VarSeq), starting from cram:
 
-    nextflow run KGVejle/germlineNGS -r main --panel WGS_CNV --cram /path/to/cram/
 
 
 
 ## WGS
 
-#### NOTE: WGS analysis is only supported at the lnx01 server. 
-WGS analysis requires the user to point to a folder with inputdata (FastQ or CRAM) or a tab-delimited samplesheet containing 4 columns without headerline in this specific order:
+WGS analysis requires the user to point to a folder with inputdata (FastQ or CRAM) OR a tab-delimited samplesheet containing 4 columns without headerline in this specific order:
 
 caseID/projectID, NPN, Relation, SampleStatus
 
@@ -94,7 +88,7 @@ By default, the pipeline includes the following modules for the WGS analysis:
 1. Preprocessing if FastQ is used as input (fastq --> CRAM or BAM).
 2. Variantcalling (GATK Haplotypecaller + jointGenotyping)
 3. QC module 
-4. CNV and SV calling (CNVkit, Manta, Lumpy and Tiddit + merging of SV calls using SVDB)
+4. CNV and SV calling (CNVkit, Manta, Lumpy and Delly + merging of SV calls using SVDB)
 5. STR analysis (ExpansionHunter and Stripy)
 6. SMNcaller (SMNCopyNumberCaller)
 
@@ -103,6 +97,14 @@ Submodules can be disabled at command line.
 
 
 ### Common use cases:
+
+#### Analyze WGS CNV, starting from cram:
+
+    nextflow run KGVejle/germlineNGS -r main --panel WGS_CNV --cram /path/to/cram/
+
+#### Analyze WGS CNV, starting from cram:
+
+    nextflow run KGVejle/germlineNGS -r main --panel WGS_CNV --cram /path/to/cram/
 
 #### Analyze samples in samplesheet, starting with CRAM. Run full pipeline:
    
@@ -114,7 +116,7 @@ Submodules can be disabled at command line.
     nextflow run KGVejle/germlineNGS -r main --samplesheet /path/to/samplesheet/ --fastqInput 
     
 
-#### Analyze samples in samplesheet, starting with CRAM. Do not run QC and STR analysis:
+#### Analyze samples in samplesheet, starting with CRAM. Do not run QC or STR analysis:
    
     nextflow run KGVejle/germlineNGS -r main --samplesheet /path/to/samplesheet/ --skipQC --skipSTR
 
@@ -122,6 +124,8 @@ Submodules can be disabled at command line.
 #### Analyze all WGS data in folder (no samplesheet), starting with CRAM files:
 
     nextflow run KGVejle/germlineNGS -r main --cram /path/to/cram/ 
+    
+
 
 
 
