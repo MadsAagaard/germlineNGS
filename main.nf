@@ -14,7 +14,6 @@ params.samplesheet              =null
 params.preprocessOnly           =null
 params.keepwork                 =null
 params.nomail                   =null
-
 params.hg38v1                   =null
 params.hg38v2                   =null
 params.cram                     =null
@@ -22,6 +21,7 @@ params.fastq                    =null
 params.archiveStorage           =null
 params.lnx01_storage            =null
 params.skipSpliceAI             =null
+params.skipJointGenotyping      =null
 params.fastqInput               =null
 params.skipSV                   =null
 params.skipVariants             =null
@@ -30,7 +30,8 @@ params.skipSTR                  =null
 params.skipSMN                  =null
 //Preset parameters:
 params.gatk                     =null
-
+params.copyCram                 =null
+params.single                   =null
 params.server                   = "lnx01"
 params.genome                   = "hg38"
 params.outdir                   = "${launchDir.baseName}.Results"
@@ -234,9 +235,9 @@ switch (params.panel) {
     break;
 
     default: 
-        reads_pattern_cram="*{-,.,_}{WG3,WG4,LIB,WG4_CNV,WGSmerged}{-,.,_}*.cram";
-        reads_pattern_crai="*{-,.,_}{WG3,WG4,LIB,WG4_CNV,WGSmerged}{-,.,_}*.crai";
-        reads_pattern_fastq="*{-,.,_}{WG3,WG4,LIB,WG4_CNV,WGSmerged}{-,.,_}*R{1,2}*{fq,fastq}.gz";
+        reads_pattern_cram="*{-,.,_}{WG3,WG4,A_WG4,LIB,WG4_CNV,WGSmerged}{-,.,_}*.cram";
+        reads_pattern_crai="*{-,.,_}{WG3,WG4,A_WG4,LIB,WG4_CNV,WGSmerged}{-,.,_}*.crai";
+        reads_pattern_fastq="*{-,.,_}{WG3,WG4,A_WG4,LIB,WG4_CNV,WGSmerged}{-,.,_}*R{1,2}*{fq,fastq}.gz";
         panelID="WGS"
     break;
 }
@@ -252,7 +253,7 @@ if (params.fastq) {
 
 if (!params.fastq && params.fastqInput) {
 
-    params.reads="${dataArchive}/{lnx01,kga01_novaRuns,tank_kga_external_archive}/**/${reads_pattern_fastq}"
+    params.reads="${dataArchive}/{lnx01,lnx02,kga01_novaRuns,tank_kga_external_archive}/**/${reads_pattern_fastq}"
 }
 
 
@@ -262,20 +263,35 @@ if (!params.fastq && params.fastqInput) {
 
 if (!params.samplesheet && params.fastq) {
 // If NOT samplesheet (std panel run), set sampleID == NPN_PANEL_SUBPANEL
+
+
+    params.reads="${params.fastq}/*{.,_,-}{R1,R2}*.gz"
+
+ Channel
+    .fromFilePairs(params.reads, checkIfExists: true)
+    .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
+//    .map { it -> [it[0]+"_"+params.panel+"_"+params.genome, file(it[1][0]),file(it[1][1])] }
+    .map { it -> [it[0], file(it[1][0]),file(it[1][1])] }
+    .set { read_pairs_ch }
+
+/*
+
     Channel
     .fromPath(params.reads, checkIfExists: true)
-    .filter {it =~/_R1_/}
+    .filter {it =~/R1/}
     .map { tuple(it.baseName.tokenize('-').get(0)+"_"+it.baseName.tokenize('-').get(1),it) }
     .set { sampleid_R1}
 
     Channel
     .fromPath(params.reads, checkIfExists: true)
-    .filter {it =~/_R2_/}
+    .filter {it =~/R2/}
     .map { tuple(it.baseName.tokenize('-').get(0)+"_"+it.baseName.tokenize('-').get(1),it) }
     .set { sampleid_R2 }
 
     sampleid_R1.join(sampleid_R2)
     .set { read_pairs_ch }
+read_pairs_ch.view()
+*/
 
 }
 
@@ -340,8 +356,8 @@ if (params.cram && !params.panel) {
 // If only samplesheet is provided, use CRAM from archive as input (default setup)!
 
 if (params.samplesheet && !params.cram && !params.fastqInput && !params.fastq) {
-    cramfiles="${dataArchive}/{lnx01,tank_kga_external_archive}/**/${reads_pattern_cram}"
-    craifiles="${dataArchive}/{lnx01,tank_kga_external_archive}/**/${reads_pattern_crai}"
+    cramfiles="${dataArchive}/{lnx01,lnx02,tank_kga_external_archive}/**/${reads_pattern_cram}"
+    craifiles="${dataArchive}/{lnx01,lnx02,tank_kga_external_archive}/**/${reads_pattern_crai}"
 
     Channel
     .fromPath(cramfiles)
@@ -384,7 +400,6 @@ if (params.samplesheet) {
 ////////////////////////////////////////////////////
 
 
-
 if (!params.samplesheet && params.fastq) {
     read_pairs_ch
     .set { fq_read_input }
@@ -421,6 +436,7 @@ channel
 include { 
          // Symlinks:
          inputFiles_symlinks_cram;
+         inputFiles_cramCopy;
          // Preprocess tools:
          //QC tools
          samtools;
@@ -435,8 +451,6 @@ include {
          SUB_CNV_SV;
          SUB_STR;
          SUB_SMN } from "./modules/modules.dna.v1.nf" 
-
-
 
 
 workflow QC {
@@ -458,7 +472,7 @@ workflow {
 
         if (params.fastqInput||params.fastq) {
             SUB_PREPROCESS(fq_read_input)
-            
+
             if (!params.skipVariants) {
                 SUB_VARIANTCALL_WGS(SUB_PREPROCESS.out.finalAln)
             }
@@ -475,19 +489,40 @@ workflow {
         }
 
         if (!params.fastqInput && !params.fastq) {
-            inputFiles_symlinks_cram(meta_aln_index)
 
-            if (!params.skipVariants) {
-                SUB_VARIANTCALL_WGS(meta_aln_index)
+            if (!params.copyCram) {
+                inputFiles_symlinks_cram(meta_aln_index)
+
+                if (!params.skipVariants) {
+                    SUB_VARIANTCALL_WGS(meta_aln_index)
+                }
+                if (!params.skipSV) {
+                    SUB_CNV_SV(meta_aln_index)
+                }
+                if (!params.skipSTR) {
+                    SUB_STR(meta_aln_index)
+                }
+                if (!params.skipSMN) {
+                SUB_SMN(meta_aln_index)
+                }
             }
-            if (!params.skipSV) {
-                SUB_CNV_SV(meta_aln_index)
-            }
-            if (!params.skipSTR) {
-                SUB_STR(meta_aln_index)
-            }
-            if (!params.skipSMN) {
-            SUB_SMN(meta_aln_index)
+
+            if (params.copyCram) {
+                inputFiles_symlinks_cram(meta_aln_index)
+                inputFiles_cramCopy(meta_aln_index)
+            
+                if (!params.skipVariants) {
+                    SUB_VARIANTCALL_WGS(inputFiles_cramCopy.out)
+                }
+                if (!params.skipSV) {
+                    SUB_CNV_SV(inputFiles_cramCopy.out)
+                }
+                if (!params.skipSTR) {
+                    SUB_STR(inputFiles_cramCopy.out)
+                }
+                if (!params.skipSMN) {
+                    SUB_SMN(inputFiles_cramCopy.out)
+                }
             }
         }
     }
@@ -503,11 +538,40 @@ workflow {
             SUB_VARIANTCALL(meta_aln_index)
         }
     }
-
-
-
 }
 
+/*
+workflow.onComplete {
+    if (System.getenv("USER") in ["raspau", "mmaj"]) {
+        // Custom message to be sent when the workflow completes
+        def sequencingRun = params.cram ? new File(params.cram).getName().take(6) :
+                   params.fastq ? new File(params.fastq).getName().take(6) : 'Not provided'
+
+    
+        def body = """\
+        Pipeline execution summary
+        ---------------------------
+        Pipeline completed  : ${params.panel}
+        Sequencing run      : ${sequencingRun}
+        Completed at        : ${workflow.complete}
+        Duration            : ${workflow.duration}
+        Success             : ${workflow.success}
+        WorkDir             : ${workflow.workDir}
+        OutputDir           : ${params.outdir ?: 'Not specified'}
+        Exit status         : ${workflow.exitStatus}
+        """.stripIndent()
+
+        // Send the email using the built-in sendMail function
+        sendMail(to: 'Rasmus.Hojrup.Pausgaard@rsyd.dk,Mads.Jorgensen@rsyd.dk', subject: 'Pipeline Update', body: body)
+
+        // Check if --keepwork was specified
+        if (!params.keepwork) {
+            // If --keepwork was not specified, delete the work directory
+            println("Deleting work directory: ${workflow.workDir}")
+            "rm -rf ${workflow.workDir}".execute()
+        }
+    }
+}
 
 workflow.onComplete {
     // only send email if --nomail is not specified, the user is mmaj or raspau and duration is longer than 5 minutes / 300000 milliseconds
