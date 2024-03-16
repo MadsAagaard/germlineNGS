@@ -409,7 +409,7 @@ if (!params.samplesheet && params.cram) {
     sampleID_cram.join(sampleID_crai)
     .set { meta_aln_index }
 }
-meta_aln_index.view()
+
 if (params.samplesheet && !params.cram && (params.fastqInput||params.fastq)) {
     full_samplesheet.join(read_pairs_ch)
     .map {tuple (it[0]+"_"+it[1]+"_"+it[2],it[4],it[5])}
