@@ -745,7 +745,7 @@ process combineGVCF {
     errorStrategy 'ignore'
     tag "$sampleID"
     //publishDir "${outputDir}/Variants/", mode: 'copy', pattern:
-    publishDir "${variantStorage}/gVCF/${panelID_storage}/", mode: 'copy', pattern:'*.g.vc*' // storageDir= /lnx01_data3/storage/alignedData/hg38/
+    publishDir "${variantStorage}/gVCF/${panelID_storage}/", mode: 'copy', pattern:'*.g.*' // storageDir= /lnx01_data3/storage/alignedData/hg38/
     maxForks 9
 
     input:
@@ -753,7 +753,7 @@ process combineGVCF {
     tuple val(sampleID), path(sub_gvcf), path(sub_gvcf_idx)// from hc_split_output.groupTuple()
     
     output:
-    tuple val(sampleID), path("${sampleID}.g.vcf.gz"), path("${sampleID}.g.*.tbi"), emit: singleGVCF
+    tuple val(sampleID), path("${sampleID}.g.vcf.gz"), path("${sampleID}.*.tbi"), emit: singleGVCF
     path("${sampleID}.g.vcf.gz"), emit: sample_gvcf_list_scatter
     script:
     """
