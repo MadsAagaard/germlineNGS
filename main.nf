@@ -472,19 +472,21 @@ workflow {
 
         if (params.fastqInput||params.fastq) {
             SUB_PREPROCESS(fq_read_input)
-
-            if (!params.skipVariants) {
-                SUB_VARIANTCALL_WGS(SUB_PREPROCESS.out.finalAln)
-            }
-            if (!params.skipSV) {
-                SUB_CNV_SV(SUB_PREPROCESS.out.finalAln)
-            }
-            if (!params.skipSTR) {
-                SUB_STR(SUB_PREPROCESS.out.finalAln)
-            }
-            
-            if (!params.skipSMN) {
-            SUB_SMN(SUB_PREPROCESS.out.finalAln)
+          
+            if (!params.preprocessOnly) {
+                if (!params.skipVariants) {
+                    SUB_VARIANTCALL_WGS(SUB_PREPROCESS.out.finalAln)
+                }
+                if (!params.skipSV) {
+                    SUB_CNV_SV(SUB_PREPROCESS.out.finalAln)
+                }
+                if (!params.skipSTR) {
+                    SUB_STR(SUB_PREPROCESS.out.finalAln)
+                }
+                
+                if (!params.skipSMN) {
+                SUB_SMN(SUB_PREPROCESS.out.finalAln)
+                }
             }
         }
 
