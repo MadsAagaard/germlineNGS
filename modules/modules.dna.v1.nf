@@ -207,9 +207,9 @@ switch (params.panel) {
         panelID_storage="deprecated_panels"
     break;
 
-    case "MUC1":
+    case "MV1":
         ROI="${MV1_ROI}";
-        panelID="MUC1_MV1"
+        panelID="MV1"
         panelID_storage="MV1"
     break;
 
