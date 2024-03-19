@@ -205,11 +205,11 @@ switch (params.panel) {
         panelID="GV_TEST"
     break;
 
-    case "MUC1":
+    case "MV1":
         reads_pattern_cram="*{MV1}*.cram";
         reads_pattern_crai="*{MV1}*.crai";
         reads_pattern_fastq="*{MV1}*R{1,2}*{fq,fastq}.gz";
-        panelID="MUC1"
+        panelID="MV1"
     break;
 
 
