@@ -540,38 +540,7 @@ workflow {
     }
 }
 
-/*
-workflow.onComplete {
-    if (System.getenv("USER") in ["raspau", "mmaj"]) {
-        // Custom message to be sent when the workflow completes
-        def sequencingRun = params.cram ? new File(params.cram).getName().take(6) :
-                   params.fastq ? new File(params.fastq).getName().take(6) : 'Not provided'
 
-    
-        def body = """\
-        Pipeline execution summary
-        ---------------------------
-        Pipeline completed  : ${params.panel}
-        Sequencing run      : ${sequencingRun}
-        Completed at        : ${workflow.complete}
-        Duration            : ${workflow.duration}
-        Success             : ${workflow.success}
-        WorkDir             : ${workflow.workDir}
-        OutputDir           : ${params.outdir ?: 'Not specified'}
-        Exit status         : ${workflow.exitStatus}
-        """.stripIndent()
-
-        // Send the email using the built-in sendMail function
-        sendMail(to: 'Rasmus.Hojrup.Pausgaard@rsyd.dk,Mads.Jorgensen@rsyd.dk', subject: 'Pipeline Update', body: body)
-
-        // Check if --keepwork was specified
-        if (!params.keepwork) {
-            // If --keepwork was not specified, delete the work directory
-            println("Deleting work directory: ${workflow.workDir}")
-            "rm -rf ${workflow.workDir}".execute()
-        }
-    }
-}
 
 workflow.onComplete {
     // only send email if --nomail is not specified, the user is mmaj or raspau and duration is longer than 5 minutes / 300000 milliseconds
@@ -600,7 +569,6 @@ workflow.onComplete {
             ---------------------------
             Pipeline completed  : ${params.panel}
             Sequencing run      : ${sequencingRun}${obsSampleMessage}
-            Completed at        : ${workflow.complete}
             Duration            : ${workflow.duration}
             Success             : ${workflow.success}
             ${workDirMessage}
@@ -642,4 +610,4 @@ workflow.onError {
     sendMail(to: 'Mads.Jorgensen@rsyd.dk,Rasmus.Hojrup.Pausgaard@rsyd.dk', subject: 'Pipeline Update', body: body)
 
 }
-*/
+
