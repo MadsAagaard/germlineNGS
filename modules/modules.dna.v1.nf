@@ -7,7 +7,10 @@ date2=new Date().format( 'yyMMdd HH:mm:ss' )
 user="$USER"
 runID="${date}.${user}"
 
+
+
 multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
+vntyperREF="/data/shared/genomes/hg19/program_DBs/vntyper"
 //////////////////////////// SWITCHES ///////////////////////////////// 
 
 switch (params.gatk) {
@@ -1197,6 +1200,33 @@ process smnCopyNumberCaller {
     """
 }
 
+process vntyper_newRef {
+    errorStrategy 'ignore'
+    publishDir "${outputDir}/MUC1-VNTR_kestrel/", mode: 'copy'
+    cpus 16
+
+    input:
+    tuple val(sampleID), path(r1), path(r2)
+
+    output:
+    tuple val(sampleID), path("vntyper${sampleID}.vntyper/*")
+    script:
+    """
+    singularity run -B ${s_bind} ${simgpath}/vntyper120.sif \
+    -ref ${vntyperREF}/chr1.fa \
+    --fastq1 ${r1} --fastq2 ${r2} \
+    -t ${task.cpus} \
+    -w vntyper \
+    -m ${vntyperREF}/hg19_genic_VNTRs.db \
+    -o ${sampleID}.vntyper \
+    -ref_VNTR ${vntyperREF}/MUC1-VNTR_NEW.fa \
+    --fastq \
+    --ignore_advntr \
+    -p /data/shared/programmer/vntyper/VNtyper/
+    """
+}
+
+
 
 
 /////////////////////////////////////////////////////////////
@@ -1309,6 +1339,16 @@ workflow SUB_VARIANTCALL {
 
     }
 
+    if (panelID=="MV1"){
+        gvcf_list
+                .filter {it =~/MV1/}
+                .map{" -V "+ it[1] }
+                .collectFile(name: "collectfileTEST_MV1.txt", newLine: false)
+                .map {it.text.trim()}
+                .map { tuple("MV1",it) }
+                .set {gvcfsamples_for_GATK}    
+    }
+
     if (panelID=="WES_subpanel"){
         gvcf_list
                 .filter {it =~/_ONK/}
@@ -1330,7 +1370,7 @@ workflow SUB_VARIANTCALL {
                 .set {gvcfsamples_for_GATK}
     }
 
-    if (panelID != "AV1" && panelID!= "WES_subpanel") {
+    if (panelID != "AV1" && panelID!= "WES_subpanel" && panelID!= "MV1") {
         gvcf_list
             .map{" -V "+ it[1] }
             .collectFile(name: "collectfileNOTAV1.txt", newLine: false)
