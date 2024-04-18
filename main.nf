@@ -244,10 +244,11 @@ switch (params.panel) {
 ////////////////////////////////////////////////////
 ////// INPUT DATA (fastq or CRAM) channels //////////
 ////////////////////////////////////////////////////
+/*
 if (params.fastq) {
     params.reads="${params.fastq}/${reads_pattern_fastq}"
 }
-
+*/
 if (!params.fastq && params.fastqInput) {
 
     params.reads="${dataArchive}/{lnx01,lnx02,kga01_novaRuns,tank_kga_external_archive}/**/${reads_pattern_fastq}"
