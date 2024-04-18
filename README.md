@@ -63,7 +63,7 @@ Input for the MV1 analysis is always fastq
 
 ### Common use cases:
 
-#### Analyze MV1 samples from the lnx01 server
+#### Analyze MV1 samples from the lnx01 server (default)
     nextflow run KGVejle/germlineNGS -r main --panel MV1 --fastq /path/to/fastq/
 
 #### Analyze MV1 samples from the lnx02 server
