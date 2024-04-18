@@ -262,8 +262,8 @@ if (!params.fastq && params.fastqInput) {
 if (!params.samplesheet && params.fastq) {
 // If NOT samplesheet (std panel run), set sampleID == NPN_PANEL_SUBPANEL
 
-
-    params.reads="${params.fastq}/*{.,_,-}{R1,R2}*.gz"
+    params.reads="${params.fastq}/${reads_pattern_fastq}"
+    //params.reads="${params.fastq}/*{.,_,-}{R1,R2}*.gz"
 
  Channel
     .fromFilePairs(params.reads, checkIfExists: true)
