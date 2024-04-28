@@ -288,7 +288,7 @@ if (!params.samplesheet && params.fastq) {
 
     sampleid_R1.join(sampleid_R2)
     .set { read_pairs_ch }
-read_pairs_ch.view()
+
 
 
 }
