@@ -264,7 +264,7 @@ if (!params.samplesheet && params.fastq) {
 
     params.reads="${params.fastq}/${reads_pattern_fastq}"
     //params.reads="${params.fastq}/*{.,_,-}{R1,R2}*.gz"
-
+/*
  Channel
     .fromFilePairs(params.reads, checkIfExists: true)
     .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
@@ -272,7 +272,7 @@ if (!params.samplesheet && params.fastq) {
     .map { it -> [it[0], file(it[1][0]),file(it[1][1])] }
     .set { read_pairs_ch }
 
-/*
+*/
 
     Channel
     .fromPath(params.reads, checkIfExists: true)
@@ -289,7 +289,7 @@ if (!params.samplesheet && params.fastq) {
     sampleid_R1.join(sampleid_R2)
     .set { read_pairs_ch }
 read_pairs_ch.view()
-*/
+
 
 }
 
