@@ -616,9 +616,9 @@ process haplotypecaller{
         tuple val(sampleID), path(aln), path(aln_index)
     
         output:
-        path("${sampleID}.${params.genome}.${genome_version}.g.vcf"), emit: sample_gvcf
+        path("${sampleID}.${params.genome}.${genome_version}.g.vcf.gz"), emit: sample_gvcf
 
-        tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.g.vcf"), emit: HC_sid_gvcf
+        tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.g.vcf.gz"), emit: HC_sid_gvcf
     
         tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.HC.*")
 
@@ -639,13 +639,13 @@ process haplotypecaller{
         --native-pair-hmm-threads 4 \
         -pairHMM FASTEST_AVAILABLE \
         --dont-use-soft-clipped-bases \
-        -O ${sampleID}.${params.genome}.${genome_version}.g.vcf \
+        -O ${sampleID}.${params.genome}.${genome_version}.g.vcf.gz \
         -bamout ${sampleID}.${params.genome}.${genome_version}.HCbamout.bam
     
         ${gatk_exec} GenotypeGVCFs \
         -R ${genome_fasta} \
-        -V ${sampleID}.${params.genome}.${genome_version}.g.vcf \
-        -O ${sampleID}.${params.genome}.${genome_version}.HC.vcf \
+        -V ${sampleID}.${params.genome}.${genome_version}.g.vcf.gz \
+        -O ${sampleID}.${params.genome}.${genome_version}.HC.vcf.gz \
         -G StandardAnnotation \
         -G AS_StandardAnnotation
         """
@@ -679,13 +679,13 @@ process jointgenotyping {
         ${gatk_exec} GenotypeGVCFs \
         -R ${genome_fasta} \
         -V ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.g.vcf \
-        -O ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.for.VarSeq.vcf  \
+        -O ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.for.VarSeq.vcf.gz  \
         -L ${ROI} \
         -G StandardAnnotation -G AS_StandardAnnotation -A SampleList \
         -D ${dbsnp}
         """     
 }
-
+/*
   process spliceAI {
         errorStrategy 'ignore'
         cpus 4
@@ -712,7 +712,7 @@ process jointgenotyping {
         -I ${params.rundir}.${panelID}.${params.genome}.${genome_version}.spliceAI.merged.for.VarSeq.vcf
         """
     }
-
+*/
 
 
 
