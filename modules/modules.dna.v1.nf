@@ -7,7 +7,10 @@ date2=new Date().format( 'yyMMdd HH:mm:ss' )
 user="$USER"
 runID="${date}.${user}"
 
+
+
 multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
+vntyperREF="/data/shared/genomes/hg19/program_DBs/vntyper"
 //////////////////////////// SWITCHES ///////////////////////////////// 
 
 switch (params.gatk) {
@@ -613,9 +616,9 @@ process haplotypecaller{
         tuple val(sampleID), path(aln), path(aln_index)
     
         output:
-        path("${sampleID}.${params.genome}.${genome_version}.g.vcf"), emit: sample_gvcf
+        path("${sampleID}.${params.genome}.${genome_version}.g.vcf.gz"), emit: sample_gvcf
 
-        tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.g.vcf"), emit: HC_sid_gvcf
+        tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.g.vcf.gz"), emit: HC_sid_gvcf
     
         tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.HC.*")
 
@@ -636,13 +639,13 @@ process haplotypecaller{
         --native-pair-hmm-threads 4 \
         -pairHMM FASTEST_AVAILABLE \
         --dont-use-soft-clipped-bases \
-        -O ${sampleID}.${params.genome}.${genome_version}.g.vcf \
+        -O ${sampleID}.${params.genome}.${genome_version}.g.vcf.gz \
         -bamout ${sampleID}.${params.genome}.${genome_version}.HCbamout.bam
     
         ${gatk_exec} GenotypeGVCFs \
         -R ${genome_fasta} \
-        -V ${sampleID}.${params.genome}.${genome_version}.g.vcf \
-        -O ${sampleID}.${params.genome}.${genome_version}.HC.vcf \
+        -V ${sampleID}.${params.genome}.${genome_version}.g.vcf.gz \
+        -O ${sampleID}.${params.genome}.${genome_version}.HC.vcf.gz \
         -G StandardAnnotation \
         -G AS_StandardAnnotation
         """
@@ -676,13 +679,13 @@ process jointgenotyping {
         ${gatk_exec} GenotypeGVCFs \
         -R ${genome_fasta} \
         -V ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.g.vcf \
-        -O ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.for.VarSeq.vcf  \
+        -O ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.for.VarSeq.vcf.gz  \
         -L ${ROI} \
         -G StandardAnnotation -G AS_StandardAnnotation -A SampleList \
         -D ${dbsnp}
         """     
 }
-
+/*
   process spliceAI {
         errorStrategy 'ignore'
         cpus 4
@@ -709,7 +712,7 @@ process jointgenotyping {
         -I ${params.rundir}.${panelID}.${params.genome}.${genome_version}.spliceAI.merged.for.VarSeq.vcf
         """
     }
-
+*/
 
 
 
@@ -780,16 +783,16 @@ process genotypeSingle {
     ${gatk_exec} --java-options "-Xmx4G -XX:+UseParallelGC -XX:ParallelGCThreads=30" GenotypeGVCFs \
     -R ${genome_fasta} \
     -V ${gvcf} \
-    -O ${sampleID}.HC.vcf 
+    -O ${sampleID}.HC.vcf.gz 
 
     ${gatk_exec} SelectVariants \
     -R ${genome_fasta} \
-    -V ${sampleID}.HC.vcf \
+    -V ${sampleID}.HC.vcf.gz \
     -L ${ROI} \
-    -O ${sampleID}.WES_ROI.vcf
+    -O ${sampleID}.WES_ROI.vcf.gz
 
     ${gatk_exec} IndexFeatureFile \
-    -I ${sampleID}.WES_ROI.vcf
+    -I ${sampleID}.WES_ROI.vcf.gz
     """
 
 
@@ -817,14 +820,14 @@ process jointgenoScatter{
     ${gatk_exec} GenotypeGVCFs \
     -R ${genome_fasta} \
     -V ${params.rundir}.merged.g.vcf.gz \
-    -O ${params.rundir}.merged.RAW.vcf  \
+    -O ${params.rundir}.merged.RAW.vcf.gz  \
     -G StandardAnnotation -G AS_StandardAnnotation -A SampleList -D ${dbsnp}
     
     ${gatk_exec} SelectVariants \
     -R ${genome_fasta} \
-    -V ${params.rundir}.merged.RAW.vcf \
+    -V ${params.rundir}.merged.RAW.vcf.gz \
     -L ${ROI} \
-    -O ${params.rundir}.merged.WES_ROI.vcf
+    -O ${params.rundir}.merged.WES_ROI.vcf.gz
 
     """     
 }
@@ -1197,6 +1200,33 @@ process smnCopyNumberCaller {
     """
 }
 
+process vntyper_newRef {
+    errorStrategy 'ignore'
+    publishDir "${outputDir}/MUC1-VNTR_kestrel/", mode: 'copy'
+    cpus 16
+
+    input:
+    tuple val(sampleID), path(r1), path(r2)
+
+    output:
+    tuple val(sampleID), path("vntyper${sampleID}.vntyper/*")
+    script:
+    """
+    singularity run -B ${s_bind} ${simgpath}/vntyper120.sif \
+    -ref ${vntyperREF}/chr1.fa \
+    --fastq1 ${r1} --fastq2 ${r2} \
+    -t ${task.cpus} \
+    -w vntyper \
+    -m ${vntyperREF}/hg19_genic_VNTRs.db \
+    -o ${sampleID}.vntyper \
+    -ref_VNTR ${vntyperREF}/MUC1-VNTR_NEW.fa \
+    --fastq \
+    --ignore_advntr \
+    -p /data/shared/programmer/vntyper/VNtyper/
+    """
+}
+
+
 
 
 /////////////////////////////////////////////////////////////
@@ -1309,6 +1339,16 @@ workflow SUB_VARIANTCALL {
 
     }
 
+    if (panelID=="MV1"){
+        gvcf_list
+                .filter {it =~/MV1/}
+                .map{" -V "+ it[1] }
+                .collectFile(name: "collectfileTEST_MV1.txt", newLine: false)
+                .map {it.text.trim()}
+                .map { tuple("MV1",it) }
+                .set {gvcfsamples_for_GATK}    
+    }
+
     if (panelID=="WES_subpanel"){
         gvcf_list
                 .filter {it =~/_ONK/}
@@ -1330,7 +1370,7 @@ workflow SUB_VARIANTCALL {
                 .set {gvcfsamples_for_GATK}
     }
 
-    if (panelID != "AV1" && panelID!= "WES_subpanel") {
+    if (panelID != "AV1" && panelID!= "WES_subpanel" && panelID!= "MV1") {
         gvcf_list
             .map{" -V "+ it[1] }
             .collectFile(name: "collectfileNOTAV1.txt", newLine: false)

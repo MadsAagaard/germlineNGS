@@ -28,7 +28,7 @@ Analysis steps:
 
 NOTE: CRAM should be used as input, if possible.
 
-NOTE: This pipeline can be run from both servers (lnx1 and lnx02).
+NOTE: This pipeline can be run from both servers (lnx1 and lnx02). The script assumes that the analysis is run on the lnx01 server by default. Change to lnx02 with --server lnx02
 
 
 #### Run the pipeline with --help to see available options and default parameters:
@@ -57,8 +57,17 @@ For panel analysis, the user must use either --cram /path/to/cram/ or --fastq /p
     nextflow run KGVejle/germlineNGS -r main --panel WES_2 --cram /path/to/cram/
 
 
+## Panels (MV1)
 
+Input for the MV1 analysis is always fastq
 
+### Common use cases:
+
+#### Analyze MV1 samples from the lnx01 server (default)
+    nextflow run KGVejle/germlineNGS -r main --panel MV1 --fastq /path/to/fastq/
+
+#### Analyze MV1 samples from the lnx02 server
+    nextflow run KGVejle/germlineNGS -r main --panel MV1 --fastq /path/to/fastq/ --server lnx02
 
 ## WGS
 
