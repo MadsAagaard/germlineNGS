@@ -783,16 +783,16 @@ process genotypeSingle {
     ${gatk_exec} --java-options "-Xmx4G -XX:+UseParallelGC -XX:ParallelGCThreads=30" GenotypeGVCFs \
     -R ${genome_fasta} \
     -V ${gvcf} \
-    -O ${sampleID}.HC.vcf 
+    -O ${sampleID}.HC.vcf.gz 
 
     ${gatk_exec} SelectVariants \
     -R ${genome_fasta} \
-    -V ${sampleID}.HC.vcf \
+    -V ${sampleID}.HC.vcf.gz \
     -L ${ROI} \
-    -O ${sampleID}.WES_ROI.vcf
+    -O ${sampleID}.WES_ROI.vcf.gz
 
     ${gatk_exec} IndexFeatureFile \
-    -I ${sampleID}.WES_ROI.vcf
+    -I ${sampleID}.WES_ROI.vcf.gz
     """
 
 
@@ -820,14 +820,14 @@ process jointgenoScatter{
     ${gatk_exec} GenotypeGVCFs \
     -R ${genome_fasta} \
     -V ${params.rundir}.merged.g.vcf.gz \
-    -O ${params.rundir}.merged.RAW.vcf  \
+    -O ${params.rundir}.merged.RAW.vcf.gz  \
     -G StandardAnnotation -G AS_StandardAnnotation -A SampleList -D ${dbsnp}
     
     ${gatk_exec} SelectVariants \
     -R ${genome_fasta} \
-    -V ${params.rundir}.merged.RAW.vcf \
+    -V ${params.rundir}.merged.RAW.vcf.gz \
     -L ${ROI} \
-    -O ${params.rundir}.merged.WES_ROI.vcf
+    -O ${params.rundir}.merged.WES_ROI.vcf.gz
 
     """     
 }
