@@ -299,6 +299,7 @@ process inputFiles_symlinks_fq{
 process inputFiles_symlinks_cram{
     errorStrategy 'ignore'
     publishDir "${outputDir}/input_symlinks/", mode: 'link', pattern: '*.{ba,cr}*'
+    publishDir "${outputDir}/Variants/CRAM_symlinks/", mode: 'link', pattern: '*.{ba,cr}*'
     input:
     tuple val(sampleID), path(aln),path(index)// from symlink_input
     
@@ -424,7 +425,7 @@ process markDup_bam {
     tag "$sampleID"
     publishDir "${outputDir}/BAM/", mode: 'copy', pattern: "*.BWA.MD.ba*"
     publishDir "${outputDir}/CRAM/", mode: 'copy', pattern: "*.BWA.MD.cr*"
-    
+    publishDir "${outputDir}/Variants/CRAM_symlinks/", mode: 'link', pattern: "*.BWA.MD.cr*"
     input:
     tuple val(sampleID), path(aln) 
     
