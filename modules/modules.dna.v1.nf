@@ -425,7 +425,7 @@ process markDup_bam {
     tag "$sampleID"
     publishDir "${outputDir}/BAM/", mode: 'copy', pattern: "*.BWA.MD.ba*"
     publishDir "${outputDir}/CRAM/", mode: 'copy', pattern: "*.BWA.MD.cr*"
-    publishDir "${outputDir}/Variants/CRAM_symlinks/", mode: 'link', pattern: "*.BWA.MD.cr*"
+    publishDir "${outputDir}/Variants/Alignment_symlinks/", mode: 'link', pattern: "*.BWA.MD.cr*"
     input:
     tuple val(sampleID), path(aln) 
     
@@ -454,7 +454,7 @@ process markDup_cram {
     maxForks 6
     tag "$sampleID"
     publishDir "${outputDir}/CRAM/", mode: 'copy', pattern: "*.BWA.MD.cr*"
-    
+    publishDir "${outputDir}/Variants/Alignment_symlinks/", mode: 'link', pattern: "*.BWA.MD.cr*"
     input:
     tuple val(sampleID), path(aln)
     
