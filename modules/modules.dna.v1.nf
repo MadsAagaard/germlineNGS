@@ -1017,7 +1017,7 @@ process cnvkit {
     mv ${index} intermediate_crai
     cp intermediate_crai ${index}
     rm intermediate_crai
-    singularity run -B ${s_bind} ${simgpath}/cnvkit0910_MJconda.sif cnvkit.py batch \
+    singularity run -B ${s_bind} ${simgpath}/cnvkit.sif cnvkit.py batch \
     ${aln} \
     -m wgs \
     -p ${task.cpus} \
@@ -1045,12 +1045,12 @@ process cnvkitExportFiles {
 
     script:
     """
-    singularity run -B ${s_bind} ${simgpath}/cnvkit0910_MJconda.sif cnvkit.py export vcf \
+    singularity run -B ${s_bind} ${simgpath}/cnvkit.sif cnvkit.py export vcf \
     ${cnvkit_calls} \
     -i ${sampleID} \
     -o ${sampleID}.cnvkit.vcf
 
-    singularity run -B ${s_bind} ${simgpath}/cnvkit0910_MJconda.sif cnvkit.py export seg \
+    singularity run -B ${s_bind} ${simgpath}/cnvkit.sif cnvkit.py export seg \
     ${cnvkit_cnr} \
     -o ${sampleID}.cnvkit.cnr.seg
 
