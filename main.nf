@@ -558,7 +558,7 @@ workflow {
             }
         }
 
-        if (!params.fastqInput && !params.fastq) {
+        if (!params.fastqInput && !params.fastq && !params.spring) {
             inputFiles_symlinks_cram(meta_aln_index)
             SUB_VARIANTCALL(meta_aln_index)
         }
