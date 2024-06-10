@@ -491,6 +491,9 @@ workflow {
         
     }
 
+    if (!params.fastqInput && !params.fastq && !params.spring) {
+        inputFiles_symlinks_cram(meta_aln_index)
+    }
 
     if (!params.panel || params.panel =="WGS_CNV") { //i.e. if WGS data
 
