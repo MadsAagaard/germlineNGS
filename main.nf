@@ -187,7 +187,7 @@ switch (params.panel) {
         reads_pattern_cram="*{.,-,_}{CV5}{.,-,_}*.cram";
         reads_pattern_crai="*{.,-,_}{CV5}{.,-,_}*.crai";
         reads_pattern_fastq="*{.,-,_}{CV5}{.,-,_}*R{1,2}*{fq,fastq}.gz";
-        reads_pattern_spring="*{CV5}*.spring";
+        reads_pattern_spring="*CV5*.spring";
         panelID="CV5"
     break;
 
@@ -210,7 +210,7 @@ switch (params.panel) {
         reads_pattern_cram="*{MV1}*.cram";
         reads_pattern_crai="*{MV1}*.crai";
         reads_pattern_fastq="*{MV1}*R{1,2}*{fq,fastq}.gz";
-        reads_pattern_spring="*{MV1}*.spring";
+        reads_pattern_spring="*MV1*.spring";
         panelID="MV1"
     break;
 
