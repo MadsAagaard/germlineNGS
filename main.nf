@@ -481,8 +481,9 @@ workflow {
 
     if (params.spring) {
         SUB_SPRING_DECOMPRESS(spring_input_ch)
-        SUB_SPRING_DECOMPRESS.out.view()
+        //SUB_SPRING_DECOMPRESS.out.view()
         fq_read_input=SUB_SPRING_DECOMPRESS.out.fq_read_input_spring
+        fq_read_input.view()
     }
 
     if (!params.panel || params.panel =="WGS_CNV") { 
@@ -550,7 +551,7 @@ workflow {
 
     if (params.panel && params.panel!="WGS_CNV") {
 
-        if (params.fastqInput||params.fastq) {
+        if (params.fastqInput||params.fastq || params.spring) {
             SUB_PREPROCESS(fq_read_input)
             SUB_VARIANTCALL(SUB_PREPROCESS.out.finalAln)
 
