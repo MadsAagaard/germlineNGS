@@ -479,7 +479,7 @@ workflow QC {
 workflow {
 
     if (params.spring) {
-        workflow SUB_SPRING_DECOMPRESS(spring_input_ch)
+        SUB_SPRING_DECOMPRESS(spring_input_ch)
         fq_read_input=SUB_SPRING_DECOMPRESS.out.spring_fastq
     }
 
