@@ -483,7 +483,53 @@ workflow {
         SUB_SPRING_DECOMPRESS(spring_input_ch)
         //SUB_SPRING_DECOMPRESS.out.view()
         fq_read_input=SUB_SPRING_DECOMPRESS.out.fq_read_input_spring
-        fq_read_input.view()
+    }
+
+    if (params.fastqInput||params.fastq||params.spring || params.preprocessOnly) {
+        SUB_PREPROCESS(fq_read_input)
+        meta_aln_index=SUB_PREPROCESS.out.finalAln
+        inputFiles_symlinks_cram(meta_aln_index)
+    }
+
+
+    if (!params.panel || params.panel =="WGS_CNV") { //i.e. if WGS data
+
+        if (!params.skipVariants) {
+            SUB_VARIANTCALL_WGS(meta_aln_index)
+        }
+        if (!params.skipSV) {
+            SUB_CNV_SV(meta_aln_index)
+        }
+        if (!params.skipSTR) {
+            SUB_STR(meta_aln_index)
+        }
+        
+        if (!params.skipSMN) {
+        SUB_SMN(meta_aln_index)
+        }
+
+    }
+
+    if (params.panel && params.panel!="WGS_CNV") {
+
+        SUB_VARIANTCALL(meta_aln_index)
+
+        if (params.panel=="MV1") {
+            vntyper_newRef(fq_read_input)
+        }
+    }
+    
+}
+
+
+/*
+
+workflow (works with spring) {
+
+    if (params.spring) {
+        SUB_SPRING_DECOMPRESS(spring_input_ch)
+        //SUB_SPRING_DECOMPRESS.out.view()
+        fq_read_input=SUB_SPRING_DECOMPRESS.out.fq_read_input_spring
     }
 
     if (!params.panel || params.panel =="WGS_CNV") { 
@@ -568,7 +614,7 @@ workflow {
 }
 
 
-
+*/
 
 
 /*
