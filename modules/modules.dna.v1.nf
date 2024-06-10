@@ -358,7 +358,7 @@ process spring_compression {
 process spring_decompress {
     tag "$sampleID"
     errorStrategy 'ignore'
-    publishDir "${runfolder}.fastqFromSpring/", mode: 'copy', pattern:"*.fastq.gz"
+    publishDir "fastqFromSpring/", mode: 'copy', pattern:"*.fastq.gz"
 
     cpus 8
     maxForks 12

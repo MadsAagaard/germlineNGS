@@ -481,6 +481,7 @@ workflow {
 
     if (params.spring) {
         SUB_SPRING_DECOMPRESS(spring_input_ch)
+        fq_read_input.view()
         //fq_read_input=SUB_SPRING_DECOMPRESS.out.spring_fastq
     }
 
