@@ -311,6 +311,20 @@ process inputFiles_symlinks_cram{
 }
 
 
+process inputFiles_symlinks_spring{
+    errorStrategy 'ignore'
+    publishDir "${outputDir}/input_symlinks/", mode: 'link', pattern: '*.spring'
+
+    input:
+    tuple val(sampleID), path(spring)    
+    output:
+    path(spring)
+    script:
+    """
+    """
+}
+
+
 process inputFiles_cramCopy{
     errorStrategy 'ignore'
     publishDir "${outputDir}/input_CRAM/", mode: 'copy', pattern: '*.{ba,cr}*'
@@ -1293,6 +1307,7 @@ workflow SUB_SPRING_DECOMPRESS {
     spring_input_ch
 
     main:
+    inputFiles_symlinks_spring(spring_input_ch)
     spring_decompress(spring_input_ch)
     emit:
     fq_read_input_spring=spring_decompress.out.spring_fastq
@@ -1341,9 +1356,11 @@ workflow SUB_VARIANTCALL {
     meta_aln_index  // sampleID, aln, index
     main:
     haplotypecaller(meta_aln_index)
+
     haplotypecaller.out.sample_gvcf
     .map{ tuple(it.simpleName, it) }
     .set { gvcf_list }
+
     if (panelID=="AV1"){
         gvcf_list
             .filter {it =~/_CV6/}

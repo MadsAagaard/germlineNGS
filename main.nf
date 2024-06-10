@@ -488,7 +488,7 @@ workflow {
     if (params.fastqInput||params.fastq||params.spring || params.preprocessOnly) {
         SUB_PREPROCESS(fq_read_input)
         meta_aln_index=SUB_PREPROCESS.out.finalAln
-        inputFiles_symlinks_cram(meta_aln_index)
+        
     }
 
 
