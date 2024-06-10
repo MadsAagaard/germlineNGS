@@ -131,13 +131,13 @@ def errorMessage1() {
 
     log.info"""
 
-    USER INPUT ERROR: If no samplesheet is selected, the user needs to point to a folder containing relevant fastq or CRAM files... 
+    USER INPUT ERROR: If no samplesheet is selected, the user needs to point to a folder containing relevant fastq, CRAM or SPRING files... 
     Run the script with the --help parameter to see available options
     
     """.stripIndent()
 }
 
-if (!params.samplesheet && !params.fastq && !params.cram) exit 0, errorMessage1()
+if (!params.samplesheet && !params.fastq && !params.cram && !params.spring) exit 0, errorMessage1()
 
 def FastqCRAM_error() {
     log.info"""
