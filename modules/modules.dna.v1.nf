@@ -372,7 +372,7 @@ process spring_compression {
 process spring_decompress {
     tag "$sampleID"
     errorStrategy 'ignore'
-    publishDir "fastqFromSpring/", mode: 'copy', pattern:"*.fastq.gz"
+    publishDir "${outputDir}/fastqFromSpring/", mode: 'copy', pattern:"*.fastq.gz"
 
     cpus 8
     maxForks 12
@@ -1277,7 +1277,8 @@ process vntyper_newRef {
     tuple val(sampleID), path(r1), path(r2)
 
     output:
-    tuple val(sampleID), path("vntyper${sampleID}.vntyper/*")
+    //tuple val(sampleID), path("vntyper${sampleID}.vntyper/*")
+    tuple val(sampleID), path("*.{tsv,vcf}")
     script:
     """
     singularity run -B ${s_bind} ${simgpath}/vntyper120.sif \
@@ -1286,14 +1287,14 @@ process vntyper_newRef {
     -t ${task.cpus} \
     -w vntyper \
     -m ${vntyperREF}/hg19_genic_VNTRs.db \
-    -o ${sampleID}.vntyper \
+    -o . \
     -ref_VNTR ${vntyperREF}/MUC1-VNTR_NEW.fa \
     --fastq \
     --ignore_advntr \
     -p /data/shared/programmer/vntyper/VNtyper/
     """
 }
-
+    //-o ${sampleID}.vntyper \
 
 
 
