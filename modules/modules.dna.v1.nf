@@ -1278,7 +1278,7 @@ process vntyper_newRef {
 
     output:
     //tuple val(sampleID), path("vntyper${sampleID}.vntyper/*")
-    tuple val(sampleID), path("*.{tsv,vcf}")
+    tuple val(sampleID), path("*/*.{tsv,vcf}")
     script:
     """
     singularity run -B ${s_bind} ${simgpath}/vntyper120.sif \
@@ -1287,7 +1287,7 @@ process vntyper_newRef {
     -t ${task.cpus} \
     -w vntyper \
     -m ${vntyperREF}/hg19_genic_VNTRs.db \
-    -o . \
+    -o ${sampleID} \
     -ref_VNTR ${vntyperREF}/MUC1-VNTR_NEW.fa \
     --fastq \
     --ignore_advntr \
