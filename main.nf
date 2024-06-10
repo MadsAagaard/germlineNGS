@@ -179,7 +179,7 @@ switch (params.panel) {
         reads_pattern_cram="*{.,-,_}{AV1}{.,-,_}*.cram";
         reads_pattern_crai="*{.,-,_}{AV1}{.,-,_}*.crai";
         reads_pattern_fastq="*{.,-,_}{AV1}{.,-,_}*R{1,2}*{fq,fastq}.gz";
-        reads_pattern_spring="*{AV1}*.spring";
+        reads_pattern_spring="*AV1*.spring";
         panelID="AV1"
     break;
 
