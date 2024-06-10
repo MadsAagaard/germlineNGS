@@ -1295,7 +1295,7 @@ workflow SUB_SPRING_DECOMPRESS {
     main:
     spring_decompress(spring_input_ch)
     emit:
-    fq_read_input=SUB_SPRING_DECOMPRESS.out.spring_fastq
+    fq_read_input=spring_decompress.out.spring_fastq
 
 }
 
