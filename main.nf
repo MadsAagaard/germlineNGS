@@ -481,7 +481,7 @@ workflow {
 
     if (params.spring) {
         SUB_SPRING_DECOMPRESS(spring_input_ch)
-        fq_read_input=SUB_SPRING_DECOMPRESS.out.spring_fastq
+        //fq_read_input=SUB_SPRING_DECOMPRESS.out.spring_fastq
     }
 
     if (!params.panel || params.panel =="WGS_CNV") { 
