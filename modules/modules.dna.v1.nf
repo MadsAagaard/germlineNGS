@@ -326,6 +326,59 @@ process inputFiles_cramCopy{
 }
 
 
+///////////////////////////////// SPRING COMPRESS / DECOMPRESS //////////////
+
+
+process spring_compression {
+    tag "$sampleID"
+    errorStrategy 'ignore'
+    publishDir "${springOutDir}/${runfolder}.spring", mode: 'copy', pattern:'*.spring'
+
+    cpus 16
+    maxForks 5
+    conda '/data/shared/programmer/miniconda3/envs/spring'
+
+    input:
+    tuple val(sampleID), path(r1), path(r2)
+
+    output:
+    path("${sampleID}.spring")
+    script:
+
+    """
+    spring -c \
+    -i ${r1} ${r2} \
+    -t ${task.cpus} \
+    -o ${sampleID}.spring \
+    -g
+    """
+
+}
+
+process spring_decompress {
+    tag "$sampleID"
+    errorStrategy 'ignore'
+    publishDir "${runfolder}.fastqFromSpring/", mode: 'copy', pattern:"*.fastq.gz"
+
+    cpus 8
+    maxForks 12
+    conda '/data/shared/programmer/miniconda3/envs/spring'
+
+    input:
+    tuple val(sampleID), path(springfile)
+
+    output:
+    tuple val(sampleID), path("*_R1.fastq.gz"), path("*_R2.fastq.gz"),emit: spring_fastq
+    script:
+    """
+    spring -d \
+    -i ${springfile} \
+    -o ${sampleID}_R1.fastq.gz ${sampleID}_R2.fastq.gz \
+    -g
+
+    """
+}
+
 
 
 
@@ -1234,11 +1287,24 @@ process vntyper_newRef {
 /// SUBWORKFLOWS meta r1 r2 input channel///////
 /////////////////////////////////////////////////////////////
 
+workflow SUB_SPRING_DECOMPRESS {
+
+    take:
+    spring_input_ch
+
+    main:
+    spring_decompress(spring_input_ch)
+    emit:
+    fq_read_input=SUB_SPRING_DECOMPRESS.out.spring_fastq
+
+}
+
+
 workflow SUB_PREPROCESS {
 
     take:
     fq_read_input
-    
+
     main:
     inputFiles_symlinks_fq(fq_read_input)
     fastq_to_ubam(fq_read_input)
