@@ -455,6 +455,7 @@ include {
          multiQC;
          vntyper_newRef;
          //subworkflows:
+         SUB_SPRING_DECOMPRESS;
          SUB_PREPROCESS;
          SUB_VARIANTCALL;
          SUB_VARIANTCALL_WGS;
