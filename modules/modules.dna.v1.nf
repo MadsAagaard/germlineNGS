@@ -794,7 +794,7 @@ process jointgenotyping {
 
 process haplotypecallerSplitIntervals {
     errorStrategy 'ignore'
-    maxForks 60
+    maxForks 3
 
     input:
     tuple val(sampleID), path(bam), path(bai), val(sub_intID), path(sub_interval) //from HC_scatter_input_bam.combine(interval_list1)
@@ -868,8 +868,6 @@ process genotypeSingle {
     ${gatk_exec} IndexFeatureFile \
     -I ${sampleID}.WES_ROI.vcf.gz
     """
-
-
 }
 
 
