@@ -238,7 +238,7 @@ switch (params.panel) {
         panelID="WGS"
     break;
 
-    case "WGS_NGC":
+    case "NGC":
         reads_pattern_cram="*{-,.,_}{WG4_NGC}{-,.,_}*.cram";
         reads_pattern_crai="*{-,.,_}{WG4_NGC}{-,.,_}*.crai";
         reads_pattern_fastq="*{-,.,_}{WG4_NGC}{-,.,_}*R{1,2}*{fq,fastq}.gz";
@@ -503,7 +503,7 @@ workflow {
         inputFiles_symlinks_cram(meta_aln_index)
     }
 
-    if (!params.panel || params.panel =="WGS_CNV"|| params.panel =="WGS_NGC") { //i.e. if WGS data
+    if (!params.panel || params.panel =="WGS_CNV"|| params.panel =="NGC") { //i.e. if WGS data
 
         if (!params.skipVariants) {
             SUB_VARIANTCALL_WGS(meta_aln_index)
@@ -521,7 +521,7 @@ workflow {
 
     }
 
-    if (params.panel && params.panel!="WGS_CNV"&& params.panel!="WGS_NGC") {
+    if (params.panel && params.panel!="WGS_CNV"&& params.panel!="NGC") {
 
         SUB_VARIANTCALL(meta_aln_index)
 
