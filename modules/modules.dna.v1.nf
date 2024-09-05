@@ -794,7 +794,7 @@ process jointgenotyping {
 
 process haplotypecallerSplitIntervals {
     errorStrategy 'ignore'
-    maxForks 3
+    maxForks 6
 
     input:
     tuple val(sampleID), path(bam), path(bai), val(sub_intID), path(sub_interval) //from HC_scatter_input_bam.combine(interval_list1)
@@ -919,7 +919,7 @@ process manta {
     publishDir "${outputDir}/structuralVariants/manta/allOutput/", mode: 'copy'
     publishDir "${outputDir}/structuralVariants/manta/", mode: 'copy', pattern: "*.{AFanno,filtered}.*"
     cpus 10
-    maxForks 6
+    maxForks 3
 
     input:
     tuple val(sampleID), path(aln), path(index)
@@ -981,7 +981,7 @@ process lumpy {
     publishDir "${outputDir}/structuralVariants/lumpy/", mode: 'copy'
     
     cpus 10
-    maxForks 6
+    maxForks 3
 
     input:
     tuple val(sampleID), path(aln), path(index)
@@ -1030,7 +1030,7 @@ process delly126 {
     publishDir "${outputDir}/structuralVariants/delly/", mode: 'copy'
     //publishDir "${outputDir}/structuralVariants/manta/", mode: 'copy', pattern: "*.{AFanno,filtered}.*"
     cpus 1
-    maxForks 6
+    maxForks 4
 
     input:
     tuple val(sampleID), path(aln), path(index)
@@ -1067,7 +1067,7 @@ process cnvkit {
     tag "$sampleID"
 
     cpus 10
-    maxForks 6
+    maxForks 3
 
     publishDir "${outputDir}/structuralVariants/cnvkit/", mode: 'copy'
     publishDir "${inhouse_SV}/CNVkit/CNNfiles/", mode: 'copy', pattern: '*.cnn'

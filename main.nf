@@ -503,7 +503,7 @@ workflow {
         inputFiles_symlinks_cram(meta_aln_index)
     }
 
-    if (!params.panel || params.panel =="WGS_CNV") { //i.e. if WGS data
+    if (!params.panel || params.panel =="WGS_CNV"|| params.panel =="WGS_NGC") { //i.e. if WGS data
 
         if (!params.skipVariants) {
             SUB_VARIANTCALL_WGS(meta_aln_index)
@@ -521,7 +521,7 @@ workflow {
 
     }
 
-    if (params.panel && params.panel!="WGS_CNV") {
+    if (params.panel && params.panel!="WGS_CNV"&& params.panel!="WGS_NGC") {
 
         SUB_VARIANTCALL(meta_aln_index)
 
