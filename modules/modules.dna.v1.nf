@@ -794,7 +794,13 @@ process jointgenotyping {
 
 process haplotypecallerSplitIntervals {
     errorStrategy 'ignore'
-    maxForks 6
+    
+    if (params.server=="lnx02"){
+        maxForks 50
+    }
+    if (params.server=="lnx01"){
+        maxForks 20
+    }
 
     input:
     tuple val(sampleID), path(bam), path(bai), val(sub_intID), path(sub_interval) //from HC_scatter_input_bam.combine(interval_list1)
@@ -903,10 +909,6 @@ process jointgenoScatter{
 
     """     
 }
-
-
-
-
 
 
 
@@ -1030,7 +1032,7 @@ process delly126 {
     publishDir "${outputDir}/structuralVariants/delly/", mode: 'copy'
     //publishDir "${outputDir}/structuralVariants/manta/", mode: 'copy', pattern: "*.{AFanno,filtered}.*"
     cpus 1
-    maxForks 4
+    maxForks 3
 
     input:
     tuple val(sampleID), path(aln), path(index)
