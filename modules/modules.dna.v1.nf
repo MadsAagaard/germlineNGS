@@ -24,7 +24,12 @@ switch (params.gatk) {
     case 'v45':
     gatk_image="gatk4500.sif";
     default:
-    gatk_image="gatk419.sif";
+        if (params.panel=="AV1" || params.panel=="GV3" || params.panel=="CV5"){
+            gatk_image="gatk419.sif";
+        }
+        else {
+            gatk_image="gatk4400.sif";
+        }
     break;
 }
 
