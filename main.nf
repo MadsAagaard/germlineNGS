@@ -236,7 +236,6 @@ switch (params.panel) {
         reads_pattern_fastq="*{-,.,_}{WG4_CNV}{-,.,_}*R{1,2}*{fq,fastq}.gz";
         reads_pattern_spring="*{WG4_CNV}*.spring";
         panelID="WGS"
-        params.gatk="new"
     break;
 
     case "NGC":
@@ -245,7 +244,6 @@ switch (params.panel) {
         reads_pattern_fastq="*{-,.,_}{WG4_NGC}{-,.,_}*R{1,2}*{fq,fastq}.gz";
         reads_pattern_spring="*{WG4_NGC}*.spring";
         panelID="WGS"
-        params.gatk="new"
     break;
 
     default: 
@@ -254,7 +252,6 @@ switch (params.panel) {
         reads_pattern_fastq="*{-,.,_}{WG3,WG4,A_WG4,LIB,WG4_CNV,WGSmerged,WG4_NGC}{-,.,_}*R{1,2}*{fq,fastq}.gz";
         reads_pattern_spring="*{WG3,WG4,A_WG4,LIB,WG4_CNV,WGSmerged,WGS,nova,WG4_NGC}*.spring";
         panelID="WGS"
-        params.gatk="new"
     break;
 }
 
