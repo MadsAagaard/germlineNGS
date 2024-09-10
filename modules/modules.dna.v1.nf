@@ -1248,7 +1248,7 @@ process stripy {
     --genome ${params.genome} \
     --reference ${genome_fasta} \
     --locus ATN1,ATXN1,ATXN10,ATXN2,ATXN3,ATXN7,ATXN8OS,BEAN1,CACNA1A,CSTB,DAB1,FGF14,FMR1,FXN,NOP56,NOTCH2NLC,PPP2R2B,RFC1,TBP,YEATS2 \
-    --output ${sampleID}.stripy_ataksi/ \
+    --output ${sampleID}.stripy/ \
     --input ${aln}
 
     mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.Ataksi.html
