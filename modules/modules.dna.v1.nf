@@ -1220,7 +1220,7 @@ process stripy {
 //    publishDir "${outputDir}/repeatExpansions/STRipy/", mode: 'copy'
     publishDir "${outputDir}/repeatExpansions/STRipy_ALL/", mode: 'copy',pattern:"*.ALL.html"
     publishDir "${outputDir}/repeatExpansions/STRipy_ataksi/", mode: 'copy',pattern:"*.ataksi.html"
-    publishDir "${outputDir}/repeatExpansions/STRipy_ALL/", mode: 'copy',pattern:"*.myotoni.html"
+    publishDir "${outputDir}/repeatExpansions/STRipy_myotoni/", mode: 'copy',pattern:"*.myotoni.html"
     publishDir "${outputDir}/repeatExpansions/STRipy_neuropati/", mode: 'copy',pattern:"*.neuropati.html"
     publishDir "${outputDir}/repeatExpansions/STRipy_ALS_FTD/", mode: 'copy',pattern:"*.ALS_FTD.html"
     publishDir "${outputDir}/repeatExpansions/STRipy_myopati/", mode: 'copy',pattern:"*.myopati.html"
