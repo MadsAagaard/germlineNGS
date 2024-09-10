@@ -1217,13 +1217,13 @@ process expansionHunter {
 process stripy {
     errorStrategy 'ignore'
     tag "$sampleID"
-    publishDir "${outputDir}/repeatExpansions/STRipy/", mode: 'copy'
-
+    publishDir "${outputDir}/repeatExpansions/STRipy.ALL/", mode: 'copy',pattern:"*stripy.AL*"
+    publishDir "${outputDir}/repeatExpansions/STRipy.Ataksi/", mode: 'copy',pattern:"*stripy.Ataksi*"
     input:
     tuple val(sampleID), path(aln), path(index)
 
     output:
-    path("${sampleID}.stripy/*.html")
+    path("${sampleID}.stripy*/*.html")
     script:
     """
     mkdir ${sampleID}.stripy/ 
@@ -1232,10 +1232,39 @@ process stripy {
     --genome ${params.genome} \
     --reference ${genome_fasta} \
     --locus AFF2,AR,ARX_1,ARX_2,ATN1,ATXN1,ATXN10,ATXN2,ATXN3,ATXN7,ATXN8OS,BEAN1,C9ORF72,CACNA1A,CBL,CNBP,COMP,DAB1,DIP2B,DMD,DMPK,FGF14,FMR1,FOXL2,FXN,GIPC1,GLS,HOXA13_1,HOXA13_2,HOXA13_3,HOXD13,HTT,JPH3,LRP12,MARCHF6,NIPA1,NOP56,NOTCH2NLC,NUTM2B-AS1,PABPN1,PHOX2B,PPP2R2B,PRDM12,RAPGEF2,RFC1,RILPL1,RUNX2,SAMD12,SOX3,STARD7,TBP,TBX1,TCF4,TNRC6A,XYLT1,YEATS2,ZIC2,ZIC3 \
-    --output ${sampleID}.stripy/ \
+    --output ${sampleID}.stripy.ALL/ \
+    --input ${aln}
+
+    python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
+    --genome ${params.genome} \
+    --reference ${genome_fasta} \
+    --locus ATN1,ATXN1,ATXN10,ATXN2,ATXN3,ATXN7,ATXN8OS,BEAN1,CACNA1A,CSTB,DAB1,FGF14,FMR1,FXN,NOP56,NOTCH2NLC,PPP2R2B,RFC1,TBP,YEATS2 \
+    --output ${sampleID}.stripy.Ataksi_subset/ \
     --input ${aln}
     """
 }
+/*
+Ataksi:
+
+Basal:
+ATN1,ATXN1,ATXN2,ATXN3,ATXN10,ATXN8OS,C9ORF72,CACNA1A,FXN,JPH3,NOTCH2NLC,PPP2R2B,TBP
+
+
+neuropati:
+RFC1
+
+ALS_AFD:
+AR, ATXN2, C9ORF72, NOP56, NOTCH2NLC
+
+myopati
+CNBP, DMD, DMPK, GIPC1, LRP12, NOTCH2NLC, NUTM2B-AS1, PABPN1, RILPL1
+
+
+epilepsi:
+CSTB, MARCHF6, RAPGEF2, SAMD12, STARD7, TNRC6A, YEATS2
+
+*/
+
 
 process prepareManifestSMN {
     
