@@ -1217,25 +1217,32 @@ process expansionHunter {
 process stripy {
     errorStrategy 'ignore'
     tag "$sampleID"
-    publishDir "${outputDir}/repeatExpansions/STRipy_all/", mode: 'copy',pattern:"*stripy_all"
-    publishDir "${outputDir}/repeatExpansions/STRipy_ataksi/", mode: 'copy',pattern:"*stripy_ataksi"
+    publishDir "${outputDir}/repeatExpansions/STRipy/", mode: 'copy'
+    //publishDir "${outputDir}/repeatExpansions/STRipy_ataksi/", mode: 'copy',pattern:"*stripy_ataksi"
     input:
     tuple val(sampleID), path(aln), path(index)
 
     output:
-    path("${sampleID}.stripy_all/*.html")
-    path("${sampleID}.stripy_ataksi/*.html")    
+    path("${sampleID}.stripy/*.html")
     script:
     """
-    mkdir ${sampleID}.stripy_all/
+    mkdir ${sampleID}.stripy/
     mkdir ${sampleID}.stripy_ataksi/ 
+    mkdir ${sampleID}.stripy_myotoni/
+    mkdir ${sampleID}.stripy_neuropati/
+    mkdir ${sampleID}.stripy_ALS_FTD/
+    mkdir ${sampleID}.stripy_myopati/    
+    mkdir ${sampleID}.stripy_epilepsi/  
+    
     sleep 5
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
     --reference ${genome_fasta} \
     --locus AFF2,AR,ARX_1,ARX_2,ATN1,ATXN1,ATXN10,ATXN2,ATXN3,ATXN7,ATXN8OS,BEAN1,C9ORF72,CACNA1A,CBL,CNBP,COMP,DAB1,DIP2B,DMD,DMPK,FGF14,FMR1,FOXL2,FXN,GIPC1,GLS,HOXA13_1,HOXA13_2,HOXA13_3,HOXD13,HTT,JPH3,LRP12,MARCHF6,NIPA1,NOP56,NOTCH2NLC,NUTM2B-AS1,PABPN1,PHOX2B,PPP2R2B,PRDM12,RAPGEF2,RFC1,RILPL1,RUNX2,SAMD12,SOX3,STARD7,TBP,TBX1,TCF4,TNRC6A,XYLT1,YEATS2,ZIC2,ZIC3 \
-    --output ${sampleID}.stripy_all/ \
+    --output ${sampleID}.stripy/ \
     --input ${aln}
+
+    mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.ALL.html
 
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
@@ -1243,10 +1250,29 @@ process stripy {
     --locus ATN1,ATXN1,ATXN10,ATXN2,ATXN3,ATXN7,ATXN8OS,BEAN1,CACNA1A,CSTB,DAB1,FGF14,FMR1,FXN,NOP56,NOTCH2NLC,PPP2R2B,RFC1,TBP,YEATS2 \
     --output ${sampleID}.stripy_ataksi/ \
     --input ${aln}
+
+    mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.Ataksi.html
+
+    python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
+    --genome ${params.genome} \
+    --reference ${genome_fasta} \
+    --locus RFC1 \
+    --output ${sampleID}.stripy/ \
+    --input ${aln}
+
+    mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.Neuropati.html
+
+    python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
+    --genome ${params.genome} \
+    --reference ${genome_fasta} \
+    --locus AR, ATXN2, C9ORF72, NOP56, NOTCH2NLC\
+    --output ${sampleID}.stripy/ \
+    --input ${aln}
+    mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.ALS_FTD.html
     """
 }
 /*
-Ataksi:
+
 
 Basal:
 ATN1,ATXN1,ATXN2,ATXN3,ATXN10,ATXN8OS,C9ORF72,CACNA1A,FXN,JPH3,NOTCH2NLC,PPP2R2B,TBP
