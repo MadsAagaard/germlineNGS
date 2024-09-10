@@ -1265,7 +1265,7 @@ process stripy {
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
     --reference ${genome_fasta} \
-    --locus AR, ATXN2, C9ORF72, NOP56, NOTCH2NLC\
+    --locus AR,ATXN2,C9ORF72,NOP56,NOTCH2NLC\
     --output ${sampleID}.stripy/ \
     --input ${aln}
     mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.ALS_FTD.html
