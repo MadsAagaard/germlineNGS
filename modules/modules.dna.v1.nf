@@ -1224,15 +1224,11 @@ process stripy {
 
     output:
     path("${sampleID}.stripy/*.html")
+    path("*.html")
     script:
     """
     mkdir ${sampleID}.stripy/
-    mkdir ${sampleID}.stripy_ataksi/ 
-    mkdir ${sampleID}.stripy_myotoni/
-    mkdir ${sampleID}.stripy_neuropati/
-    mkdir ${sampleID}.stripy_ALS_FTD/
-    mkdir ${sampleID}.stripy_myopati/    
-    mkdir ${sampleID}.stripy_epilepsi/  
+
     
     sleep 5
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
@@ -1265,14 +1261,19 @@ process stripy {
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
     --reference ${genome_fasta} \
-    --locus AR,ATXN2,C9ORF72,NOP56,NOTCH2NLC\
+    --locus AR,ATXN2,C9ORF72,NOP56,NOTCH2NLC \
     --output ${sampleID}.stripy/ \
     --input ${aln}
     mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.ALS_FTD.html
     """
 }
 /*
-
+    mkdir ${sampleID}.stripy_ataksi/ 
+    mkdir ${sampleID}.stripy_myotoni/
+    mkdir ${sampleID}.stripy_neuropati/
+    mkdir ${sampleID}.stripy_ALS_FTD/
+    mkdir ${sampleID}.stripy_myopati/    
+    mkdir ${sampleID}.stripy_epilepsi/  
 
 Basal:
 ATN1,ATXN1,ATXN2,ATXN3,ATXN10,ATXN8OS,C9ORF72,CACNA1A,FXN,JPH3,NOTCH2NLC,PPP2R2B,TBP
