@@ -1223,8 +1223,9 @@ process stripy {
     tuple val(sampleID), path(aln), path(index)
 
     output:
-    path("${sampleID}.stripy/*.html")
+    //path("${sampleID}.stripy/*.html")
     path("*.html")
+
     script:
     """
     mkdir ${sampleID}.stripy/
