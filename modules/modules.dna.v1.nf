@@ -1218,7 +1218,12 @@ process stripy {
     errorStrategy 'ignore'
     tag "$sampleID"
     publishDir "${outputDir}/repeatExpansions/STRipy/", mode: 'copy'
-    //publishDir "${outputDir}/repeatExpansions/STRipy_ataksi/", mode: 'copy',pattern:"*stripy_ataksi"
+    publishDir "${outputDir}/repeatExpansions/STRipy_ataksi/", mode: 'copy',pattern:"*.Ataksi.html"
+    publishDir "${outputDir}/repeatExpansions/STRipy_ALL/", mode: 'copy',pattern:"*.ALL.html"
+    publishDir "${outputDir}/repeatExpansions/STRipy_neuropati/", mode: 'copy',pattern:"*.Neuropati.html"
+    publishDir "${outputDir}/repeatExpansions/STRipy_ALS_FTD/", mode: 'copy',pattern:"*.ALS_FTD.html"
+    publishDir "${outputDir}/repeatExpansions/STRipy_myopati/", mode: 'copy',pattern:"*.myopati.html"
+    publishDir "${outputDir}/repeatExpansions/STRipy_epilepsi/", mode: 'copy',pattern:"*.epilepsi.html"
     input:
     tuple val(sampleID), path(aln), path(index)
 
@@ -1266,6 +1271,23 @@ process stripy {
     --output ${sampleID}.stripy/ \
     --input ${aln}
     mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.ALS_FTD.html
+
+    python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
+    --genome ${params.genome} \
+    --reference ${genome_fasta} \
+    --locus CNBP,DMD,DMPK,GIPC1,LRP12,NOTCH2NLC,NUTM2B-AS1,PABPN1,RILPL1 \
+    --output ${sampleID}.stripy/ \
+    --input ${aln}
+    mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.myopati.html
+
+    python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
+    --genome ${params.genome} \
+    --reference ${genome_fasta} \
+    --locus CSTB,MARCHF6,RAPGEF2,SAMD12,STARD7,TNRC6A,YEATS2 \
+    --output ${sampleID}.stripy/ \
+    --input ${aln}
+    mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.epilepsi.html
+
     """
 }
 /*
