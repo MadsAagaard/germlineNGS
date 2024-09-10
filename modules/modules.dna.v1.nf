@@ -1217,13 +1217,16 @@ process expansionHunter {
 process stripy {
     errorStrategy 'ignore'
     tag "$sampleID"
-    publishDir "${outputDir}/repeatExpansions/STRipy/", mode: 'copy'
-    publishDir "${outputDir}/repeatExpansions/STRipy_ataksi/", mode: 'copy',pattern:"*.Ataksi.html"
+//    publishDir "${outputDir}/repeatExpansions/STRipy/", mode: 'copy'
     publishDir "${outputDir}/repeatExpansions/STRipy_ALL/", mode: 'copy',pattern:"*.ALL.html"
-    publishDir "${outputDir}/repeatExpansions/STRipy_neuropati/", mode: 'copy',pattern:"*.Neuropati.html"
+    publishDir "${outputDir}/repeatExpansions/STRipy_ataksi/", mode: 'copy',pattern:"*.ataksi.html"
+    publishDir "${outputDir}/repeatExpansions/STRipy_ALL/", mode: 'copy',pattern:"*.myotoni.html"
+    publishDir "${outputDir}/repeatExpansions/STRipy_neuropati/", mode: 'copy',pattern:"*.neuropati.html"
     publishDir "${outputDir}/repeatExpansions/STRipy_ALS_FTD/", mode: 'copy',pattern:"*.ALS_FTD.html"
     publishDir "${outputDir}/repeatExpansions/STRipy_myopati/", mode: 'copy',pattern:"*.myopati.html"
     publishDir "${outputDir}/repeatExpansions/STRipy_epilepsi/", mode: 'copy',pattern:"*.epilepsi.html"
+
+    
     input:
     tuple val(sampleID), path(aln), path(index)
 
@@ -1234,13 +1237,12 @@ process stripy {
     script:
     """
     mkdir ${sampleID}.stripy/
-
-    
     sleep 5
+
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
     --reference ${genome_fasta} \
-    --locus AFF2,AR,ARX_1,ARX_2,ATN1,ATXN1,ATXN10,ATXN2,ATXN3,ATXN7,ATXN8OS,BEAN1,C9ORF72,CACNA1A,CBL,CNBP,COMP,DAB1,DIP2B,DMD,DMPK,FGF14,FMR1,FOXL2,FXN,GIPC1,GLS,HOXA13_1,HOXA13_2,HOXA13_3,HOXD13,HTT,JPH3,LRP12,MARCHF6,NIPA1,NOP56,NOTCH2NLC,NUTM2B-AS1,PABPN1,PHOX2B,PPP2R2B,PRDM12,RAPGEF2,RFC1,RILPL1,RUNX2,SAMD12,SOX3,STARD7,TBP,TBX1,TCF4,TNRC6A,XYLT1,YEATS2,ZIC2,ZIC3 \
+    --locus ABCD3,AFF2,AR,ARX_1,ARX_2,ATN1,ATXN1,ATXN10,ATXN2,ATXN3,ATXN7,ATXN8OS,BEAN1,C9ORF72,CACNA1A,CBL,CNBP,COMP,CSTB,DAB1,DIP2B,DMD,DMPK,EIF4A3,FGF14,FMR1,FOXL2,FXN,GIPC1,GLS,HOXA13_1,HOXA13_2,HOXA13_3,HOXD13,HTT,JPH3,LRP12,MARCHF6,NIPA1,NOP56,NOTCH2NLC,NUTM2B-AS1,PABPN1,PHOX2B,PPP2R2B,PRDM12,PPNP,RAPGEF2,RFC1,RILPL1,RUNX2,SAMD12,SOX3,STARD7,TBP,TBX1,TCF4,THAP11,TNRC6A,VWA1,XYLT1,YEATS2,ZFHX3,ZIC2,ZIC3 \
     --output ${sampleID}.stripy/ \
     --input ${aln}
 
@@ -1253,7 +1255,16 @@ process stripy {
     --output ${sampleID}.stripy/ \
     --input ${aln}
 
-    mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.Ataksi.html
+    mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.ataksi.html
+
+    python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
+    --genome ${params.genome} \
+    --reference ${genome_fasta} \
+    --locus ATN1,ATXN1,ATXN2,ATXN3,ATXN10,ATXN80S,C9ORF72,CACNA1A,FXN,JPH3,NOTCH2NLC,PPP2R2B,TBP \
+    --output ${sampleID}.stripy/ \
+    --input ${aln}
+
+    mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.myotoni.html
 
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
@@ -1262,7 +1273,7 @@ process stripy {
     --output ${sampleID}.stripy/ \
     --input ${aln}
 
-    mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.Neuropati.html
+    mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.neuropati.html
 
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
