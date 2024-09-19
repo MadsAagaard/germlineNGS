@@ -296,10 +296,10 @@ process inputFiles_symlinks_fq{
     errorStrategy 'ignore'
     publishDir "${outputDir}/input_symlinks/", mode: 'link', pattern:'*.{fastq,fq}.gz'
     input:
-    tuple val(sampleID), path(r1),path(r2)// from read_input2
+    tuple val(meta), path(reads)// from read_input2
     
     output:
-    tuple path(r1),path(r2)
+    tuple val(meta), path(reads)
     script:
     """
     """
@@ -684,13 +684,22 @@ process multiQC {
 //////////////////////////// VARIANT CALLING MODULES //////////////////////////////////
 process haplotypecaller{
         errorStrategy 'ignore'
-        maxForks 30
+
         cpus 4
         tag "$sampleID"
         publishDir "${outputDir}/Variants/per_sample/", mode: 'copy', pattern: "*.HC.*"
         publishDir "${outputDir}/Variants/GVCF_files/", mode: 'copy', pattern: "*.g.*"
         publishDir "${outputDir}/HaplotypeCallerBAMout/", mode: 'copy', pattern: "*.HCbamout.*"
         publishDir "${variantStorage}/gVCF/${panelID_storage}/", mode: 'copy', pattern:'*.g.vc*' //
+
+        if (params.server=="lnx02"){
+            maxForks 30
+        }
+        if (params.server=="lnx01"){
+            maxForks 10
+        }
+
+
         input:
         tuple val(sampleID), path(aln), path(aln_index)
     

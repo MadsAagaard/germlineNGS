@@ -37,6 +37,7 @@ params.server                   = "lnx01"
 params.genome                   = "hg38"
 params.outdir                   = "${launchDir.baseName}.Results"
 params.rundir                   = "${launchDir.baseName}"
+params.subdirs                  =null
 //params.intervals_list           ="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/wgs_splitinterval_BWI_subdivision3/*.interval_list";
 
 
@@ -348,7 +349,20 @@ if (params.cram) { //&& params.panel
     .set {sampleID_crai }
 }
 
+if (params.cram && params.subdirs) { //&& params.panel
+    cramfiles="${params.cram}/**/${reads_pattern_cram}"
+    craifiles="${params.cram}/**/${reads_pattern_crai}"
 
+    Channel
+    .fromPath(cramfiles)
+    .map { tuple(it.baseName.tokenize('.').get(0),it) }
+    .set { sampleID_cram }
+
+    Channel
+    .fromPath(craifiles)
+    .map { tuple(it.baseName.tokenize('.').get(0),it) }
+    .set {sampleID_crai }
+}
 // If only samplesheet is provided, use CRAM from archive as input (default setup)!
 
 if (params.samplesheet && !params.cram && !params.fastqInput && !params.fastq) {
