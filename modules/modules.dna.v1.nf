@@ -368,7 +368,7 @@ process spring_compression {
 
     """
     spring -c \
-    -i ${r1} ${r2} \
+    -i ${reads[0]} ${reads[1}} \
     -t ${task.cpus} \
     -o ${meta.id}.spring \
     -g
@@ -423,8 +423,8 @@ process fastq_to_ubam {
     script:
     """
     ${gatk_exec} FastqToSam \
-    -F1 ${r1} \
-    -F2 ${r2} \
+    -F1 ${reads[0]} \
+    -F2 ${reads[1]} \
     -SM ${meta.id} \
     -PL illumina \
     -PU KGA_PU \
@@ -464,7 +464,7 @@ process align {
     tuple val(meta), path(uBAM), path(metrics)
 
     output:
-    tuple val(meta), path("${meta.id}.${params.genome}.${genome_version}.QNsort.BWA.clean.bam")
+    tuple val(meta), path("${meta.id}.${genome_version}.QNsort.BWA.clean.bam")
     
     script:
     """
@@ -488,7 +488,7 @@ process align {
     -ORIENTATIONS FR \
     -SO queryname \
     --TMP_DIR ${tmpDIR} \
-    -O ${meta.id}.${params.genome}.${genome_version}.QNsort.BWA.clean.bam
+    -O ${meta.id}.${genome_version}.QNsort.BWA.clean.bam
     """
 }
 
@@ -503,22 +503,22 @@ process markDup_bam {
     tuple val(meta), path(aln) 
     
     output:
-    tuple val(meta), path("${meta.id}.${params.genome}.${genome_version}.BWA.MD.bam"), path("${meta.id}.${params.genome}.${genome_version}.BWA.MD*bai")
+    tuple val(meta), path("${meta.id}${genome_version}.BWA.MD.bam"), path("${meta.id}.${genome_version}.BWA.MD*bai")
 
-    tuple val(meta), path("${meta.id}.${params.genome}.${genome_version}.BWA.MD.cram"), path("${meta.id}.${params.genome}.${genome_version}.BWA.MD*crai")
+    tuple val(meta), path("${meta.id}.${genome_version}.BWA.MD.cram"), path("${meta.id}.${genome_version}.BWA.MD*crai")
     
     script:
     """
     samtools view -h ${aln} \
-    | samblaster | sambamba view -t 8 -S -f bam /dev/stdin | sambamba sort -t 8 --tmpdir=${tmpDIR} -o ${meta.id}.${params.genome}.${genome_version}.BWA.MD.bam /dev/stdin
-    sambamba index ${meta.id}.${params.genome}.${genome_version}.BWA.MD.bam
+    | samblaster | sambamba view -t 8 -S -f bam /dev/stdin | sambamba sort -t 8 --tmpdir=${tmpDIR} -o ${meta.id}.${genome_version}.BWA.MD.bam /dev/stdin
+    sambamba index ${meta.id}.${genome_version}.BWA.MD.bam
     
     samtools view \
     -T ${genome_fasta} \
     -C \
-    -o ${meta.id}.${params.genome}.${genome_version}.BWA.MD.cram ${meta.id}.${params.genome}.${genome_version}.BWA.MD.bam
+    -o ${meta.id}.${genome_version}.BWA.MD.cram ${meta.id}.${genome_version}.BWA.MD.bam
 
-    samtools index ${meta.id}.${params.genome}.${genome_version}.BWA.MD.cram
+    samtools index ${meta.id}.${genome_version}.BWA.MD.cram
     """
 }
 
@@ -532,7 +532,7 @@ process markDup_cram {
     tuple val(meta), path(aln)
     
     output:
-    tuple val(meta),  path("${meta.id}.${params.genome}.${genome_version}.BWA.MD.cram"), path("${meta.id}.${params.genome}.${genome_version}.BWA.MD*crai"), emit: markDup_output
+    tuple val(meta),  path("${meta.id}.${genome_version}.BWA.MD.cram"), path("${meta.id}.${genome_version}.BWA.MD*crai"), emit: markDup_output
     
     script:
     """
@@ -541,9 +541,9 @@ process markDup_cram {
     |  samtools view \
     -T ${genome_fasta} \
     -C \
-    -o ${meta.id}.${params.genome}.${genome_version}.BWA.MD.cram -
+    -o ${meta.id}.${genome_version}.BWA.MD.cram -
 
-    samtools index ${meta.id}.${params.genome}.${genome_version}.BWA.MD.cram
+    samtools index ${meta.id}.${genome_version}.BWA.MD.cram
     """
 }
 
@@ -699,14 +699,14 @@ process haplotypecaller{
         tuple val(meta), path(aln)
     
         output:
-        path("${meta.id}.${params.genome}.${genome_version}.g.vcf.gz"), emit: sample_gvcf
+        path("${meta.id}.${genome_version}.g.vcf.gz"), emit: sample_gvcf
 
-        tuple val(meta), path("${meta.id}.${params.genome}.${genome_version}.g.vcf.gz"), emit: HC_sid_gvcf
+        tuple val(meta), path("${meta.id}.${genome_version}.g.vcf.gz"), emit: HC_sid_gvcf
     
-        tuple val(meta), path("${meta.id}.${params.genome}.${genome_version}.HC.*")
+        tuple val(meta), path("${meta.id}.${genome_version}.HC.*")
 
-        path("${meta.id}.${params.genome}.${genome_version}.g.*")
-        path("${meta.id}.${params.genome}.${genome_version}.HCbamout.*")
+        path("${meta.id}.${genome_version}.g.*")
+        path("${meta.id}.${genome_version}.HCbamout.*")
         path("${aln_index}")
         path("${aln}")
         //path("${sampleID_type}.HC.*")
@@ -722,13 +722,13 @@ process haplotypecaller{
         --native-pair-hmm-threads 4 \
         -pairHMM FASTEST_AVAILABLE \
         --dont-use-soft-clipped-bases \
-        -O ${meta.id}.${params.genome}.${genome_version}.g.vcf.gz \
-        -bamout ${meta.id}.${params.genome}.${genome_version}.HCbamout.bam
+        -O ${meta.id}.${genome_version}.g.vcf.gz \
+        -bamout ${meta.id}.${genome_version}.HCbamout.bam
     
         ${gatk_exec} GenotypeGVCFs \
         -R ${genome_fasta} \
-        -V ${meta.id}.${params.genome}.${genome_version}.g.vcf.gz \
-        -O ${meta.id}.${params.genome}.${genome_version}.HC.vcf.gz \
+        -V ${meta.id}.${genome_version}.g.vcf.gz \
+        -O ${meta.id}.${genome_version}.HC.vcf.gz \
         -G StandardAnnotation \
         -G AS_StandardAnnotation
         """
@@ -748,21 +748,21 @@ process jointgenotyping {
         output:
 
         path("*.for.VarSeq.*")
-//        tuple val(panelID), path("${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.for.VarSeq.*"), emit: spliceAI_input
+//        tuple val(panelID), path("${params.rundir}.${panelID}.${genome_version}.merged.for.VarSeq.*"), emit: spliceAI_input
 
         script:
         """
         ${gatk_exec} --java-options "-Xmx64g" CombineGVCFs \
         -R ${genome_fasta} \
         ${subpanel_gvcf} \
-        -O ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.g.vcf \
+        -O ${params.rundir}.${panelID}.${genome_version}.merged.g.vcf \
         -L ${ROI} \
         -G StandardAnnotation -G AS_StandardAnnotation 
 
         ${gatk_exec} GenotypeGVCFs \
         -R ${genome_fasta} \
-        -V ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.g.vcf \
-        -O ${params.rundir}.${panelID}.${params.genome}.${genome_version}.merged.for.VarSeq.vcf.gz  \
+        -V ${params.rundir}.${panelID}.${genome_version}.merged.g.vcf \
+        -O ${params.rundir}.${panelID}.${genome_version}.merged.for.VarSeq.vcf.gz  \
         -L ${ROI} \
         -G StandardAnnotation -G AS_StandardAnnotation -A SampleList \
         -D ${dbsnp}
@@ -788,11 +788,11 @@ process jointgenotyping {
         singularity run -B ${s_bind} ${simgpath}/spliceai.sif spliceai \
         -R ${genome_fasta} \
         -I ${vcf} \
-        -O ${params.rundir}.${panelID}.${params.genome}.${genome_version}.spliceAI.merged.for.VarSeq.vcf \
+        -O ${params.rundir}.${panelID}.${genome_version}.spliceAI.merged.for.VarSeq.vcf \
         -A ${spliceai_assembly}
 
         ${gatk_exec} IndexFeatureFile \
-        -I ${params.rundir}.${panelID}.${params.genome}.${genome_version}.spliceAI.merged.for.VarSeq.vcf
+        -I ${params.rundir}.${panelID}.${genome_version}.spliceAI.merged.for.VarSeq.vcf
         """
     }
 */
@@ -1047,26 +1047,26 @@ process delly126 {
     tuple val(meta), path(aln), path(index)
 
     output:
-    tuple val(meta), path("${meta.id}.${params.genome}.${genome_version}.delly.raw.vcf")
-    tuple val(meta), path("${meta.id}.${params.genome}.${genome_version}.delly.AFanno.frq_below5pct.vcf"), emit: dellyForSVDB
+    tuple val(meta), path("${meta.id}.${genome_version}.delly.raw.vcf")
+    tuple val(meta), path("${meta.id}.${genome_version}.delly.AFanno.frq_below5pct.vcf"), emit: dellyForSVDB
     script:
     """
     /data/shared/programmer/BIN/delly126 call \
     -g ${genome_fasta} \
-    ${aln} > ${meta.id}.${params.genome}.${genome_version}.delly.raw.vcf
+    ${aln} > ${meta.id}.${genome_version}.delly.raw.vcf
 
     singularity exec  \
     --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
     --query \
-    --query_vcf ${meta.id}.${params.genome}.${genome_version}.delly.raw.vcf \
-    --sqdb ${dellySVDB} > ${meta.id}.${params.genome}.${genome_version}.delly.AFanno.vcf 
+    --query_vcf ${meta.id}.${genome_version}.delly.raw.vcf \
+    --sqdb ${dellySVDB} > ${meta.id}.${genome_version}.delly.AFanno.vcf 
 
     ${gatk_exec} SelectVariants -R ${genome_fasta} \
-    -V ${meta.id}.${params.genome}.${genome_version}.delly.AFanno.vcf  \
+    -V ${meta.id}.${genome_version}.delly.AFanno.vcf  \
     --exclude-filtered \
     -select "FRQ>0.05" \
     -invert-select \
-    -O ${meta.id}.${params.genome}.${genome_version}.delly.AFanno.frq_below5pct.vcf
+    -O ${meta.id}.${genome_version}.delly.AFanno.frq_below5pct.vcf
 
     """
 
@@ -1221,7 +1221,6 @@ process expansionHunter {
 process stripy {
     errorStrategy 'ignore'
     tag "$sampleID"
-//    publishDir "${outputDir}/repeatExpansions/STRipy/", mode: 'copy'
     publishDir "${outputDir}/repeatExpansions/STRipy_ALL/", mode: 'copy',pattern:"*.ALL.html"
     publishDir "${outputDir}/repeatExpansions/STRipy_ataksi/", mode: 'copy',pattern:"*.ataksi.html"
     publishDir "${outputDir}/repeatExpansions/STRipy_myotoni/", mode: 'copy',pattern:"*.myotoni.html"
@@ -1235,7 +1234,6 @@ process stripy {
     tuple val(meta), path(aln), path(index)
 
     output:
-    //path("${meta.id}.stripy/*.html")
     path("*.html")
 
     script:
@@ -1429,8 +1427,8 @@ workflow SUB_PREPROCESS {
     fq_read_input
 
     main:
-    inputFiles_symlinks_fq(fq_read_input)
-    fastq_to_ubam(fq_read_input)
+    inputFiles_symlinks_fq(readsInputFinal)
+    fastq_to_ubam(readsInputFinal)
     markAdapters(fastq_to_ubam.out[0])
     align(markAdapters.out)
     markDup_cram(align.out)

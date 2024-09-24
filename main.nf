@@ -443,8 +443,6 @@ if (params.fastq || params.fastqInput) {
 ////// INPUT DATA: CRAM AS INPUT //////////////////
 ////////////////////////////////////////////////////
 
-
-
 if (!params.fastq && !params.fastqInput){
 
     if (params.cram) {
@@ -506,7 +504,6 @@ if (!params.fastq && !params.fastqInput){
          channel.fromPath(params.samplesheet)
         | splitCsv(sep:'\t',header:true)
         | map { row -> tuple(row.npn, row)}
-       // | view
         | set { full_samplesheet }
 
     full_samplesheet.join(alnInputForJoin)    
@@ -520,8 +517,8 @@ if (!params.fastq && !params.fastqInput){
         cramInputReMerged
         | set {alnInputFinal} 
     }
-    
 }
+
 
 ////////////////////////////////////////////////////////////////////
 //// NEW June 2024: Add spring as input. ///////////////////////////
@@ -542,62 +539,8 @@ if (params.spring && !params.samplesheet) {
 
 
 
-////////////////////////////////////////////////////
-///////////// SAMPLESHEET channels /////////////////
-////////////////////////////////////////////////////
-/*
-if (params.samplesheet) {
-    channel.fromPath(params.samplesheet)
-        .splitCsv(sep:'\t')
-        .map { row -> tuple(row[1], row[0],row[2],row[3])}
-        .set { full_samplesheet }
-    //above: NPN, caseID, relation, samplestatus
-
-    channel.fromPath(params.samplesheet)
-        .splitCsv(sep:'\t')
-        .map { row -> row[0]}
-        .unique()
-        .collect()
-        .set { caseID_ch }
-
-    channel.fromPath(params.samplesheet)
-        .splitCsv(sep:'\t')
-        .map { row -> tuple(row[0],row[1])}
-        .set {caseID_sampleID}
-}
-*/
-
-////////////////////////////////////////////////////
-///////////// set final input channels   ///////////
-////////////////////////////////////////////////////
-
-/*
-if (!params.samplesheet && params.fastq) {
-    read_pairs_ch
-    .set { fq_read_input }
-}
-
-if (!params.samplesheet && params.cram) {
-    sampleID_cram.join(sampleID_crai)
-    .set { meta_aln_index }
-}
-
-if (params.samplesheet && !params.cram && (params.fastqInput||params.fastq)) {
-    full_samplesheet.join(read_pairs_ch)
-    .map {tuple (it[0]+"_"+it[1]+"_"+it[2],it[4],it[5])}
-    .set { fq_read_input }
-}
-
-if (params.samplesheet && !params.fastqInput && !params.fastq) {
-
-    full_samplesheet.join(sampleID_cram).join(sampleID_crai)
-    .map {tuple (it[0]+"_"+it[1]+"_"+it[2],it[4],it[5])}
-    .set {meta_aln_index}
-}
-*/
 
 
-//////// END: Combine input and samplesheet //////////
 
 ///// Haplotypecaller splitintervals channel: /////
 /*
@@ -629,152 +572,99 @@ include {
          SUB_STR;
          SUB_SMN } from "./modules/modules.dna.v1.nf" 
 
-
+/*
 workflow QC {
     take: 
     meta_aln_index
     main:
     samtools(meta_aln_index)
-//    qualimap(meta_aln_index)
-//    fastqc_bam(meta_aln_index)
+
     multiQC(samtools.out.ifEmpty([]).mix(qualimap.out.ifEmpty([])).mix(fastqc_bam.out.ifEmpty([])).collect())
 
 }
+*/
+
+process fastq_to_ubam {
+    errorStrategy 'ignore'
+    tag "$sampleID"
+    //publishDir "${outputDir}/unmappedBAM/", mode: 'copy',pattern: '*.{bam,bai}'
+    //publishDir "${outputDir}/fastq_symlinks/", mode: 'link', pattern:'*.{fastq,fq}.gz'
+    cpus 20
+    maxForks 10
+
+    input:
+    tuple val(meta), path(reads)
+
+    output:
+    tuple val(meta), path("${meta.id}.unmapped.from.fq.bam")
+    
+    script:
+    """
+    ${gatk_exec} FastqToSam \
+    -F1 ${reads[0]} \
+    -F2 ${reads[1]} \
+    -SM ${meta.id} \
+    -PL illumina \
+    -PU KGA_PU \
+    -RG KGA_RG \
+    --TMP_DIR ${tmpDIR} \
+    -O ${meta.id}.unmapped.from.fq.bam
+    touch ${meta.id}.unmapped.from.fq.bam.idx
+    """
+}
+
 
 
 
 workflow {
-if (!params.fastq && !params.fastqInput){
+fastq_to_ubam(readsInputFinal)
 
-    if (params.cram) {
-        cramfiles="${params.cram}/${reads_pattern_cram}"
-        craifiles="${params.cram}/${reads_pattern_crai}"
-    }
-
-    if (!params.cram) {
-        cramfiles="${dataArchive}/{lnx01,lnx02,tank_kga_external_archive}/**/${reads_pattern_cram}"
-        craifiles="${dataArchive}/{lnx01,lnx02,tank_kga_external_archive}/**/${reads_pattern_crai}"
-    }
-    
-    if (params.cram && params.subdirs) {
-        cramfiles="${params.cram}/**/${reads_pattern_cram}"
-        craifiles="${params.cram}/**/${reads_pattern_crai}"
-    }
-
-    Channel.fromPath(cramfiles,checkIfExists:true)
-    |map {tuple (it.simpleName,it)}
-    |set {cramfiles}
-    
-    Channel.fromPath(craifiles,checkIfExists:true)
-    |map {tuple (it.simpleName,it)}
-    |set {craifiles}
-    
-    cramfiles.join(craifiles)
-    |map { id, aln, index ->
-        (sample, panel,subpanel)   = id.tokenize("_")
-      //  (panel,subpanel)    = ngstype.tokenize("_")
-        meta = [id:id, npn:sample, fullpanel:panel+"_"+subpanel, panel:panel, subpanel:subpanel]
-        tuple(meta,[aln,index])
-    }
-
-    | set {cram_all}
-    cram_all
-    |branch {meta, aln ->
-            WGS: (meta.panel=~/WG/ || meta.panel=~/NGC/)
-                return [meta + [datatype:"WGS",roi:"$WES_ROI"],aln]
-            AV1: (meta.panel=~/AV1/)
-                return [meta + [datatype:"targeted",roi:"$AV1_ROI"],aln]
-            MV1: (meta.panel=~/MV1/)
-                return [meta + [datatype:"targeted",roi:"$MV1_ROI"],aln]
-            WES: (meta.panel=~/EV8/ ||meta.panel=~/EV7/)
-                return [meta + [datatype:"targeted",roi:"$WES_ROI"],aln]
-            undetermined: true
-                return [meta + [datatype:"unset",analyzed:"NO"],aln]
-            [meta, aln]
-    }
-    | set {cramInputBranched}
-
-    cramInputBranched.MV1.concat(cramInputBranched.AV1).concat(cramInputBranched.WES).concat(cramInputBranched.WGS)
-    |set {cramInputReMerged}
-
-    if (params.samplesheet) {
-        cramInputReMerged
-        | map { meta,aln -> tuple(meta.npn,meta,aln)}
-        | set {alnInputForJoin}
-        // NBNBNBNBNB: Requires named headers for now!!! (e.g. column with NPN must be named "npn" in samplesheet)
-         channel.fromPath(params.samplesheet)
-        | splitCsv(sep:'\t',header:true)
-        | map { row -> tuple(row.npn, row)}
-        | view
-        | set { full_samplesheet }
-
-    full_samplesheet.join(alnInputForJoin)    
-        | map {tuple(it[1],it[2],it[3])}
-        | map {meta1,meta2,data -> 
-          [meta1+meta2,data]}
-        |view
-        | set {alnInputFinal}
-    }
-    
-    if (!params.samplesheet) {
-        cramInputReMerged
-        |view
-        | set {alnInputFinal} 
-    }
-    
-}
-
-
-
-}
-
-
-
-workflow FULL {
-
+/*
     if (params.spring) {
         SUB_SPRING_DECOMPRESS(spring_input_ch)
         //SUB_SPRING_DECOMPRESS.out.view()
-        fq_read_input=SUB_SPRING_DECOMPRESS.out.fq_read_input_spring
+        readsInputFinal=SUB_SPRING_DECOMPRESS.out.fq_read_input_spring
     }
 
     if (params.fastqInput||params.fastq||params.spring || params.preprocessOnly) {
-        SUB_PREPROCESS(fq_read_input)
-        meta_aln_index=SUB_PREPROCESS.out.finalAln
+        SUB_PREPROCESS(readsInputFinal)
+        alnInputFinal=SUB_PREPROCESS.out.finalAln
         
     }
 
     if (!params.fastqInput && !params.fastq && !params.spring) {
-        inputFiles_symlinks_cram(meta_aln_index)
+        inputFiles_symlinks_cram(alnInputFinal) // new channel structure: val(meta), path(data)
+
     }
+
 
     if (!params.panel || params.panel =="WGS_CNV"|| params.panel =="NGC") { //i.e. if WGS data
 
         if (!params.skipVariants) {
-            SUB_VARIANTCALL_WGS(meta_aln_index)
+            SUB_VARIANTCALL_WGS(alnInputFinal)
         }
         if (!params.skipSV) {
-            SUB_CNV_SV(meta_aln_index)
+            SUB_CNV_SV(alnInputFinal)
         }
         if (!params.skipSTR) {
-            SUB_STR(meta_aln_index)
+            SUB_STR(alnInputFinal)
         }
         
         if (!params.skipSMN) {
-        SUB_SMN(meta_aln_index)
+        SUB_SMN(alnInputFinal)
         }
 
     }
 
     if (params.panel && params.panel!="WGS_CNV"&& params.panel!="NGC") {
 
-        SUB_VARIANTCALL(meta_aln_index)
+        SUB_VARIANTCALL(alnInputFinal)
 
         if (params.panel=="MV1") {
-            vntyper_newRef(fq_read_input)
+            vntyper_newRef(readsInputFinal)
         }
     }
-    
+  */  
 }
 
 
