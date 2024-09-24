@@ -730,7 +730,7 @@ if (!params.fastq && !params.fastqInput){
 
 
 
-workflow {
+workflow FULL {
 
     if (params.spring) {
         SUB_SPRING_DECOMPRESS(spring_input_ch)
