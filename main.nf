@@ -208,9 +208,9 @@ switch (params.panel) {
     break;
 
     case "MV1":
-        reads_pattern_cram="*{MV1}*.cram";
-        reads_pattern_crai="*{MV1}*.crai";
-        reads_pattern_fastq="*{MV1}*R{1,2}*{fq,fastq}.gz";
+        reads_pattern_cram="*{.,-,_}{MV1}{.,-,_}*.cram";
+        reads_pattern_crai="*{.,-,_}{MV1}{.,-,_}*.crai";
+        reads_pattern_fastq="*{.,-,_}{MV1}{.,-,_}*R{1,2}*{fq,fastq}.gz";
         reads_pattern_spring="*MV1*.spring";
         panelID="MV1"
     break;
