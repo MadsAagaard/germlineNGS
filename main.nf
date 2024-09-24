@@ -672,7 +672,7 @@ workflow {
     |set {readsInputForJoin}
     readsInputForJoin.view()
 }
-
+}
 workflow FULL{
 
     if (params.spring) {
