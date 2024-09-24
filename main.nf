@@ -155,12 +155,14 @@ switch (params.server) {
        // modules_dir="/home/mmaj/scripts_lnx01/nextflow_lnx01/dsl2/modules";
         //subworkflow_dir="/home/mmaj/scripts_lnx01/nextflow_lnx01/dsl2/subworkflows";
         dataArchive="/lnx01_data2/shared/dataArchive";
+        refFilesDir="/fast/shared/genomes";
     break;
 
     case 'lnx01':
         modules_dir="/home/mmaj/scripts_lnx01/nextflow_lnx01/dsl2/modules";
         subworkflow_dir="/home/mmaj/scripts_lnx01/nextflow_lnx01/dsl2/subworkflows";
         dataArchive="/lnx01_data2/shared/dataArchive";
+        refFilesDir="/data/shared/genomes";
     break;
     case 'kga01':
         modules_dir="/home/mmaj/LNX01_mmaj/scripts_lnx01/nextflow_lnx01/dsl2/modules";
