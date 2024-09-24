@@ -630,7 +630,7 @@ process fastq_to_ubam {
     tuple val(meta), path(reads)
 
     output:
-    tuple val(meta), path("${meta.id}.unmapped.from.fq.bam", "${meta.id}.unmapped.from.fq.bam.idx"),emit: testOut
+    tuple val(meta), path("${meta.id}.unmapped.from.fq.bam"), path("${meta.id}.unmapped.from.fq.bam.idx"),emit: testOut
     
     script:
     """
@@ -653,8 +653,11 @@ process fastq_to_ubam {
 workflow {
 fastq_to_ubam(readsInputFinal)
     testOut_ch=fastq_to_ubam.out.testOut
-    testOut_ch.view()
-
+    
+    testOut_ch
+    |map {meta, bam,bai ->
+        tuple(meta,[bam,bai])}
+    |view
 /*
     if (params.spring) {
         SUB_SPRING_DECOMPRESS(spring_input_ch)
