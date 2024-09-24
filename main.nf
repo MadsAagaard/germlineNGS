@@ -630,7 +630,7 @@ process fastq_to_ubam {
     tuple val(meta), path(reads)
 
     output:
-    tuple val(meta), path("${meta.id}.unmapped.from.fq.bam"),path("${meta.id}.unmapped.from.fq.bam.idx"),emit: testOut
+    tuple val(meta), [path("${meta.id}.unmapped.from.fq.bam"),path("${meta.id}.unmapped.from.fq.bam.idx")],emit: testOut
     
     script:
     """
