@@ -351,7 +351,7 @@ process inputFiles_cramCopy{
 
 /*
 process spring_compression {
-    tag "$sampleID"
+    tag "$meta.id"
     errorStrategy 'ignore'
     publishDir "${springOutDir}/${runfolder}.spring", mode: 'copy', pattern:'*.spring'
 
@@ -377,7 +377,7 @@ process spring_compression {
 }
 */
 process spring_decompress {
-    tag "$sampleID"
+    tag "$meta.id"
     errorStrategy 'ignore'
     publishDir "${outputDir}/fastqFromSpring/", mode: 'copy', pattern:"*.fastq.gz"
 
@@ -408,7 +408,7 @@ process spring_decompress {
 // input ch structure: As simple as possible: meta + actual data
 process fastq_to_ubam {
     errorStrategy 'ignore'
-    tag "$sampleID"
+    tag "$meta.id"
     //publishDir "${outputDir}/unmappedBAM/", mode: 'copy',pattern: '*.{bam,bai}'
     //publishDir "${outputDir}/fastq_symlinks/", mode: 'link', pattern:'*.{fastq,fq}.gz'
     cpus 20
@@ -454,7 +454,7 @@ process markAdapters {
 }
 
 process align {
-    tag "$sampleID"
+    tag "$meta.id"
 
     maxForks 6
     errorStrategy 'ignore'
@@ -495,7 +495,7 @@ process align {
 process markDup_bam {
     errorStrategy 'ignore'
     maxForks 6
-    tag "$sampleID"
+    tag "$meta.id"
     publishDir "${outputDir}/BAM/", mode: 'copy', pattern: "*.BWA.MD.ba*"
     publishDir "${outputDir}/CRAM/", mode: 'copy', pattern: "*.BWA.MD.cr*"
     publishDir "${outputDir}/Variants/Alignment_symlinks/", mode: 'link', pattern: "*.BWA.MD.cr*"
@@ -525,7 +525,7 @@ process markDup_bam {
 process markDup_cram {
     errorStrategy 'ignore'
     maxForks 6
-    tag "$sampleID"
+    tag "$meta.id"
     publishDir "${outputDir}/CRAM/", mode: 'copy', pattern: "*.BWA.MD.cr*"
     publishDir "${outputDir}/Variants/Alignment_symlinks/", mode: 'link', pattern: "*.BWA.MD.cr*"
     input:
@@ -551,7 +551,7 @@ process markDup_cram {
 
 process bamtools {
     errorStrategy 'ignore'
-    tag "$sampleID"
+    tag "$meta.id"
     publishDir "${outputDir}/QC/", mode: 'copy'
 
     input:
@@ -569,7 +569,7 @@ process bamtools {
 process samtools {
 
     errorStrategy 'ignore'
-    tag "$sampleID"
+    tag "$meta.id"
     publishDir "${outputDir}/QC/", mode: 'copy'
 
     input:  
@@ -589,7 +589,7 @@ process samtools {
 // not working with CRAM:
 process qualimap {
     errorStrategy 'ignore'
-    tag "$sampleID"
+    tag "$meta.id"
     cpus 10
     maxForks 8
     publishDir "${outputDir}/QC/${meta.id}/qualimap/", mode: 'copy'
@@ -615,7 +615,7 @@ process qualimap {
 
 process fastqc_bam {
     errorStrategy 'ignore'
-    tag "$sampleID"
+    tag "$meta.id"
     cpus 2
     publishDir "${outputDir}/QC/${meta.id}/", mode: 'copy'
     input:
@@ -634,7 +634,7 @@ process fastqc_bam {
 process collectWGSmetrics {
 
     errorStrategy 'ignore'
-    tag "$sampleID"
+    tag "$meta.id"
     cpus 5
     publishDir "${outputDir}/QC/${meta.id}/picard/", mode: 'copy'
 
@@ -681,7 +681,7 @@ process haplotypecaller{
         errorStrategy 'ignore'
 
         cpus 4
-        tag "$sampleID"
+        tag "$meta.id"
         publishDir "${outputDir}/Variants/per_sample/", mode: 'copy', pattern: "*.HC.*"
         publishDir "${outputDir}/Variants/GVCF_files/", mode: 'copy', pattern: "*.g.*"
         publishDir "${outputDir}/HaplotypeCallerBAMout/", mode: 'copy', pattern: "*.HCbamout.*"
@@ -835,7 +835,7 @@ process haplotypecallerSplitIntervals {
 
 process combineGVCF {
     errorStrategy 'ignore'
-    tag "$sampleID"
+    tag "$meta.id"
     //publishDir "${outputDir}/Variants/", mode: 'copy', pattern:
     publishDir "${variantStorage}/gVCF/${panelID_storage}/", mode: 'copy', pattern:'*.g.*' // storageDir= /lnx01_data3/storage/alignedData/hg38/
     maxForks 9
@@ -859,7 +859,7 @@ process combineGVCF {
 
 process genotypeSingle {
     errorStrategy 'ignore'
-    tag "$sampleID"
+    tag "$meta.id"
     publishDir "${outputDir}/Variants/", mode: 'copy'
     maxForks 9
 
@@ -925,7 +925,7 @@ process jointgenoScatter{
 
 process manta {
     errorStrategy 'ignore'
-    tag "$sampleID"
+    tag "$meta.id"
     publishDir "${inhouse_SV}/manta/raw_calls/", mode: 'copy', pattern: " ${meta.id}.manta.diploidSV.*"
     publishDir "${outputDir}/structuralVariants/manta/allOutput/", mode: 'copy'
     publishDir "${outputDir}/structuralVariants/manta/", mode: 'copy', pattern: "*.{AFanno,filtered}.*"
@@ -987,7 +987,7 @@ process manta {
 
 process lumpy {
     errorStrategy 'ignore'
-    tag "$sampleID"
+    tag "$meta.id"
     publishDir "${inhouse_SV}/lumpy/raw_calls/", mode: 'copy', pattern: "*.Lumpy_altmode_step1.vcf"
     publishDir "${outputDir}/structuralVariants/lumpy/", mode: 'copy'
     
@@ -1036,7 +1036,7 @@ process lumpy {
 
 process delly126 {
     errorStrategy 'ignore'
-    tag "$sampleID"
+    tag "$meta.id"
     publishDir "${inhouse_SV}/delly/raw_calls/", mode: 'copy', pattern: "*.raw.*"
     publishDir "${outputDir}/structuralVariants/delly/", mode: 'copy'
     //publishDir "${outputDir}/structuralVariants/manta/", mode: 'copy', pattern: "*.{AFanno,filtered}.*"
@@ -1075,7 +1075,7 @@ process delly126 {
 
 process cnvkit {
     errorStrategy 'ignore'
-    tag "$sampleID"
+    tag "$meta.id"
 
     cpus 10
     maxForks 3
@@ -1112,7 +1112,7 @@ process cnvkit {
 
 process cnvkitExportFiles {
     errorStrategy 'ignore'
-    tag "$sampleID"
+    tag "$meta.id"
     publishDir "${inhouse_SV}/CNVkit/raw_calls/", mode: 'copy', pattern: '*.cnvkit.vcf'
     publishDir "${outputDir}/structuralVariants/cnvkit/", mode: 'copy'
 
@@ -1152,7 +1152,7 @@ process cnvkitExportFiles {
 }
 
 process merge4callerSVDB {
-    tag "$sampleID"
+    tag "$meta.id"
     errorStrategy 'ignore'
 
     //publishDir "${outputDir}/all_callers_merged/", mode: 'copy'
@@ -1199,7 +1199,7 @@ process merge4callerSVDB {
 
 process expansionHunter {
     errorStrategy 'ignore'
-    tag "$sampleID"
+    tag "$meta.id"
     publishDir "${outputDir}/repeatExpansions/expansionHunter/", mode: 'copy'
     cpus 10
     input:
@@ -1220,7 +1220,7 @@ process expansionHunter {
 
 process stripy {
     errorStrategy 'ignore'
-    tag "$sampleID"
+    tag "$meta.id"
     publishDir "${outputDir}/repeatExpansions/STRipy_ALL/", mode: 'copy',pattern:"*.ALL.html"
     publishDir "${outputDir}/repeatExpansions/STRipy_ataksi/", mode: 'copy',pattern:"*.ataksi.html"
     publishDir "${outputDir}/repeatExpansions/STRipy_myotoni/", mode: 'copy',pattern:"*.myotoni.html"
