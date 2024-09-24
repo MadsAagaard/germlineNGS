@@ -349,7 +349,7 @@ process inputFiles_cramCopy{
 
 ///////////////////////////////// SPRING COMPRESS / DECOMPRESS //////////////
 
-
+/*
 process spring_compression {
     tag "$sampleID"
     errorStrategy 'ignore'
@@ -375,7 +375,7 @@ process spring_compression {
     """
 
 }
-
+*/
 process spring_decompress {
     tag "$sampleID"
     errorStrategy 'ignore'
