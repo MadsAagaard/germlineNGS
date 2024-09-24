@@ -449,7 +449,7 @@ if (params.fastq || params.fastqInput) {
 
 
 
-
+/*
 if (params.samplesheet && params.fastq || params.fastqInput) {
     // If samplesheet, reduce sampleID to NPN only (no panel/subpanel info!)
     Channel
@@ -470,7 +470,7 @@ if (params.samplesheet && params.fastq || params.fastqInput) {
     .set { read_pairs_ch }
 
 }
-
+*/
 
 // Standard use: Point to fastq for WGS ana
 
@@ -678,7 +678,7 @@ if (params.fastq || params.fastqInput) {
     channel.fromPath(params.samplesheet)
         | splitCsv(sep:'\t',header:true)
         | map { row -> tuple(row.npn, row)}
-        | view
+       // | view
         | set { full_samplesheet }
     full_samplesheet.join(readsInputForJoin)    
         | map {tuple(it[1],it[2],it[3])}
