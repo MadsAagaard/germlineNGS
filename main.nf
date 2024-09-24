@@ -440,7 +440,7 @@ if (params.fastq || params.fastqInput) {
     
 }
 ////////////////////////////////////////////////////
-////// INPUT DATA: CRAN AS INPUT //////////////////
+////// INPUT DATA: CRAM AS INPUT //////////////////
 ////////////////////////////////////////////////////
 
 
@@ -456,6 +456,12 @@ if (!params.fastq && !params.fastqInput){
         cramfiles="${dataArchive}/{lnx01,lnx02,tank_kga_external_archive}/**/${reads_pattern_cram}"
         craifiles="${dataArchive}/{lnx01,lnx02,tank_kga_external_archive}/**/${reads_pattern_crai}"
     }
+    
+    if (params.cram && params.subdirs) {
+        cramfiles="${params.cram}/**/${reads_pattern_cram}"
+        craifiles="${params.cram}/**/${reads_pattern_crai}"
+    }
+
     Channel.fromPath(cramfiles,checkIfExists:true)
     |map {tuple (it.simpleName,it)}
     |set {cramfiles}
@@ -517,39 +523,6 @@ if (!params.fastq && !params.fastqInput){
     
 }
 
-
-
-if (params.cram && params.subdirs) { //&& params.panel
-    cramfiles="${params.cram}/**/${reads_pattern_cram}"
-    craifiles="${params.cram}/**/${reads_pattern_crai}"
-
-    Channel
-    .fromPath(cramfiles)
-    .map { tuple(it.baseName.tokenize('.').get(0),it) }
-    .set { sampleID_cram }
-
-    Channel
-    .fromPath(craifiles)
-    .map { tuple(it.baseName.tokenize('.').get(0),it) }
-    .set {sampleID_crai }
-}
-// If only samplesheet is provided, use CRAM from archive as input (default setup)!
-
-if (params.samplesheet && !params.cram && !params.fastqInput && !params.fastq) {
-    cramfiles="${dataArchive}/{lnx01,lnx02,tank_kga_external_archive}/**/${reads_pattern_cram}"
-    craifiles="${dataArchive}/{lnx01,lnx02,tank_kga_external_archive}/**/${reads_pattern_crai}"
-
-    Channel
-    .fromPath(cramfiles)
-    .map { tuple(it.baseName.tokenize('_').get(0),it) }
-    .set { sampleID_cram }
-
-    Channel
-    .fromPath(craifiles)
-    .map { tuple(it.baseName.tokenize('_').get(0),it) }
-    .set {sampleID_crai }
-}
-
 ////////////////////////////////////////////////////////////////////
 //// NEW June 2024: Add spring as input. ///////////////////////////
 ////////////////////////////////////////////////////////////////////
@@ -572,6 +545,7 @@ if (params.spring && !params.samplesheet) {
 ////////////////////////////////////////////////////
 ///////////// SAMPLESHEET channels /////////////////
 ////////////////////////////////////////////////////
+/*
 if (params.samplesheet) {
     channel.fromPath(params.samplesheet)
         .splitCsv(sep:'\t')
@@ -591,7 +565,7 @@ if (params.samplesheet) {
         .map { row -> tuple(row[0],row[1])}
         .set {caseID_sampleID}
 }
-
+*/
 
 ////////////////////////////////////////////////////
 ///////////// set final input channels   ///////////
@@ -667,15 +641,16 @@ workflow QC {
 
 }
 
+
+
 workflow {
 
-
+alnInputFinal.view()
 }
 
 
 
-
-workflow FULL{
+workflow {
 
     if (params.spring) {
         SUB_SPRING_DECOMPRESS(spring_input_ch)
