@@ -705,7 +705,7 @@ if (!params.fastq && !params.fastqInput){
          channel.fromPath(params.samplesheet)
         | splitCsv(sep:'\t',header:true)
         | map { row -> tuple(row.npn, row)}
-       // | view
+        | view
         | set { full_samplesheet }
 
     full_samplesheet.join(alnInputForJoin)    
