@@ -639,7 +639,7 @@ workflow QC {
 
 workflow {
 
-if (params.fastq) {
+if (params.fastq || params.fastqInput) {
     Channel.fromFilePairs("${inputFastq}", checkIfExists: true)
     |map { id, reads -> 
         (sample, ngstype)   = reads[0].baseName.tokenize("-")
@@ -668,14 +668,21 @@ if (params.fastq) {
     | set {readsInput_branched}
     readsInput_branched.MV1.concat(readsInput_branched.AV1).concat(readsInput_branched.WES).concat(readsInput_branched.WGS)
     | set {readsInputFinal}
-    readsInputFinal.view()
+   // readsInputFinal.view()
 
     if (params.samplesheet) {
         readsInputFinal
         |map { meta,reads -> tuple(meta.npn,meta,reads)}
-
         |set {readsInputForJoin}
-
+    
+    channel.fromPath(params.samplesheet)
+        | splitCsv(sep:'\t',header:true)
+        | map { row -> tuple(row.npn, row)}
+        | view
+        | set { full_samplesheet }
+    full_samplesheet.join(readsInputForJoin)    
+        | map {tuple(it[1],it[2],it[3])}
+        |view
     }   
 }
 }
