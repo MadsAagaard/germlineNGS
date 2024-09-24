@@ -147,18 +147,52 @@ def FastqCRAM_error() {
 if (params.cram && params.fastq) exit 0, FastqCRAM_error()
 
 
+switch (params.gatk) {
+
+    case 'danak':
+    gatk_image="gatk419.sif";
+    break;
+    case 'new':
+    gatk_image="gatk4400.sif";
+    break;
+    case 'v45':
+    gatk_image="gatk4500.sif";
+    default:
+        if (params.panel=="AV1" || params.panel=="GV3" || params.panel=="CV5"){
+            gatk_image="gatk419.sif";
+        }
+        else {
+            gatk_image="gatk4400.sif";
+        }
+    break;
+}
 
 
 
 switch (params.server) {
     case 'lnx02':
-       // modules_dir="/home/mmaj/scripts_lnx01/nextflow_lnx01/dsl2/modules";
-        //subworkflow_dir="/home/mmaj/scripts_lnx01/nextflow_lnx01/dsl2/subworkflows";
+        s_bind="/data/:/data/,/lnx01_data2/:/lnx01_data2/,/fast/:/fast/,/lnx01_data3/:/lnx01_data3/";
+        simgpath="/data/shared/programmer/simg";
+        tmpDIR="/fast/TMP/TMP.${user}/";
+        gatk_exec="singularity run -B ${s_bind} ${simgpath}/${gatk_image} gatk";
+        multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
+        tank_storage="/home/mmaj/tank.kga/data/data.storage.archive/";
+
+        dataStorage="/lnx01_data3/storage/";
+        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";
         dataArchive="/lnx01_data2/shared/dataArchive";
         refFilesDir="/fast/shared/genomes";
     break;
 
     case 'lnx01':
+        s_bind="/data/:/data/,/lnx01_data2/:/lnx01_data2/";
+        simgpath="/data/shared/programmer/simg";
+        tmpDIR="/data/TMP/TMP.${user}/";
+        gatk_exec="singularity run -B ${s_bind} ${simgpath}/${gatk_image} gatk";
+        multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
+        tank_storage="/home/mmaj/tank.kga2/data/data.storage.archive/";
+        dataStorage="/lnx01_data3/storage/";
+        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter10_IntervalSubdiv/*.interval_list";
         modules_dir="/home/mmaj/scripts_lnx01/nextflow_lnx01/dsl2/modules";
         subworkflow_dir="/home/mmaj/scripts_lnx01/nextflow_lnx01/dsl2/subworkflows";
         dataArchive="/lnx01_data2/shared/dataArchive";
