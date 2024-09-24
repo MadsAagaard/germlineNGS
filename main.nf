@@ -620,7 +620,7 @@ workflow QC {
 
 process fastq_to_ubam {
     errorStrategy 'ignore'
-    tag "$sampleID"
+    tag "$meta.id"
     //publishDir "${outputDir}/unmappedBAM/", mode: 'copy',pattern: '*.{bam,bai}'
     //publishDir "${outputDir}/fastq_symlinks/", mode: 'link', pattern:'*.{fastq,fq}.gz'
     cpus 20
@@ -630,7 +630,7 @@ process fastq_to_ubam {
     tuple val(meta), path(reads)
 
     output:
-    tuple val(meta), path("${meta.id}.unmapped.from.fq.bam")
+    tuple val(meta), path("${meta.id}.unmapped.from.fq.bam"),emit: testOut
     
     script:
     """
@@ -645,6 +645,8 @@ process fastq_to_ubam {
     -O ${meta.id}.unmapped.from.fq.bam
     touch ${meta.id}.unmapped.from.fq.bam.idx
     """
+    testOut
+    |view
 }
 
 
@@ -652,6 +654,8 @@ process fastq_to_ubam {
 
 workflow {
 fastq_to_ubam(readsInputFinal)
+    testOut_ch=fastq_to_ubam.out.testOut
+    testOut_ch.view()
 
 /*
     if (params.spring) {
