@@ -376,118 +376,148 @@ switch (params.genome) {
 
 
 ////////////////////////////////////////////////////
-////// INPUT DATA (fastq or CRAM) channels //////////
+////// INPUT DATA: FASTQ AS INPUT //////////////////
 ////////////////////////////////////////////////////
 
 if (!params.fastq && params.fastqInput) {
 
-    inputFastq="${dataArchive}/{lnx01,lnx02,kga01_novaRuns,tank_kga_external_archive}/**/${reads_pattern_fastq}"
+    inputFastq="${dataArchive}/{lnx01,lnx02}/**/${reads_pattern_fastq}"
 }
 if (params.fastq) {
     inputFastq="${params.fastq}/${reads_pattern_fastq}"
 }
-// Standard use: point to fastq folder for paneldata
-/*
-if (!params.samplesheet && params.fastq) {
-    // If NOT samplesheet (std panel run), set sampleID == NPN_PANEL_SUBPANEL
-
-    inputFastq="${params.fastq}/${reads_pattern_fastq}"
-
-
-    Channel
-    .fromPath(inputFastq, checkIfExists: true)
-    .filter {it =~/R1/}
-    .map { tuple(it.baseName.tokenize('-').get(0)+"_"+it.baseName.tokenize('-').get(1),it) }
-    .set { sampleid_R1}
-
-    Channel
-    .fromPath(inputFastq, checkIfExists: true)
-    .filter {it =~/R2/}
-    .map { tuple(it.baseName.tokenize('-').get(0)+"_"+it.baseName.tokenize('-').get(1),it) }
-    .set { sampleid_R2 }
-
-    sampleid_R1.join(sampleid_R2)
-    .set { read_pairs_ch }
-}
-*/
 
 if (params.fastq || params.fastqInput) {
     Channel.fromFilePairs("${inputFastq}", checkIfExists: true)
-    |map { id, reads -> 
+    | map { id, reads -> 
         (sample, ngstype)   = reads[0].baseName.tokenize("-")
         (panel,subpanel)    = ngstype.tokenize("_")
         meta = [id:sample+"_"+ngstype, npn:sample, fullpanel:ngstype,panel:panel, subpanel:subpanel]
         [meta, reads]
     }
-//    |set {reads_all}
-//    reads_all.view()
-    
-//    reads_all
-    |branch {meta, reads ->
-            WGS: (meta.panel=~/WG/ || meta.panel=~/NGC/)
-                return [meta + [datatype:"WGS",roi:"$WES_ROI"],reads]
-            AV1: (meta.panel=~/AV1/)
-                return [meta + [datatype:"targeted",roi:"$AV1_ROI"],reads]
-            MV1: (meta.panel=~/MV1/)
-                return [meta + [datatype:"targeted",roi:"$MV1_ROI"],reads]
-            WES: (meta.panel=~/EV8/ ||meta.panel=~/EV7/)
-                return [meta + [datatype:"targeted",roi:"$WES_ROI"],reads]
-            undetermined: true
-                return [meta + [datatype:"unset",analyzed:"NO"],reads]
 
-            [meta, reads]
+    | branch {meta, reads ->
+        WGS: (meta.panel=~/WG/ || meta.panel=~/NGC/)
+            return [meta + [datatype:"WGS",roi:"$WES_ROI"],reads]
+        AV1: (meta.panel=~/AV1/)
+            return [meta + [datatype:"targeted",roi:"$AV1_ROI"],reads]
+        MV1: (meta.panel=~/MV1/)
+            return [meta + [datatype:"targeted",roi:"$MV1_ROI"],reads]
+        WES: (meta.panel=~/EV8/ ||meta.panel=~/EV7/)
+            return [meta + [datatype:"targeted",roi:"$WES_ROI"],reads]
+        undetermined: true
+            return [meta + [datatype:"unset",analyzed:"NO"],reads]
+        [meta, reads]
     }
-    | set {readsInput_branched}
-    readsInput_branched.MV1.concat(readsInput_branched.AV1).concat(readsInput_branched.WES).concat(readsInput_branched.WGS)
-    | set {readsInputFinal}
+    | set {readsInputBranched}
 
-  //  |set { read_pairs_ch }
+    readsInputBranched.MV1.concat(readsInputBranched.AV1).concat(readsInputBranched.WES).concat(readsInputBranched.WGS)
+    | set {readsInputReMerged}
 
-    //SUB_PREPROCESS(read_pairs_ch.targeted)
+
+    if (params.samplesheet) {
+        readsInputReMerged
+        | map { meta,reads -> tuple(meta.npn,meta,reads)}
+        | set {readsInputForJoin}
+        // NBNBNBNBNB: Requires named headers for now!!! (e.g. column with NPN must be named "npn" in samplesheet)
+    channel.fromPath(params.samplesheet)
+        | splitCsv(sep:'\t',header:true)
+        | map { row -> tuple(row.npn, row)}
+       // | view
+        | set { full_samplesheet }
+
+    full_samplesheet.join(readsInputForJoin)    
+        | map {tuple(it[1],it[2],it[3])}
+        | map {meta1,meta2,data -> 
+          [meta1+meta2,data]}
+        | set {readsInputFinal}
+    }
+    
+    if (!params.samplesheet) {
+        readsInputReMerged
+        | set {readsInputFinal} 
+    }
+    
+}
+////////////////////////////////////////////////////
+////// INPUT DATA: CRAN AS INPUT //////////////////
+////////////////////////////////////////////////////
+
+
+
+if (!params.fastq && !params.fastqInput){
+
+    if (params.cram) {
+        cramfiles="${params.cram}/${reads_pattern_cram}"
+        craifiles="${params.cram}/${reads_pattern_crai}"
+    }
+
+    if (!params.cram) {
+        cramfiles="${dataArchive}/{lnx01,lnx02,tank_kga_external_archive}/**/${reads_pattern_cram}"
+        craifiles="${dataArchive}/{lnx01,lnx02,tank_kga_external_archive}/**/${reads_pattern_crai}"
+    }
+    Channel.fromPath(cramfiles,checkIfExists:true)
+    |map {tuple (it.simpleName,it)}
+    |set {cramfiles}
+    
+    Channel.fromPath(craifiles,checkIfExists:true)
+    |map {tuple (it.simpleName,it)}
+    |set {craifiles}
+    
+    cramfiles.join(craifiles)
+    |map { id, aln, index ->
+        (sample, panel,subpanel)   = id.tokenize("_")
+      //  (panel,subpanel)    = ngstype.tokenize("_")
+        meta = [id:id, npn:sample, fullpanel:panel+"_"+subpanel, panel:panel, subpanel:subpanel]
+        tuple(meta,[aln,index])
+    }
+
+    | set {cram_all}
+    cram_all
+    |branch {meta, aln ->
+            WGS: (meta.panel=~/WG/ || meta.panel=~/NGC/)
+                return [meta + [datatype:"WGS",roi:"$WES_ROI"],aln]
+            AV1: (meta.panel=~/AV1/)
+                return [meta + [datatype:"targeted",roi:"$AV1_ROI"],aln]
+            MV1: (meta.panel=~/MV1/)
+                return [meta + [datatype:"targeted",roi:"$MV1_ROI"],aln]
+            WES: (meta.panel=~/EV8/ ||meta.panel=~/EV7/)
+                return [meta + [datatype:"targeted",roi:"$WES_ROI"],aln]
+            undetermined: true
+                return [meta + [datatype:"unset",analyzed:"NO"],aln]
+            [meta, aln]
+    }
+    | set {cramInputBranched}
+
+    cramInputBranched.MV1.concat(cramInputBranched.AV1).concat(cramInputBranched.WES).concat(cramInputBranched.WGS)
+    |set {cramInputReMerged}
+
+    if (params.samplesheet) {
+        cramInputReMerged
+        | map { meta,aln -> tuple(meta.npn,meta,aln)}
+        | set {alnInputForJoin}
+        // NBNBNBNBNB: Requires named headers for now!!! (e.g. column with NPN must be named "npn" in samplesheet)
+         channel.fromPath(params.samplesheet)
+        | splitCsv(sep:'\t',header:true)
+        | map { row -> tuple(row.npn, row)}
+       // | view
+        | set { full_samplesheet }
+
+    full_samplesheet.join(alnInputForJoin)    
+        | map {tuple(it[1],it[2],it[3])}
+        | map {meta1,meta2,data -> 
+          [meta1+meta2,data]}
+        | set {alnInputFinal}
+    }
+    
+    if (!params.samplesheet) {
+        cramInputReMerged
+        | set {alnInputFinal} 
+    }
+    
 }
 
 
-
-
-/*
-if (params.samplesheet && params.fastq || params.fastqInput) {
-    // If samplesheet, reduce sampleID to NPN only (no panel/subpanel info!)
-    Channel
-    .fromPath(inputFastq, checkIfExists: true)
-    .filter {it =~/_R1_/}
-    //.map { tuple(it.baseName.tokenize('-').get(0),it) }
-    .map { tuple(it.baseName.tokenize('-').get(0)+"_"+it.baseName.tokenize('-').get(1),it) }
-    .set { sampleid_R1}
-
-    Channel
-    .fromPath(inputFastq, checkIfExists: true)
-    .filter {it =~/_R2_/}
-    .map { tuple(it.baseName.tokenize('-').get(0)+"_"+it.baseName.tokenize('-').get(1),it) }
-    //.map { tuple(it.baseName.tokenize('-').get(0),it) }
-    .set { sampleid_R2 }
-
-    sampleid_R1.join(sampleid_R2)
-    .set { read_pairs_ch }
-
-}
-*/
-
-// Standard use: Point to fastq for WGS ana
-
-if (params.cram) { //&& params.panel
-    cramfiles="${params.cram}/${reads_pattern_cram}"
-    craifiles="${params.cram}/${reads_pattern_crai}"
-
-    Channel
-    .fromPath(cramfiles)
-    .map { tuple(it.baseName.tokenize('.').get(0),it) }
-    .set { sampleID_cram }
-
-    Channel
-    .fromPath(craifiles)
-    .map { tuple(it.baseName.tokenize('.').get(0),it) }
-    .set {sampleID_crai }
-}
 
 if (params.cram && params.subdirs) { //&& params.panel
     cramfiles="${params.cram}/**/${reads_pattern_cram}"
@@ -639,54 +669,7 @@ workflow QC {
 
 workflow {
 
-if (params.fastq || params.fastqInput) {
-    Channel.fromFilePairs("${inputFastq}", checkIfExists: true)
-    |map { id, reads -> 
-        (sample, ngstype)   = reads[0].baseName.tokenize("-")
-        (panel,subpanel)    = ngstype.tokenize("_")
-        meta = [id:sample+"_"+ngstype, npn:sample, fullpanel:ngstype,panel:panel, subpanel:subpanel]
-        [meta, reads]
-    }
-    //    |set {reads_all}
-    //    reads_all.view()
 
-    //    reads_all
-    |branch {meta, reads ->
-            WGS: (meta.panel=~/WG/ || meta.panel=~/NGC/)
-                return [meta + [datatype:"WGS",roi:"$WES_ROI"],reads]
-            AV1: (meta.panel=~/AV1/)
-                return [meta + [datatype:"targeted",roi:"$AV1_ROI"],reads]
-            MV1: (meta.panel=~/MV1/)
-                return [meta + [datatype:"targeted",roi:"$MV1_ROI"],reads]
-            WES: (meta.panel=~/EV8/ ||meta.panel=~/EV7/)
-                return [meta + [datatype:"targeted",roi:"$WES_ROI"],reads]
-            undetermined: true
-                return [meta + [datatype:"unset",analyzed:"NO"],reads]
-
-            [meta, reads]
-    }
-    | set {readsInput_branched}
-    readsInput_branched.MV1.concat(readsInput_branched.AV1).concat(readsInput_branched.WES).concat(readsInput_branched.WGS)
-    | set {readsInputFinal}
-   // readsInputFinal.view()
-
-    if (params.samplesheet) {
-        readsInputFinal
-        |map { meta,reads -> tuple(meta.npn,meta,reads)}
-        |set {readsInputForJoin}
-    
-    channel.fromPath(params.samplesheet)
-        | splitCsv(sep:'\t',header:true)
-        | map { row -> tuple(row.npn, row)}
-       // | view
-        | set { full_samplesheet }
-    full_samplesheet.join(readsInputForJoin)    
-        | map {tuple(it[1],it[2],it[3])}
-        |map {meta1,meta2,data -> 
-        [meta1+meta2,data]}
-        |view
-    }   
-}
 }
 
 
