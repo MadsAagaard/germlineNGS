@@ -383,8 +383,9 @@ if (!params.fastq && params.fastqInput) {
 
     inputFastq="${dataArchive}/{lnx01,lnx02,kga01_novaRuns,tank_kga_external_archive}/**/${reads_pattern_fastq}"
 }
-
-
+if (params.fastq) {
+    inputFastq="${params.fastq}/${reads_pattern_fastq}"
+}
 // Standard use: point to fastq folder for paneldata
 /*
 if (!params.samplesheet && params.fastq) {
@@ -410,8 +411,8 @@ if (!params.samplesheet && params.fastq) {
 }
 */
 
-if (params.fastq) {
-    Channel.fromFilePairs("${params.fastq}/${reads_pattern_fastq}", checkIfExists: true)
+if (params.fastq || params.fastqInput) {
+    Channel.fromFilePairs("${inputFastq}", checkIfExists: true)
     |map { id, reads -> 
         (sample, ngstype)   = reads[0].baseName.tokenize("-")
         (panel,subpanel)    = ngstype.tokenize("_")
@@ -638,18 +639,18 @@ workflow QC {
 
 workflow {
 
-    if (params.fastq) {
-    Channel.fromFilePairs("${params.fastq}/${reads_pattern_fastq}", checkIfExists: true)
+if (params.fastq) {
+    Channel.fromFilePairs("${inputFastq}", checkIfExists: true)
     |map { id, reads -> 
         (sample, ngstype)   = reads[0].baseName.tokenize("-")
         (panel,subpanel)    = ngstype.tokenize("_")
         meta = [id:sample+"_"+ngstype, npn:sample, fullpanel:ngstype,panel:panel, subpanel:subpanel]
         [meta, reads]
     }
-//    |set {reads_all}
-//    reads_all.view()
-    
-//    reads_all
+    //    |set {reads_all}
+    //    reads_all.view()
+
+    //    reads_all
     |branch {meta, reads ->
             WGS: (meta.panel=~/WG/ || meta.panel=~/NGC/)
                 return [meta + [datatype:"WGS",roi:"$WES_ROI"],reads]
@@ -668,13 +669,20 @@ workflow {
     readsInput_branched.MV1.concat(readsInput_branched.AV1).concat(readsInput_branched.WES).concat(readsInput_branched.WGS)
     | set {readsInputFinal}
     readsInputFinal.view()
-    readsInputFinal
-    |map { meta,reads -> tuple(meta.npn,meta,reads)}
 
-    |set {readsInputForJoin}
-    readsInputForJoin.view()
+    if (params.samplesheet) {
+        readsInputFinal
+        |map { meta,reads -> tuple(meta.npn,meta,reads)}
+
+        |set {readsInputForJoin}
+
+    }   
 }
 }
+
+
+
+
 workflow FULL{
 
     if (params.spring) {
