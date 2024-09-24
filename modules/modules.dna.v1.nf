@@ -59,7 +59,7 @@ switch (params.server) {
         dataStorage="/lnx01_data3/storage/";
         refFilesDir="/data/shared/genomes";
         params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter10_IntervalSubdiv/*.interval_list";
-//        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/wgs_splitinterval_BWI_subdivision3/*.interval_list";
+    //        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/wgs_splitinterval_BWI_subdivision3/*.interval_list";
 
     break;
     case 'kga01':
@@ -94,7 +94,7 @@ switch (params.genome) {
         genome_fasta = "${refFilesDir}/hg38/GRCh38.primary.fa"
         genome_fasta_fai = "${refFilesDir}/hg38/GRCh38.primary.fa.fai"
         genome_fasta_dict = "${refFilesDir}/hg38/GRCh38.primary.dict"
-        genome_version="V1"
+        genome_version="hg38v1"
         cnvkit_germline_reference_PON="/data/shared/genomes/hg38/inhouse_DBs/hg38v1_primary/cnvkit/wgs_germline_PON/jgmr_45samples.reference.cnn"
         cnvkit_inhouse_cnn_dir="/data/shared/genomes/hg38/inhouse_DBs/hg38v1_primary/cnvkit/wgs_persample_cnn/"
         inhouse_SV="/data/shared/genomes/hg38/inhouse_DBs/hg38v1_primary/"
@@ -104,7 +104,7 @@ switch (params.genome) {
         genome_fasta = "${refFilesDir}/hg38/ucsc.hg38.NGS.analysisSet.fa"
         genome_fasta_fai = "${refFilesDir}/hg38/ucsc.hg38.NGS.analysisSet.fa.fai"
         genome_fasta_dict = "${refFilesDir}/hg38/ucsc.hg38.NGS.analysisSet.dict"
-        genome_version="V2"
+        genome_version="hg38v2"
         }
 
         // Current hg38 version (v3): NGC with masks and decoys.
@@ -112,7 +112,7 @@ switch (params.genome) {
         genome_fasta = "${refFilesDir}/hg38/GRCh38_masked_v2_decoy_exclude.fa"
         genome_fasta_fai = "${refFilesDir}/hg38/GRCh38_masked_v2_decoy_exclude.fa.fai"
         genome_fasta_dict = "${refFilesDir}/hg38/GRCh38_masked_v2_decoy_exclude.dict"
-        genome_version="V3"
+        genome_version="hg38v3"
         cnvkit_germline_reference_PON="/data/shared/genomes/hg38/inhouse_DBs/hg38v3_primary/cnvkit/hg38v3_109samples.cnvkit.reference.cnn"
         cnvkit_inhouse_cnn_dir="/data/shared/genomes/hg38/inhouse_DBs/hg38v3_primary/cnvkit/wgs_persample_cnn/"
         inhouse_SV="/data/shared/genomes/hg38/inhouse_DBs/hg38v3/"
@@ -253,15 +253,11 @@ switch (params.panel) {
 }
 
 
-if (!params.archiveStorage) {
+
 outputDir="${params.outdir}/"
 variantStorage="${dataStorage}/variantStorage/${params.genome}/"
 cramStorage="${dataStorage}/alignedData/${params.genome}/"
-}
 
-if (params.archiveStorage) {
-outputDir="${tank_storage}/alignedData/${params.genome}/${params.outdir}/"
-}
 
 
 channel
@@ -312,10 +308,10 @@ process inputFiles_symlinks_cram{
     publishDir "${outputDir}/input_symlinks/", mode: 'link', pattern: '*.{ba,cr}*'
     publishDir "${outputDir}/Variants/CRAM_symlinks/", mode: 'link', pattern: '*.{ba,cr}*'
     input:
-    tuple val(sampleID), path(aln),path(index)// from symlink_input
+    tuple tuple val(meta), path(aln)// from symlink_input
     
     output:
-    tuple path(aln),path(index)
+    tuple val(meta), path(aln)
     script:
     """
     """
@@ -327,7 +323,7 @@ process inputFiles_symlinks_spring{
     publishDir "${outputDir}/input_symlinks/", mode: 'link', pattern: '*.spring'
 
     input:
-    tuple val(sampleID), path(spring)    
+    tuple val(meta), path(spring)    
     output:
     path(spring)
     script:
@@ -340,10 +336,10 @@ process inputFiles_cramCopy{
     errorStrategy 'ignore'
     publishDir "${outputDir}/input_CRAM/", mode: 'copy', pattern: '*.{ba,cr}*'
     input:
-    tuple val(sampleID), path(aln), path(index)// from symlink_input
+    tuple val(meta), path(aln)// from symlink_input
     
     output:
-    tuple val(sampleID), path(aln),path(index)
+    tuple val(meta), path(aln)
     script:
     """
     sleep 120
@@ -364,17 +360,17 @@ process spring_compression {
     conda '/data/shared/programmer/miniconda3/envs/spring'
 
     input:
-    tuple val(sampleID), path(r1), path(r2)
+    tuple val(meta), path(reads)
 
     output:
-    path("${sampleID}.spring")
+    path("${meta.id}.spring")
     script:
 
     """
     spring -c \
     -i ${r1} ${r2} \
     -t ${task.cpus} \
-    -o ${sampleID}.spring \
+    -o ${meta.id}.spring \
     -g
     """
 
@@ -390,15 +386,15 @@ process spring_decompress {
     conda '/data/shared/programmer/miniconda3/envs/spring'
 
     input:
-    tuple val(sampleID), path(springfile)
+    tuple val(meta), path(springfile)
 
     output:
-    tuple val(sampleID), path("*_R1.fastq.gz"), path("*_R2.fastq.gz"),emit: spring_fastq
+    tuple val(meta), path("*_R1.fastq.gz"), path("*_R2.fastq.gz"),emit: spring_fastq
     script:
     """
     spring -d \
     -i ${springfile} \
-    -o ${sampleID}_R1.fastq.gz ${sampleID}_R2.fastq.gz \
+    -o ${meta.id}_R1.fastq.gz ${meta.id}_R2.fastq.gz \
     -g
 
     """
@@ -419,42 +415,41 @@ process fastq_to_ubam {
     maxForks 10
 
     input:
-    tuple val(sampleID), path(r1), path(r2)
+    tuple val(meta), path(reads)
 
     output:
-    tuple val(sampleID), path("${sampleID}.unmapped.from.fq.bam")
-  //  tuple path(r1),path(r2)
+    tuple val(meta), path("${meta.id}.unmapped.from.fq.bam")
     
     script:
     """
     ${gatk_exec} FastqToSam \
     -F1 ${r1} \
     -F2 ${r2} \
-    -SM ${sampleID} \
+    -SM ${meta.id} \
     -PL illumina \
     -PU KGA_PU \
     -RG KGA_RG \
     --TMP_DIR ${tmpDIR} \
-    -O ${sampleID}.unmapped.from.fq.bam
+    -O ${meta.id}.unmapped.from.fq.bam
     """
 }
 
 process markAdapters {
 
     input:
-    tuple val(sampleID), path(uBAM)
+    tuple val(meta), path(uBAM)
     
     output:
-    tuple val(sampleID), path("${sampleID}.ubamXT.bam"), path("${sampleID}.markAdapterMetrics.txt")
+    tuple val(meta), path("${meta.id}.ubamXT.bam"), path("${meta.id}.markAdapterMetrics.txt")
     
     script:
 
     """
     ${gatk_exec} MarkIlluminaAdapters \
     -I ${uBAM} \
-    -O ${sampleID}.ubamXT.bam \
+    -O ${meta.id}.ubamXT.bam \
     --TMP_DIR ${tmpDIR} \
-    -M ${sampleID}.markAdapterMetrics.txt
+    -M ${meta.id}.markAdapterMetrics.txt
     """
 }
 
@@ -466,10 +461,10 @@ process align {
     cpus 60
 
     input:
-    tuple val(sampleID), path(uBAM), path(metrics)
+    tuple val(meta), path(uBAM), path(metrics)
 
     output:
-    tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.QNsort.BWA.clean.bam")
+    tuple val(meta), path("${meta.id}.${params.genome}.${genome_version}.QNsort.BWA.clean.bam")
     
     script:
     """
@@ -493,7 +488,7 @@ process align {
     -ORIENTATIONS FR \
     -SO queryname \
     --TMP_DIR ${tmpDIR} \
-    -O ${sampleID}.${params.genome}.${genome_version}.QNsort.BWA.clean.bam
+    -O ${meta.id}.${params.genome}.${genome_version}.QNsort.BWA.clean.bam
     """
 }
 
@@ -505,25 +500,25 @@ process markDup_bam {
     publishDir "${outputDir}/CRAM/", mode: 'copy', pattern: "*.BWA.MD.cr*"
     publishDir "${outputDir}/Variants/Alignment_symlinks/", mode: 'link', pattern: "*.BWA.MD.cr*"
     input:
-    tuple val(sampleID), path(aln) 
+    tuple val(meta), path(aln) 
     
     output:
-    tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.BWA.MD.bam"), path("${sampleID}.${params.genome}.${genome_version}.BWA.MD*bai")
+    tuple val(meta), path("${meta.id}.${params.genome}.${genome_version}.BWA.MD.bam"), path("${meta.id}.${params.genome}.${genome_version}.BWA.MD*bai")
 
-    tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.BWA.MD.cram"), path("${sampleID}.${params.genome}.${genome_version}.BWA.MD*crai")
+    tuple val(meta), path("${meta.id}.${params.genome}.${genome_version}.BWA.MD.cram"), path("${meta.id}.${params.genome}.${genome_version}.BWA.MD*crai")
     
     script:
     """
     samtools view -h ${aln} \
-    | samblaster | sambamba view -t 8 -S -f bam /dev/stdin | sambamba sort -t 8 --tmpdir=${tmpDIR} -o ${sampleID}.${params.genome}.${genome_version}.BWA.MD.bam /dev/stdin
-    sambamba index ${sampleID}.${params.genome}.${genome_version}.BWA.MD.bam
+    | samblaster | sambamba view -t 8 -S -f bam /dev/stdin | sambamba sort -t 8 --tmpdir=${tmpDIR} -o ${meta.id}.${params.genome}.${genome_version}.BWA.MD.bam /dev/stdin
+    sambamba index ${meta.id}.${params.genome}.${genome_version}.BWA.MD.bam
     
     samtools view \
     -T ${genome_fasta} \
     -C \
-    -o ${sampleID}.${params.genome}.${genome_version}.BWA.MD.cram ${sampleID}.${params.genome}.${genome_version}.BWA.MD.bam
+    -o ${meta.id}.${params.genome}.${genome_version}.BWA.MD.cram ${meta.id}.${params.genome}.${genome_version}.BWA.MD.bam
 
-    samtools index ${sampleID}.${params.genome}.${genome_version}.BWA.MD.cram
+    samtools index ${meta.id}.${params.genome}.${genome_version}.BWA.MD.cram
     """
 }
 
@@ -534,10 +529,10 @@ process markDup_cram {
     publishDir "${outputDir}/CRAM/", mode: 'copy', pattern: "*.BWA.MD.cr*"
     publishDir "${outputDir}/Variants/Alignment_symlinks/", mode: 'link', pattern: "*.BWA.MD.cr*"
     input:
-    tuple val(sampleID), path(aln)
+    tuple val(meta), path(aln)
     
     output:
-    tuple val(sampleID),  path("${sampleID}.${params.genome}.${genome_version}.BWA.MD.cram"), path("${sampleID}.${params.genome}.${genome_version}.BWA.MD*crai"), emit: markDup_output
+    tuple val(meta),  path("${meta.id}.${params.genome}.${genome_version}.BWA.MD.cram"), path("${meta.id}.${params.genome}.${genome_version}.BWA.MD*crai"), emit: markDup_output
     
     script:
     """
@@ -546,9 +541,9 @@ process markDup_cram {
     |  samtools view \
     -T ${genome_fasta} \
     -C \
-    -o ${sampleID}.${params.genome}.${genome_version}.BWA.MD.cram -
+    -o ${meta.id}.${params.genome}.${genome_version}.BWA.MD.cram -
 
-    samtools index ${sampleID}.${params.genome}.${genome_version}.BWA.MD.cram
+    samtools index ${meta.id}.${params.genome}.${genome_version}.BWA.MD.cram
     """
 }
 
@@ -560,13 +555,13 @@ process bamtools {
     publishDir "${outputDir}/QC/", mode: 'copy'
 
     input:
-    val(sampleID),  path(aln), path(aln_index)
+    val(meta),  path(aln)
     output:
-    path("${sampleID}.bamtools.sample.stats.txt"), emit: bamtools_out
+    path("${meta.id}.bamtools.sample.stats.txt"), emit: bamtools_out
 
     script:
     """
-    bamtools stats -in ${aln} -insert > ${sampleID}.bamtools.sample.stats.txt
+    bamtools stats -in ${aln} -insert > ${meta.id}.bamtools.sample.stats.txt
     """
 }
 
@@ -578,16 +573,16 @@ process samtools {
     publishDir "${outputDir}/QC/", mode: 'copy'
 
     input:  
-    tuple val(sampleID), path(aln), path(index)
+    tuple val(meta), path(aln), path(index)
 
     output:
-    path("${sampleID}.samtools.sample.stats.txt"), emit: samtools
+    path("${meta.id}.samtools.sample.stats.txt"), emit: samtools
 
     script:
     """
     singularity run -B ${s_bind} ${simgpath}/samtools.sif samtools \
     stats \
-    ${aln} > ${sampleID}.samtools.sample.stats.txt
+    ${aln} > ${meta.id}.samtools.sample.stats.txt
     """
 }
 
@@ -597,10 +592,10 @@ process qualimap {
     tag "$sampleID"
     cpus 10
     maxForks 8
-    publishDir "${outputDir}/QC/${sampleID}/qualimap/", mode: 'copy'
+    publishDir "${outputDir}/QC/${meta.id}/qualimap/", mode: 'copy'
 
     input:
-    tuple val(sampleID), path(aln), path(index)
+    tuple val(meta), path(aln), path(index)
 
     output:
     path ("${aln.baseName}/"), emit: qualimap_out
@@ -622,9 +617,9 @@ process fastqc_bam {
     errorStrategy 'ignore'
     tag "$sampleID"
     cpus 2
-    publishDir "${outputDir}/QC/${sampleID}/", mode: 'copy'
+    publishDir "${outputDir}/QC/${meta.id}/", mode: 'copy'
     input:
-    tuple val(sampleID), path(aln), path(index)
+    tuple val(meta), path(aln), path(index)
     
     output:
     path "*_fastqc.{zip,html}", emit: fastqc_bam
@@ -641,19 +636,19 @@ process collectWGSmetrics {
     errorStrategy 'ignore'
     tag "$sampleID"
     cpus 5
-    publishDir "${outputDir}/QC/${sampleID}/picard/", mode: 'copy'
+    publishDir "${outputDir}/QC/${meta.id}/picard/", mode: 'copy'
 
     input:
-    tuple val(sampleID), path(aln), path(index)
+    tuple val(meta), path(aln), path(index)
     
     output:
-    path("${sampleID}.picardWGSmetrics.txt"), emit: picard
+    path("${meta.id}.picardWGSmetrics.txt"), emit: picard
 
     script:
     """
     ${gatk_exec} CollectWgsMetrics \
     -I ${aln} \
-    -O ${sampleID}.picardWGSmetrics.txt \
+    -O ${meta.id}.picardWGSmetrics.txt \
     -R ${genome_fasta}
     """
 }
@@ -666,9 +661,9 @@ process multiQC {
     input:
     path(inputfiles)
     //   path("_fastqc.*").collect().ifEmpty([])
-    // path("${sampleID}.samtools.sample.stats.txt").collect().ifEmpty([])
+    // path("${meta.id}.samtools.sample.stats.txt").collect().ifEmpty([])
     // path("bamQC/*").collect().ifEmpty([]) 
-    //path("${sampleID}.picardWGSmetrics.txt").collect().ifEmpty([]) 
+    //path("${meta.id}.picardWGSmetrics.txt").collect().ifEmpty([]) 
 
     output:
     path ("*multiqc_report.html")
@@ -701,17 +696,17 @@ process haplotypecaller{
 
 
         input:
-        tuple val(sampleID), path(aln), path(aln_index)
+        tuple val(meta), path(aln)
     
         output:
-        path("${sampleID}.${params.genome}.${genome_version}.g.vcf.gz"), emit: sample_gvcf
+        path("${meta.id}.${params.genome}.${genome_version}.g.vcf.gz"), emit: sample_gvcf
 
-        tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.g.vcf.gz"), emit: HC_sid_gvcf
+        tuple val(meta), path("${meta.id}.${params.genome}.${genome_version}.g.vcf.gz"), emit: HC_sid_gvcf
     
-        tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.HC.*")
+        tuple val(meta), path("${meta.id}.${params.genome}.${genome_version}.HC.*")
 
-        path("${sampleID}.${params.genome}.${genome_version}.g.*")
-        path("${sampleID}.${params.genome}.${genome_version}.HCbamout.*")
+        path("${meta.id}.${params.genome}.${genome_version}.g.*")
+        path("${meta.id}.${params.genome}.${genome_version}.HCbamout.*")
         path("${aln_index}")
         path("${aln}")
         //path("${sampleID_type}.HC.*")
@@ -727,13 +722,13 @@ process haplotypecaller{
         --native-pair-hmm-threads 4 \
         -pairHMM FASTEST_AVAILABLE \
         --dont-use-soft-clipped-bases \
-        -O ${sampleID}.${params.genome}.${genome_version}.g.vcf.gz \
-        -bamout ${sampleID}.${params.genome}.${genome_version}.HCbamout.bam
+        -O ${meta.id}.${params.genome}.${genome_version}.g.vcf.gz \
+        -bamout ${meta.id}.${params.genome}.${genome_version}.HCbamout.bam
     
         ${gatk_exec} GenotypeGVCFs \
         -R ${genome_fasta} \
-        -V ${sampleID}.${params.genome}.${genome_version}.g.vcf.gz \
-        -O ${sampleID}.${params.genome}.${genome_version}.HC.vcf.gz \
+        -V ${meta.id}.${params.genome}.${genome_version}.g.vcf.gz \
+        -O ${meta.id}.${params.genome}.${genome_version}.HC.vcf.gz \
         -G StandardAnnotation \
         -G AS_StandardAnnotation
         """
@@ -749,7 +744,7 @@ process jointgenotyping {
 
         input:
         tuple val(panelID), val(subpanel_gvcf) 
-        //tuple val(sampleID),  path(vcf),path(idx) from joint_geno_dummy_ch
+        //tuple val(meta),  path(vcf),path(idx) from joint_geno_dummy_ch
         output:
 
         path("*.for.VarSeq.*")
@@ -817,10 +812,10 @@ process haplotypecallerSplitIntervals {
     }
 
     input:
-    tuple val(sampleID), path(bam), path(bai), val(sub_intID), path(sub_interval) //from HC_scatter_input_bam.combine(interval_list1)
+    tuple val(meta), path(bam), path(bai), val(sub_intID), path(sub_interval) //from HC_scatter_input_bam.combine(interval_list1)
 
     output:
-    tuple val(sampleID), path("${sampleID}.${sub_intID}.g.vcf"), path("${sampleID}.${sub_intID}.g.vcf.idx"), emit: hc_split_output
+    tuple val(meta), path("${meta.id}.${sub_intID}.g.vcf"), path("${meta.id}.${sub_intID}.g.vcf.idx"), emit: hc_split_output
 
     script:
     """
@@ -833,7 +828,7 @@ process haplotypecallerSplitIntervals {
     --native-pair-hmm-threads 4 \
     -pairHMM FASTEST_AVAILABLE \
     --dont-use-soft-clipped-bases \
-    -O ${sampleID}.${sub_intID}.g.vcf
+    -O ${meta.id}.${sub_intID}.g.vcf
     """
 }
 
@@ -847,17 +842,17 @@ process combineGVCF {
 
     input:
 
-    tuple val(sampleID), path(sub_gvcf), path(sub_gvcf_idx)// from hc_split_output.groupTuple()
+    tuple val(meta), path(sub_gvcf), path(sub_gvcf_idx)// from hc_split_output.groupTuple()
     
     output:
-    tuple val(sampleID), path("${sampleID}.g.vcf.gz"), path("${sampleID}.*.tbi"), emit: singleGVCF
-    path("${sampleID}.g.vcf.gz"), emit: sample_gvcf_list_scatter
+    tuple val(meta), path("${meta.id}.g.vcf.gz"), path("${meta.id}.*.tbi"), emit: singleGVCF
+    path("${meta.id}.g.vcf.gz"), emit: sample_gvcf_list_scatter
     script:
     """
     ${gatk_exec} CombineGVCFs \
     -R ${genome_fasta} \
     ${sub_gvcf.collect { "-V $it " }.join()} \
-    -O ${sampleID}.g.vcf.gz
+    -O ${meta.id}.g.vcf.gz
 
         """
 }
@@ -869,24 +864,24 @@ process genotypeSingle {
     maxForks 9
 
     input:
-    tuple val(sampleID), path(gvcf),path(index)
+    tuple val(meta), path(gvcf),path(index)
     output:
-    path("${sampleID}.*")
+    path("${meta.id}.*")
     script:
     """
     ${gatk_exec} --java-options "-Xmx4G -XX:+UseParallelGC -XX:ParallelGCThreads=30" GenotypeGVCFs \
     -R ${genome_fasta} \
     -V ${gvcf} \
-    -O ${sampleID}.HC.vcf.gz 
+    -O ${meta.id}.HC.vcf.gz 
 
     ${gatk_exec} SelectVariants \
     -R ${genome_fasta} \
-    -V ${sampleID}.HC.vcf.gz \
+    -V ${meta.id}.HC.vcf.gz \
     -L ${ROI} \
-    -O ${sampleID}.WES_ROI.vcf.gz
+    -O ${meta.id}.WES_ROI.vcf.gz
 
     ${gatk_exec} IndexFeatureFile \
-    -I ${sampleID}.WES_ROI.vcf.gz
+    -I ${meta.id}.WES_ROI.vcf.gz
     """
 }
 
@@ -931,18 +926,18 @@ process jointgenoScatter{
 process manta {
     errorStrategy 'ignore'
     tag "$sampleID"
-    publishDir "${inhouse_SV}/manta/raw_calls/", mode: 'copy', pattern: " ${sampleID}.manta.diploidSV.*"
+    publishDir "${inhouse_SV}/manta/raw_calls/", mode: 'copy', pattern: " ${meta.id}.manta.diploidSV.*"
     publishDir "${outputDir}/structuralVariants/manta/allOutput/", mode: 'copy'
     publishDir "${outputDir}/structuralVariants/manta/", mode: 'copy', pattern: "*.{AFanno,filtered}.*"
     cpus 10
     maxForks 3
 
     input:
-    tuple val(sampleID), path(aln), path(index)
+    tuple val(meta), path(aln), path(index)
 
     output:
-    path("${sampleID}.manta.*.{vcf,vcf.gz,gz.tbi}")
-    tuple val(sampleID), path("${sampleID}.manta.AFanno.frq_below5pct.vcf"), emit: mantaForSVDB
+    path("${meta.id}.manta.*.{vcf,vcf.gz,gz.tbi}")
+    tuple val(meta), path("${meta.id}.manta.AFanno.frq_below5pct.vcf"), emit: mantaForSVDB
 
     script:
     """
@@ -955,37 +950,37 @@ process manta {
     singularity run -B ${s_bind} ${simgpath}/manta1.6_strelka2.9.10.sif ./manta/runWorkflow.py -j ${task.cpus}
 
     mv manta/results/variants/candidateSmallIndels.vcf.gz \
-    ${sampleID}.manta.candidateSmallIndels.vcf.gz
+    ${meta.id}.manta.candidateSmallIndels.vcf.gz
     
     mv manta/results/variants/candidateSmallIndels.vcf.gz.tbi \
-    ${sampleID}.manta.candidateSmallIndels.vcf.gz.tbi
+    ${meta.id}.manta.candidateSmallIndels.vcf.gz.tbi
     
     mv manta/results/variants/candidateSV.vcf.gz \
-    ${sampleID}.manta.candidateSV.vcf.gz
+    ${meta.id}.manta.candidateSV.vcf.gz
     
     mv manta/results/variants/candidateSV.vcf.gz.tbi \
-    ${sampleID}.manta.candidateSV.vcf.gz.tbi
+    ${meta.id}.manta.candidateSV.vcf.gz.tbi
 
     mv manta/results/variants/diploidSV.vcf.gz \
-    ${sampleID}.manta.diploidSV.vcf.gz
+    ${meta.id}.manta.diploidSV.vcf.gz
     
     mv manta/results/variants/diploidSV.vcf.gz.tbi \
-    ${sampleID}.manta.diploidSV.vcf.gz.tbi
+    ${meta.id}.manta.diploidSV.vcf.gz.tbi
 
-    gzip -dc ${sampleID}.manta.diploidSV.vcf.gz > ${sampleID}.manta.diploidSV.vcf
+    gzip -dc ${meta.id}.manta.diploidSV.vcf.gz > ${meta.id}.manta.diploidSV.vcf
 
     singularity exec  \
     --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
     --query \
-    --query_vcf ${sampleID}.manta.diploidSV.vcf \
-    --sqdb ${mantaSVDB} > ${sampleID}.manta.AFanno.vcf 
+    --query_vcf ${meta.id}.manta.diploidSV.vcf \
+    --sqdb ${mantaSVDB} > ${meta.id}.manta.AFanno.vcf 
 
     ${gatk_exec} SelectVariants -R ${genome_fasta} \
-    -V ${sampleID}.manta.AFanno.vcf \
+    -V ${meta.id}.manta.AFanno.vcf \
     --exclude-filtered \
     -select "FRQ>0.05" \
     -invert-select \
-    -O ${sampleID}.manta.AFanno.frq_below5pct.vcf
+    -O ${meta.id}.manta.AFanno.frq_below5pct.vcf
 
     """
 }
@@ -1000,10 +995,10 @@ process lumpy {
     maxForks 3
 
     input:
-    tuple val(sampleID), path(aln), path(index)
+    tuple val(meta), path(aln), path(index)
 
     output:
-    tuple val(sampleID), path("${sampleID}.lumpy.AFanno.frq_below5pct.vcf"), emit: lumpyForSVDB
+    tuple val(meta), path("${meta.id}.lumpy.AFanno.frq_below5pct.vcf"), emit: lumpyForSVDB
     path("*.Lumpy_altmode_step1.vcf.gz") 
 
     script:
@@ -1011,30 +1006,30 @@ process lumpy {
     singularity run -B ${s_bind} ${simgpath}/smoove.sif smoove call -d \
     --outdir ${params.rundir}.LumpyAltSingle \
     --exclude ${smoove_exclude} \
-    --name ${sampleID} \
+    --name ${meta.id} \
     --fasta ${genome_fasta} \
     -p ${task.cpus} \
     --genotype ${aln}
     
-    mv ${params.rundir}.LumpyAltSingle/${sampleID}*.genotyped.vcf.gz \
-    ${sampleID}.Lumpy_altmode_step1.vcf.gz
+    mv ${params.rundir}.LumpyAltSingle/${meta.id}*.genotyped.vcf.gz \
+    ${meta.id}.Lumpy_altmode_step1.vcf.gz
 
-    gzip -dc  ${sampleID}.Lumpy_altmode_step1.vcf.gz >  ${sampleID}.Lumpy_altmode_step1.vcf
+    gzip -dc  ${meta.id}.Lumpy_altmode_step1.vcf.gz >  ${meta.id}.Lumpy_altmode_step1.vcf
 
-    mv ${params.rundir}.LumpyAltSingle/${sampleID}*.csi \
-    ${sampleID}.Lumpy_altmode_step1.vcf.gz.csi
+    mv ${params.rundir}.LumpyAltSingle/${meta.id}*.csi \
+    ${meta.id}.Lumpy_altmode_step1.vcf.gz.csi
 
     singularity exec  \
     --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
     --query \
-    --query_vcf ${sampleID}.Lumpy_altmode_step1.vcf \
-    --sqdb ${lumpySVDB} > ${sampleID}.lumpy.AFanno.vcf 
+    --query_vcf ${meta.id}.Lumpy_altmode_step1.vcf \
+    --sqdb ${lumpySVDB} > ${meta.id}.lumpy.AFanno.vcf 
 
     ${gatk_exec} SelectVariants -R ${genome_fasta} \
-    -V ${sampleID}.lumpy.AFanno.vcf  \
+    -V ${meta.id}.lumpy.AFanno.vcf  \
     -select "FRQ>0.05" \
     -invert-select \
-    -O ${sampleID}.lumpy.AFanno.frq_below5pct.vcf
+    -O ${meta.id}.lumpy.AFanno.frq_below5pct.vcf
 
     """
 }
@@ -1049,29 +1044,29 @@ process delly126 {
     maxForks 3
 
     input:
-    tuple val(sampleID), path(aln), path(index)
+    tuple val(meta), path(aln), path(index)
 
     output:
-    tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.delly.raw.vcf")
-    tuple val(sampleID), path("${sampleID}.${params.genome}.${genome_version}.delly.AFanno.frq_below5pct.vcf"), emit: dellyForSVDB
+    tuple val(meta), path("${meta.id}.${params.genome}.${genome_version}.delly.raw.vcf")
+    tuple val(meta), path("${meta.id}.${params.genome}.${genome_version}.delly.AFanno.frq_below5pct.vcf"), emit: dellyForSVDB
     script:
     """
     /data/shared/programmer/BIN/delly126 call \
     -g ${genome_fasta} \
-    ${aln} > ${sampleID}.${params.genome}.${genome_version}.delly.raw.vcf
+    ${aln} > ${meta.id}.${params.genome}.${genome_version}.delly.raw.vcf
 
     singularity exec  \
     --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
     --query \
-    --query_vcf ${sampleID}.${params.genome}.${genome_version}.delly.raw.vcf \
-    --sqdb ${dellySVDB} > ${sampleID}.${params.genome}.${genome_version}.delly.AFanno.vcf 
+    --query_vcf ${meta.id}.${params.genome}.${genome_version}.delly.raw.vcf \
+    --sqdb ${dellySVDB} > ${meta.id}.${params.genome}.${genome_version}.delly.AFanno.vcf 
 
     ${gatk_exec} SelectVariants -R ${genome_fasta} \
-    -V ${sampleID}.${params.genome}.${genome_version}.delly.AFanno.vcf  \
+    -V ${meta.id}.${params.genome}.${genome_version}.delly.AFanno.vcf  \
     --exclude-filtered \
     -select "FRQ>0.05" \
     -invert-select \
-    -O ${sampleID}.${params.genome}.${genome_version}.delly.AFanno.frq_below5pct.vcf
+    -O ${meta.id}.${params.genome}.${genome_version}.delly.AFanno.frq_below5pct.vcf
 
     """
 
@@ -1089,14 +1084,14 @@ process cnvkit {
     publishDir "${inhouse_SV}/CNVkit/CNNfiles/", mode: 'copy', pattern: '*.cnn'
 
     input:
-    tuple val(sampleID), path(aln), path(index)
+    tuple val(meta), path(aln), path(index)
 
     output:
-    path("${sampleID}.cnvkit/*")
+    path("${meta.id}.cnvkit/*")
     path("*.targetcoverage.cnn"), emit: cnvkit_cnn_out
-    tuple val(sampleID), path("${sampleID}.cnvkit/*.call.cns"), emit: CNVcalls
-    tuple val(sampleID), path("${sampleID}.cnvkit/*.cnr"), emit: CNVcnr
-    //path("${sampleID}.cnvkit/*.cnn")
+    tuple val(meta), path("${meta.id}.cnvkit/*.call.cns"), emit: CNVcalls
+    tuple val(meta), path("${meta.id}.cnvkit/*.cnr"), emit: CNVcnr
+    //path("${meta.id}.cnvkit/*.cnn")
     
     // touch ${index}
     script:
@@ -1110,8 +1105,8 @@ process cnvkit {
     -p ${task.cpus} \
     -r ${cnvkit_germline_reference_PON} \
     --scatter --diagram \
-    -d ${sampleID}.cnvkit/
-    cp ${sampleID}.cnvkit/*.targetcoverage.cnn .
+    -d ${meta.id}.cnvkit/
+    cp ${meta.id}.cnvkit/*.targetcoverage.cnn .
     """
 }
 
@@ -1122,36 +1117,36 @@ process cnvkitExportFiles {
     publishDir "${outputDir}/structuralVariants/cnvkit/", mode: 'copy'
 
     input:
-    tuple val(sampleID), path(cnvkit_calls)// from cnvkit_calls_out
-    tuple val(sampleID), path(cnvkit_cnr)// from cnvkit_cnr_out
+    tuple val(meta), path(cnvkit_calls)// from cnvkit_calls_out
+    tuple val(meta), path(cnvkit_cnr)// from cnvkit_cnr_out
 
     output:
     path("*.vcf")
     path("*.seg")
-    tuple val(sampleID), path("${sampleID}.cnvkit.AFanno.frq_below5pct.vcf"), emit: cnvkitForSVDB
+    tuple val(meta), path("${meta.id}.cnvkit.AFanno.frq_below5pct.vcf"), emit: cnvkitForSVDB
 
     script:
     """
     singularity run -B ${s_bind} ${simgpath}/cnvkit.sif cnvkit.py export vcf \
     ${cnvkit_calls} \
-    -i ${sampleID} \
-    -o ${sampleID}.cnvkit.vcf
+    -i ${meta.id} \
+    -o ${meta.id}.cnvkit.vcf
 
     singularity run -B ${s_bind} ${simgpath}/cnvkit.sif cnvkit.py export seg \
     ${cnvkit_cnr} \
-    -o ${sampleID}.cnvkit.cnr.seg
+    -o ${meta.id}.cnvkit.cnr.seg
 
     singularity exec  \
     --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
     --query \
-    --query_vcf ${sampleID}.cnvkit.vcf \
-    --sqdb ${cnvkitSVDB} > ${sampleID}.cnvkit.AFanno.vcf 
+    --query_vcf ${meta.id}.cnvkit.vcf \
+    --sqdb ${cnvkitSVDB} > ${meta.id}.cnvkit.AFanno.vcf 
 
     ${gatk_exec} SelectVariants -R ${genome_fasta} \
-    -V ${sampleID}.cnvkit.AFanno.vcf  \
+    -V ${meta.id}.cnvkit.AFanno.vcf  \
     -select "FRQ>0.05" \
     -invert-select \
-    -O ${sampleID}.cnvkit.AFanno.frq_below5pct.vcf
+    -O ${meta.id}.cnvkit.AFanno.frq_below5pct.vcf
 
     """
 }
@@ -1170,11 +1165,11 @@ process merge4callerSVDB {
     //container 'kfdrc/manta:1.6.0'
     maxForks 12
     input:
-    // tuple val(sampleID), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(tiddit_vcf) // from single_4caller_for_svdb
-    tuple val(sampleID), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(delly_vcf)
+    // tuple val(meta), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(tiddit_vcf) // from single_4caller_for_svdb
+    tuple val(meta), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(delly_vcf)
     output:
-    path("${sampleID}.4callerNEW.SVDB.*")
-    path("${sampleID}.*.SVDB.*")
+    path("${meta.id}.4callerNEW.SVDB.*")
+    path("${meta.id}.*.SVDB.*")
 
     script:
     """
@@ -1183,14 +1178,14 @@ process merge4callerSVDB {
     --merge \
     --overlap 0.6 \
     --vcf ${manta_vcf}:MANTA ${lumpy_vcf}:LUMPY ${cnvkit_vcf}:CNVKIT ${delly_vcf}:DELLY \
-    --priority LUMPY,MANTA,CNVKIT,DELLY > ${sampleID}.4callerNEW.SVDB.5pctAF.60pctOverlap.vcf
+    --priority LUMPY,MANTA,CNVKIT,DELLY > ${meta.id}.4callerNEW.SVDB.5pctAF.60pctOverlap.vcf
 
     singularity exec  \
     --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
     --merge \
     --overlap 0.8 \
     --vcf ${manta_vcf}:MANTA ${lumpy_vcf}:LUMPY ${cnvkit_vcf}:CNVKIT ${delly_vcf}:DELLY \
-    --priority LUMPY,MANTA,CNVKIT,DELLY > ${sampleID}.4callerNEW.SVDB.5pctAF.80pctOverlap.vcf
+    --priority LUMPY,MANTA,CNVKIT,DELLY > ${meta.id}.4callerNEW.SVDB.5pctAF.80pctOverlap.vcf
 
 
     singularity exec  \
@@ -1198,7 +1193,7 @@ process merge4callerSVDB {
     --merge \
     --overlap 1.0 \
     --vcf ${manta_vcf}:MANTA ${lumpy_vcf}:LUMPY ${cnvkit_vcf}:CNVKIT ${delly_vcf}:DELLY \
-    --priority LUMPY,MANTA,CNVKIT,DELLY > ${sampleID}.4callerNEW.SVDB.5pctAF.100pctOverlap.vcf
+    --priority LUMPY,MANTA,CNVKIT,DELLY > ${meta.id}.4callerNEW.SVDB.5pctAF.100pctOverlap.vcf
     """
 }
 
@@ -1208,7 +1203,7 @@ process expansionHunter {
     publishDir "${outputDir}/repeatExpansions/expansionHunter/", mode: 'copy'
     cpus 10
     input:
-    tuple val(sampleID), path(aln), path(index)
+    tuple val(meta), path(aln), path(index)
 
     output:
     path("*.{vcf,json,bam}")
@@ -1219,7 +1214,7 @@ process expansionHunter {
     --reference ${genome_fasta} \
     --variant-catalog ${expansionhunter_catalog} \
     -n ${task.cpus} \
-    --output-prefix ${sampleID}.expansionHunter
+    --output-prefix ${meta.id}.expansionHunter
     """
 }
 
@@ -1237,86 +1232,86 @@ process stripy {
 
     
     input:
-    tuple val(sampleID), path(aln), path(index)
+    tuple val(meta), path(aln), path(index)
 
     output:
-    //path("${sampleID}.stripy/*.html")
+    //path("${meta.id}.stripy/*.html")
     path("*.html")
 
     script:
     """
-    mkdir ${sampleID}.stripy/
+    mkdir ${meta.id}.stripy/
     sleep 5
 
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
     --reference ${genome_fasta} \
     --locus ABCD3,AFF2,AR,ARX_1,ARX_2,ATN1,ATXN1,ATXN10,ATXN2,ATXN3,ATXN7,ATXN8OS,BEAN1,C9ORF72,CACNA1A,CBL,CNBP,COMP,CSTB,DAB1,DIP2B,DMD,DMPK,EIF4A3,FGF14,FMR1,FOXL2,FXN,GIPC1,GLS,HOXA13_1,HOXA13_2,HOXA13_3,HOXD13,HTT,JPH3,LRP12,MARCHF6,NIPA1,NOP56,NOTCH2NLC,NUTM2B-AS1,PABPN1,PHOX2B,PPP2R2B,PRDM12,PPNP,RAPGEF2,RFC1,RILPL1,RUNX2,SAMD12,SOX3,STARD7,TBP,TBX1,TCF4,THAP11,TNRC6A,VWA1,XYLT1,YEATS2,ZFHX3,ZIC2,ZIC3 \
-    --output ${sampleID}.stripy/ \
+    --output ${meta.id}.stripy/ \
     --input ${aln}
 
-    mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.ALL.html
+    mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.ALL.html
 
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
     --reference ${genome_fasta} \
     --locus ATN1,ATXN1,ATXN10,ATXN2,ATXN3,ATXN7,ATXN8OS,BEAN1,CACNA1A,CSTB,DAB1,FGF14,FMR1,FXN,NOP56,NOTCH2NLC,PPP2R2B,RFC1,TBP,YEATS2 \
-    --output ${sampleID}.stripy/ \
+    --output ${meta.id}.stripy/ \
     --input ${aln}
 
-    mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.ataksi.html
+    mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.ataksi.html
 
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
     --reference ${genome_fasta} \
     --locus ATN1,ATXN1,ATXN2,ATXN3,ATXN10,ATXN80S,C9ORF72,CACNA1A,FXN,JPH3,NOTCH2NLC,PPP2R2B,TBP \
-    --output ${sampleID}.stripy/ \
+    --output ${meta.id}.stripy/ \
     --input ${aln}
 
-    mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.myotoni.html
+    mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.myotoni.html
 
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
     --reference ${genome_fasta} \
     --locus RFC1 \
-    --output ${sampleID}.stripy/ \
+    --output ${meta.id}.stripy/ \
     --input ${aln}
 
-    mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.neuropati.html
+    mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.neuropati.html
 
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
     --reference ${genome_fasta} \
     --locus AR,ATXN2,C9ORF72,NOP56,NOTCH2NLC \
-    --output ${sampleID}.stripy/ \
+    --output ${meta.id}.stripy/ \
     --input ${aln}
-    mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.ALS_FTD.html
+    mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.ALS_FTD.html
 
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
     --reference ${genome_fasta} \
     --locus CNBP,DMD,DMPK,GIPC1,LRP12,NOTCH2NLC,NUTM2B-AS1,PABPN1,RILPL1 \
-    --output ${sampleID}.stripy/ \
+    --output ${meta.id}.stripy/ \
     --input ${aln}
-    mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.myopati.html
+    mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.myopati.html
 
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
     --reference ${genome_fasta} \
     --locus CSTB,MARCHF6,RAPGEF2,SAMD12,STARD7,TNRC6A,YEATS2 \
-    --output ${sampleID}.stripy/ \
+    --output ${meta.id}.stripy/ \
     --input ${aln}
-    mv ${sampleID}.stripy/${aln}.html ${sampleID}.stripy.epilepsi.html
+    mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.epilepsi.html
 
     """
 }
 /*
-    mkdir ${sampleID}.stripy_ataksi/ 
-    mkdir ${sampleID}.stripy_myotoni/
-    mkdir ${sampleID}.stripy_neuropati/
-    mkdir ${sampleID}.stripy_ALS_FTD/
-    mkdir ${sampleID}.stripy_myopati/    
-    mkdir ${sampleID}.stripy_epilepsi/  
+    mkdir ${meta.id}.stripy_ataksi/ 
+    mkdir ${meta.id}.stripy_myotoni/
+    mkdir ${meta.id}.stripy_neuropati/
+    mkdir ${meta.id}.stripy_ALS_FTD/
+    mkdir ${meta.id}.stripy_myopati/    
+    mkdir ${meta.id}.stripy_epilepsi/  
 
 Basal:
 ATN1,ATXN1,ATXN2,ATXN3,ATXN10,ATXN8OS,C9ORF72,CACNA1A,FXN,JPH3,NOTCH2NLC,PPP2R2B,TBP
@@ -1386,11 +1381,11 @@ process vntyper_newRef {
     cpus 16
 
     input:
-    tuple val(sampleID), path(r1), path(r2)
+    tuple val(meta), path(reads)
 
     output:
-    //tuple val(sampleID), path("vntyper${sampleID}.vntyper/*")
-    tuple val(sampleID), path("*/*.{tsv,vcf}")
+    //tuple val(meta), path("vntyper${meta.id}.vntyper/*")
+    tuple val(meta), path("*/*.{tsv,vcf}")
     script:
     """
     singularity run -B ${s_bind} ${simgpath}/vntyper120.sif \
@@ -1399,14 +1394,14 @@ process vntyper_newRef {
     -t ${task.cpus} \
     -w vntyper \
     -m ${vntyperREF}/hg19_genic_VNTRs.db \
-    -o ${sampleID} \
+    -o ${meta.id} \
     -ref_VNTR ${vntyperREF}/MUC1-VNTR_NEW.fa \
     --fastq \
     --ignore_advntr \
     -p /data/shared/programmer/vntyper/VNtyper/
     """
 }
-    //-o ${sampleID}.vntyper \
+    //-o ${meta.id}.vntyper \
 
 
 
