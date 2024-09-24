@@ -566,7 +566,7 @@ if (params.samplesheet) {
 ///////////// set final input channels   ///////////
 ////////////////////////////////////////////////////
 
-
+/*
 if (!params.samplesheet && params.fastq) {
     read_pairs_ch
     .set { fq_read_input }
@@ -589,7 +589,7 @@ if (params.samplesheet && !params.fastqInput && !params.fastq) {
     .map {tuple (it[0]+"_"+it[1]+"_"+it[2],it[4],it[5])}
     .set {meta_aln_index}
 }
-
+*/
 
 
 //////// END: Combine input and samplesheet //////////
