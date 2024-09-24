@@ -682,6 +682,8 @@ if (params.fastq || params.fastqInput) {
         | set { full_samplesheet }
     full_samplesheet.join(readsInputForJoin)    
         | map {tuple(it[1],it[2],it[3])}
+        |map {meta1,meta2,data -> 
+        [meta1+meta2,data]}
         |view
     }   
 }
