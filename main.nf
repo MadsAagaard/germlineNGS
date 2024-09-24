@@ -645,8 +645,6 @@ process fastq_to_ubam {
     -O ${meta.id}.unmapped.from.fq.bam
     touch ${meta.id}.unmapped.from.fq.bam.idx
     """
-    testOut
-    |view
 }
 
 
