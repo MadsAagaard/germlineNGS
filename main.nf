@@ -680,7 +680,7 @@ if (params.fastq || params.fastqInput) {
         | map { row -> tuple(row.npn, row)}
        // | view
         | set { full_samplesheet }
-    full_samplesheet.join(readsInputForJoin,remainder:true)    
+    full_samplesheet.join(readsInputForJoin)    
         | map {tuple(it[1],it[2],it[3])}
         |view
     }   
