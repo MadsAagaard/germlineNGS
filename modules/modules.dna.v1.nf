@@ -707,7 +707,7 @@ process haplotypecaller{
 
         path("${meta.id}.${genome_version}.g.*")
         path("${meta.id}.${genome_version}.HCbamout.*")
-        tuple path("${aln[*]}")
+        tuple path("${aln[0]}"),path("${aln[1]}")
 
         script:
         """
