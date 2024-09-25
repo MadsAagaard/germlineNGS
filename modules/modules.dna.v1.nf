@@ -707,9 +707,7 @@ process haplotypecaller{
 
         path("${meta.id}.${genome_version}.g.*")
         path("${meta.id}.${genome_version}.HCbamout.*")
-        path("${aln_index}")
         path("${aln}")
-        //path("${sampleID_type}.HC.*")
 
         script:
         """
