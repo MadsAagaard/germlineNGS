@@ -668,6 +668,7 @@ workflow {
         |set {alnInputFinal}
 
         alnInputFinal.view()
+        SUB_VARIANTCALL(alnInputFinal)
     }
 
 

@@ -1459,7 +1459,7 @@ workflow SUB_PREPROCESS {
 
 workflow SUB_VARIANTCALL {
     take:
-    meta_aln_index  // sampleID, aln, index
+    meta_aln_index  // alnInputFinal
     main:
     haplotypecaller(meta_aln_index)
 
