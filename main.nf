@@ -616,7 +616,7 @@ workflow QC {
     multiQC(samtools.out.ifEmpty([]).mix(qualimap.out.ifEmpty([])).mix(fastqc_bam.out.ifEmpty([])).collect())
 
 }
-*/
+
 
 process fastq_to_ubam {
     errorStrategy 'ignore'
@@ -647,7 +647,7 @@ process fastq_to_ubam {
     """
 }
 
-
+*/
 
 
 workflow {

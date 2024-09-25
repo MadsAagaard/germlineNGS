@@ -1424,7 +1424,7 @@ workflow SUB_SPRING_DECOMPRESS {
 workflow SUB_PREPROCESS {
 
     take:
-    fq_read_input
+    readsInputFinal
 
     main:
     inputFiles_symlinks_fq(readsInputFinal)
