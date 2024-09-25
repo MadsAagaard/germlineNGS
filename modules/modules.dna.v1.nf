@@ -748,7 +748,6 @@ process jointgenotyping {
         output:
 
         path("*.for.VarSeq.*")
-//        tuple val(panelID), path("${params.rundir}.${panelID}.${genome_version}.merged.for.VarSeq.*"), emit: spliceAI_input
 
         script:
         """
@@ -768,36 +767,6 @@ process jointgenotyping {
         -D ${dbsnp}
         """     
 }
-/*
-  process spliceAI {
-        errorStrategy 'ignore'
-        cpus 4
-        publishDir "${outputDir}/Variants/", mode: 'copy', pattern: "*.spliceAI.merged.for.VarSeq.*"
-
-        input:
-        tuple val(panelID), path(vcf)// from spliceAI_input
-        
-        output:
-        path("*.spliceAI.merged.for.VarSeq.*")// into merged_spliceAI_vcf
-
-        when:
-        !params.skipSpliceAI
-
-        script:
-        """
-        singularity run -B ${s_bind} ${simgpath}/spliceai.sif spliceai \
-        -R ${genome_fasta} \
-        -I ${vcf} \
-        -O ${params.rundir}.${panelID}.${genome_version}.spliceAI.merged.for.VarSeq.vcf \
-        -A ${spliceai_assembly}
-
-        ${gatk_exec} IndexFeatureFile \
-        -I ${params.rundir}.${panelID}.${genome_version}.spliceAI.merged.for.VarSeq.vcf
-        """
-    }
-*/
-
-
 
 //////// WGS VARIANT CALLING (HaplotypeCaller SplitIntervals)
 
