@@ -651,14 +651,7 @@ process fastq_to_ubam {
 
 
 workflow {
-fastq_to_ubam(readsInputFinal)
-    testOut_ch=fastq_to_ubam.out.testOut
-    
-    testOut_ch
-    |map {meta, bam,bai ->
-        tuple(meta,[bam,bai])}
-    |view
-/*
+
     if (params.spring) {
         SUB_SPRING_DECOMPRESS(spring_input_ch)
         //SUB_SPRING_DECOMPRESS.out.view()
@@ -667,10 +660,18 @@ fastq_to_ubam(readsInputFinal)
 
     if (params.fastqInput||params.fastq||params.spring || params.preprocessOnly) {
         SUB_PREPROCESS(readsInputFinal)
-        alnInputFinal=SUB_PREPROCESS.out.finalAln
+        preprocessOutAln=SUB_PREPROCESS.out.finalAln
         
+        preprocessOutAln
+        |map {meta, cram,crai ->
+            tuple(meta,[cram,crai])}
+        |set {alnInputFinal}
+
+        alnInputFinal.view()
     }
 
+
+/*
     if (!params.fastqInput && !params.fastq && !params.spring) {
         inputFiles_symlinks_cram(alnInputFinal) // new channel structure: val(meta), path(data)
 
