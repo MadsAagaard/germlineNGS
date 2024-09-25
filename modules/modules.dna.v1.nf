@@ -714,10 +714,10 @@ process haplotypecaller{
         script:
         """
         ${gatk_exec} --java-options "-Xmx4G -XX:+UseParallelGC -XX:ParallelGCThreads=4" HaplotypeCaller \
-        -I ${aln} \
+        -I ${aln[0]} \
         -R ${genome_fasta} \
         -ERC GVCF \
-        -L ${ROI} \
+        -L ${meta.roi} \
         --smith-waterman FASTEST_AVAILABLE \
         --native-pair-hmm-threads 4 \
         -pairHMM FASTEST_AVAILABLE \
