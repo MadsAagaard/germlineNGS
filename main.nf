@@ -666,6 +666,12 @@ workflow {
         |map {meta, cram,crai ->
             tuple(meta,[cram,crai])}
         |set {alnInputFinal}
+        | branch {
+
+
+            
+        }
+        |set {alnInputFinal}
 
         alnInputFinal.view()
         SUB_VARIANTCALL(alnInputFinal)
@@ -673,6 +679,15 @@ workflow {
 
 
 /*
+    Working, 240925:
+        preprocessOutAln
+        |map {meta, cram,crai ->
+            tuple(meta,[cram,crai])}
+        |set {alnInputFinal}
+
+        alnInputFinal.view()
+    End
+
     if (!params.fastqInput && !params.fastq && !params.spring) {
         inputFiles_symlinks_cram(alnInputFinal) // new channel structure: val(meta), path(data)
 
