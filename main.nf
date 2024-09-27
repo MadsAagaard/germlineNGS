@@ -477,7 +477,7 @@ if (params.fastq || params.fastqInput) {
 ////// INPUT DATA: CRAM AS INPUT //////////////////
 ////////////////////////////////////////////////////
 
-if (!params.fastq && !params.fastqInput){
+if (!params.fastq && !params.fastqInput && !params.spring){
 
     if (params.cram) {
         cramfiles="${params.cram}/${reads_pattern_cram}"
@@ -666,11 +666,11 @@ workflow {
         |map {meta, cram,crai ->
             tuple(meta,[cram,crai])}
         |set {alnInputFinal}
-        | branch {
+     //   | branch {
 
 
             
-        }
+       // }
         |set {alnInputFinal}
 
         alnInputFinal.view()
