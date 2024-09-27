@@ -671,10 +671,11 @@ workflow {
 
             
        // }
-        |set {alnInputFinal}
+       // |set {alnInputFinal}
 
-        alnInputFinal.view()
+       // alnInputFinal.view()
         SUB_VARIANTCALL(alnInputFinal)
+
     }
 
 
