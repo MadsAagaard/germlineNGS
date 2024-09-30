@@ -453,7 +453,7 @@ if (params.fastq || params.fastqInput) {
         readsInputReMerged
         | map { meta,reads -> tuple(meta.npn,meta,reads)}
         | set {readsInputForJoin}
-        readsInputForJoin.view()
+  //      readsInputForJoin.view()
         // NBNBNBNBNB: Requires named headers for now!!! (e.g. column with NPN must be named "npn" in samplesheet)
     channel.fromPath(params.samplesheet)
         | splitCsv(sep:'\t',header:true)
@@ -472,7 +472,7 @@ if (params.fastq || params.fastqInput) {
         readsInputReMerged
         | set {readsInputFinal} 
     }
-    readsInputFinal.view()
+
 }
 ////////////////////////////////////////////////////
 ////// INPUT DATA: CRAM AS INPUT //////////////////
