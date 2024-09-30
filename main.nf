@@ -667,17 +667,37 @@ workflow {
             tuple(meta,[cram,crai])}
         |set {alnInputFinal}
      //   | branch {
-
-
+        alnInputFinal.view()
+        alnInputFinal
+        |branch {meta, aln ->
+            WGS: (meta.panel=~/WG/ || meta.panel=~/NGC/)
+                return [meta + [datatype:"WGS",roi:"$WES_ROI"],aln]
+            AV1: (meta.panel=~/AV1/)
+                return [meta + [datatype:"targeted",roi:"$AV1_ROI"],aln]
+            MV1: (meta.panel=~/MV1/)
+                return [meta + [datatype:"targeted",roi:"$MV1_ROI"],aln]
+            WES: (meta.panel=~/EV8/ ||meta.panel=~/EV7/)
+                return [meta + [datatype:"targeted",roi:"$WES_ROI"],aln]
+            undetermined: true
+                return [meta + [datatype:"unset",analyzed:"NO"],aln]
+            [meta, aln]
+    }
+    | set {cramInputBranched}
+    
+    cramInputBranched.MV1.concat(cramInputBranched.AV1).concat(cramInputBranched.WES).concat(cramInputBranched.WGS)
+    |set {cramInputReMerged}
+    cramInputReMerged.view()
             
        // }
        // |set {alnInputFinal}
 
        // alnInputFinal.view()
-        SUB_VARIANTCALL(alnInputFinal)
+        //SUB_VARIANTCALL(alnInputFinal)
+     SUB_VARIANTCALL(alnInputFinalcramInputBranched.AV1)
 
     }
 
+}
 
 /*
     Working, 240925:
@@ -722,7 +742,7 @@ workflow {
         }
     }
   */  
-}
+
 
 
 
