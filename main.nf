@@ -471,7 +471,7 @@ if (params.fastq || params.fastqInput) {
         readsInputReMerged
         | set {readsInputFinal} 
     }
-    
+    readsInputFinal.view()
 }
 ////////////////////////////////////////////////////
 ////// INPUT DATA: CRAM AS INPUT //////////////////
