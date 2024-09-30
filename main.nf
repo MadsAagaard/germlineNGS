@@ -457,7 +457,7 @@ if (params.fastq || params.fastqInput) {
         // NBNBNBNBNB: Requires named headers for now!!! (e.g. column with NPN must be named "npn" in samplesheet)
     channel.fromPath(params.samplesheet)
         | splitCsv(sep:'\t',header:true)
-        | map { row -> tuple(row[0], row)}
+        | map { row -> tuple(row.npn, row)}
        // | view
         | set { full_samplesheet }
         full_samplesheet.view()
