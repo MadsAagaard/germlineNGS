@@ -290,7 +290,7 @@ Script start : $date2
 
 process inputFiles_symlinks_fq{
     errorStrategy 'ignore'
-    publishDir "${outputDir}/input_symlinks/", mode: 'link', pattern:'*.{fastq,fq}.gz'
+    publishDir "${outputDir}/${meta.panel}/input_symlinks/", mode: 'link', pattern:'*.{fastq,fq}.gz'
     input:
     tuple val(meta), path(reads)// from read_input2
     
@@ -526,8 +526,8 @@ process markDup_cram {
     errorStrategy 'ignore'
     maxForks 6
     tag "$meta.id"
-    publishDir "${outputDir}/CRAM/", mode: 'copy', pattern: "*.BWA.MD.cr*"
-    publishDir "${outputDir}/Variants/Alignment_symlinks/", mode: 'link', pattern: "*.BWA.MD.cr*"
+    publishDir "${outputDir}/${meta.panel}/CRAM/", mode: 'copy', pattern: "*.BWA.MD.cr*"
+    publishDir "${outputDir}/${meta.panel}/Variants/Alignment_symlinks/", mode: 'link', pattern: "*.BWA.MD.cr*"
     input:
     tuple val(meta), path(aln)
     

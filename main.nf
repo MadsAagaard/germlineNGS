@@ -460,7 +460,6 @@ if (params.fastq || params.fastqInput) {
         | map { row -> tuple(row.npn, row)}
        // | view
         | set { full_samplesheet }
-        full_samplesheet.view()
     full_samplesheet.join(readsInputForJoin)    
         | map {tuple(it[1],it[2],it[3])}
         | map {meta1,meta2,data -> 
@@ -472,7 +471,7 @@ if (params.fastq || params.fastqInput) {
         readsInputReMerged
         | set {readsInputFinal} 
     }
-
+    readsInputFinal.view()
 }
 ////////////////////////////////////////////////////
 ////// INPUT DATA: CRAM AS INPUT //////////////////
@@ -552,6 +551,7 @@ if (!params.fastq && !params.fastqInput && !params.spring){
         cramInputReMerged
         | set {alnInputFinal} 
     }
+    alnInputFinal.view()
 }
 
 
@@ -666,10 +666,8 @@ workflow {
         preprocessOutAln
         |map {meta, cram,crai ->
             tuple(meta,[cram,crai])}
+        | view
         |set {alnInputFinal}
-        
-        //alnInputFinal.view()
-        alnInputFinal
     /*
         |branch {meta, aln ->
             WGS: (meta.panel=~/WG/ || meta.panel=~/NGC/)
