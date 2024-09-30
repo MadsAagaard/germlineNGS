@@ -453,13 +453,14 @@ if (params.fastq || params.fastqInput) {
         readsInputReMerged
         | map { meta,reads -> tuple(meta.npn,meta,reads)}
         | set {readsInputForJoin}
+        readsInputForJoin.view()
         // NBNBNBNBNB: Requires named headers for now!!! (e.g. column with NPN must be named "npn" in samplesheet)
     channel.fromPath(params.samplesheet)
         | splitCsv(sep:'\t',header:true)
         | map { row -> tuple(row.npn, row)}
        // | view
         | set { full_samplesheet }
-
+        full_samplesheet.view()
     full_samplesheet.join(readsInputForJoin)    
         | map {tuple(it[1],it[2],it[3])}
         | map {meta1,meta2,data -> 
