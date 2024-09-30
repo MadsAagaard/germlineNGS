@@ -666,7 +666,7 @@ workflow {
         |map {meta, cram,crai ->
             tuple(meta,[cram,crai])}
         |set {alnInputFinal}
-     //   | branch {
+        
         alnInputFinal.view()
         alnInputFinal
         |branch {meta, aln ->
@@ -681,20 +681,20 @@ workflow {
             undetermined: true
                 return [meta + [datatype:"unset",analyzed:"NO"],aln]
             [meta, aln]
-    }
-    | set {cramInputBranched}
+        }
+        | set {cramInputBranched}
     
-    cramInputBranched.MV1.concat(cramInputBranched.AV1).concat(cramInputBranched.WES).concat(cramInputBranched.WGS)
-    |set {cramInputReMerged}
-    cramInputReMerged.view()
+        cramInputBranched.MV1.concat(cramInputBranched.AV1).concat(cramInputBranched.WES).concat(cramInputBranched.WGS)
+        |set {cramInputReMerged}
+    
+        cramInputReMerged.view()
             
        // }
        // |set {alnInputFinal}
 
        // alnInputFinal.view()
         //SUB_VARIANTCALL(alnInputFinal)
-     SUB_VARIANTCALL(alnInputFinalcramInputBranched.AV1)
-
+        SUB_VARIANTCALL(cramInputBranched.AV1)
     }
 
 }
