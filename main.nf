@@ -667,8 +667,9 @@ workflow {
             tuple(meta,[cram,crai])}
         |set {alnInputFinal}
         
-        alnInputFinal.view()
+        //alnInputFinal.view()
         alnInputFinal
+    /*
         |branch {meta, aln ->
             WGS: (meta.panel=~/WG/ || meta.panel=~/NGC/)
                 return [meta + [datatype:"WGS",roi:"$WES_ROI"],aln]
@@ -682,19 +683,20 @@ workflow {
                 return [meta + [datatype:"unset",analyzed:"NO"],aln]
             [meta, aln]
         }
-        | set {cramInputBranched}
+              | set {cramInputBranched}
     
         cramInputBranched.MV1.concat(cramInputBranched.AV1).concat(cramInputBranched.WES).concat(cramInputBranched.WGS)
         |set {cramInputReMerged}
     
         cramInputReMerged.view()
+      */
             
        // }
        // |set {alnInputFinal}
 
        // alnInputFinal.view()
         //SUB_VARIANTCALL(alnInputFinal)
-        SUB_VARIANTCALL(cramInputBranched.AV1)
+        SUB_VARIANTCALL(alnInputFinal)
     }
 
 }
