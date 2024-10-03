@@ -471,7 +471,7 @@ if (params.fastq || params.fastqInput) {
         readsInputReMerged
         | set {readsInputFinal} 
     }
-    //readsInputFinal.view()
+    readsInputFinal.view()
 }
 ////////////////////////////////////////////////////
 ////// INPUT DATA: CRAM AS INPUT //////////////////
@@ -668,6 +668,15 @@ workflow {
         |map {meta, cram,crai ->
             tuple(meta,[cram,crai])}
         |set {alnInputFinal}
+        alnInputFinal
+        | branch 
+
+
+    }
+
+
+    SUB_VARIANTCALL(alnInputFinal)
+}
     /*
         |branch {meta, aln ->
             WGS: (meta.panel=~/WG/ || meta.panel=~/NGC/)
@@ -695,12 +704,6 @@ workflow {
 
        // alnInputFinal.view()
         //SUB_VARIANTCALL(alnInputFinal)
-        SUB_VARIANTCALL(alnInputFinal)
-        bamtools(alnInputFinal)
-    }
-
-}
-
 /*
     Working, 240925:
         preprocessOutAln

@@ -573,12 +573,13 @@ process bamtools {
     script:
     """
     bamtools stats -in ${aln[0]} -insert > ${meta.id}.bamtools.sample.stats.txt
-
-    cat <<-END_VERSIONS > versions.yml
+  
+    """
+  /*cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         Bamtools: bamtools --version| grep "bamtools" | sed 's/bamtools //g'
     END_VERSIONS
-    """
+    */
 }
 
 
