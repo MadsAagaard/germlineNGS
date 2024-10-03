@@ -593,6 +593,7 @@ include {
          // Preprocess tools:
          //QC tools
          samtools;
+         bamtools;
          qualimap;
          fastqc_bam;
          collectWGSmetrics;
