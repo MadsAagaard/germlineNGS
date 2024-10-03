@@ -934,7 +934,7 @@ process manta {
     maxForks 3
 
     input:
-    tuple val(meta), path(aln), path(index)
+    tuple val(meta), path(aln)
 
     output:
     path("${meta.id}.manta.*.{vcf,vcf.gz,gz.tbi}")
@@ -943,7 +943,7 @@ process manta {
     script:
     """
     singularity run -B ${s_bind} ${simgpath}/manta1.6_strelka2.9.10.sif configManta.py \
-    --bam ${aln} \
+    --bam ${aln[0]} \
     --referenceFasta ${genome_fasta} \
     --callRegions ${manta_callable_regions} \
     --runDir manta
@@ -996,7 +996,7 @@ process lumpy {
     maxForks 3
 
     input:
-    tuple val(meta), path(aln), path(index)
+    tuple val(meta), path(aln)
 
     output:
     tuple val("${meta.id}"), path("${meta.id}.lumpy.AFanno.frq_below5pct.vcf"), emit: lumpyForSVDB
@@ -1010,7 +1010,7 @@ process lumpy {
     --name ${meta.id} \
     --fasta ${genome_fasta} \
     -p ${task.cpus} \
-    --genotype ${aln}
+    --genotype ${aln[0]}
     
     mv ${params.rundir}.LumpyAltSingle/${meta.id}*.genotyped.vcf.gz \
     ${meta.id}.Lumpy_altmode_step1.vcf.gz
@@ -1045,7 +1045,7 @@ process delly126 {
     maxForks 3
 
     input:
-    tuple val(meta), path(aln), path(index)
+    tuple val(meta), path(aln)
 
     output:
     tuple val(meta), path("${meta.id}.${genome_version}.delly.raw.vcf")
@@ -1054,7 +1054,7 @@ process delly126 {
     """
     /data/shared/programmer/BIN/delly126 call \
     -g ${genome_fasta} \
-    ${aln} > ${meta.id}.${genome_version}.delly.raw.vcf
+    ${aln[0]} > ${meta.id}.${genome_version}.delly.raw.vcf
 
     singularity exec  \
     --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
@@ -1085,7 +1085,7 @@ process cnvkit {
     publishDir "${inhouse_SV}/CNVkit/CNNfiles/", mode: 'copy', pattern: '*.cnn'
 
     input:
-    tuple val(meta), path(aln), path(index)
+    tuple val(meta), path(aln)
 
     output:
     path("${meta.id}.cnvkit/*")
@@ -1101,7 +1101,7 @@ process cnvkit {
     cp intermediate_crai ${index}
     rm intermediate_crai
     singularity run -B ${s_bind} ${simgpath}/cnvkit.sif cnvkit.py batch \
-    ${aln} \
+    ${aln[0]} \
     -m wgs \
     -p ${task.cpus} \
     -r ${cnvkit_germline_reference_PON} \
