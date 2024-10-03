@@ -572,7 +572,12 @@ process bamtools {
 
     script:
     """
-    bamtools stats -in ${aln} -insert > ${meta.id}.bamtools.sample.stats.txt
+    bamtools stats -in ${aln[0]} -insert > ${meta.id}.bamtools.sample.stats.txt
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        Bamtools: bamtools --version| grep "bamtools" | sed 's/bamtools //g'
+    END_VERSIONS
     """
 }
 
@@ -730,6 +735,7 @@ process haplotypecaller{
         path("${meta.id}.${genome_version}.g.*")
         path("${meta.id}.${genome_version}.HCbamout.*")
         tuple path("${aln[0]}"),path("${aln[1]}")
+        path("versions.yml"), emit: versions
 
         script:
         """

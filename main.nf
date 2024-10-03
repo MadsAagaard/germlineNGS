@@ -666,7 +666,6 @@ workflow {
         preprocessOutAln
         |map {meta, cram,crai ->
             tuple(meta,[cram,crai])}
-        | view
         |set {alnInputFinal}
     /*
         |branch {meta, aln ->
@@ -696,6 +695,7 @@ workflow {
        // alnInputFinal.view()
         //SUB_VARIANTCALL(alnInputFinal)
         SUB_VARIANTCALL(alnInputFinal)
+        bamtools(alnInputFinal)
     }
 
 }
