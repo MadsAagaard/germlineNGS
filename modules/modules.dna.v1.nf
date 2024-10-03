@@ -938,7 +938,7 @@ process manta {
 
     output:
     path("${meta.id}.manta.*.{vcf,vcf.gz,gz.tbi}")
-    tuple val(meta), path("${meta.id}.manta.AFanno.frq_below5pct.vcf"), emit: mantaForSVDB
+    tuple val("${meta.id}"), path("${meta.id}.manta.AFanno.frq_below5pct.vcf"), emit: mantaForSVDB
 
     script:
     """
@@ -999,7 +999,7 @@ process lumpy {
     tuple val(meta), path(aln), path(index)
 
     output:
-    tuple val(meta), path("${meta.id}.lumpy.AFanno.frq_below5pct.vcf"), emit: lumpyForSVDB
+    tuple val("${meta.id}"), path("${meta.id}.lumpy.AFanno.frq_below5pct.vcf"), emit: lumpyForSVDB
     path("*.Lumpy_altmode_step1.vcf.gz") 
 
     script:
@@ -1049,7 +1049,7 @@ process delly126 {
 
     output:
     tuple val(meta), path("${meta.id}.${genome_version}.delly.raw.vcf")
-    tuple val(meta), path("${meta.id}.${genome_version}.delly.AFanno.frq_below5pct.vcf"), emit: dellyForSVDB
+    tuple val("${meta.id}"), path("${meta.id}.${genome_version}.delly.AFanno.frq_below5pct.vcf"), emit: dellyForSVDB
     script:
     """
     /data/shared/programmer/BIN/delly126 call \
@@ -1124,7 +1124,7 @@ process cnvkitExportFiles {
     output:
     path("*.vcf")
     path("*.seg")
-    tuple val(meta), path("${meta.id}.cnvkit.AFanno.frq_below5pct.vcf"), emit: cnvkitForSVDB
+    tuple val("${meta.id}"), path("${meta.id}.cnvkit.AFanno.frq_below5pct.vcf"), emit: cnvkitForSVDB
 
     script:
     """
@@ -1167,10 +1167,10 @@ process merge4callerSVDB {
     maxForks 12
     input:
     // tuple val(meta), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(tiddit_vcf) // from single_4caller_for_svdb
-    tuple val(meta), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(delly_vcf)
+    tuple val(metaID), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(delly_vcf)
     output:
-    path("${meta.id}.4callerNEW.SVDB.*")
-    path("${meta.id}.*.SVDB.*")
+    path("${metaID}.4callerNEW.SVDB.*")
+    path("${metaID}.*.SVDB.*")
 
     script:
     """
@@ -1179,14 +1179,14 @@ process merge4callerSVDB {
     --merge \
     --overlap 0.6 \
     --vcf ${manta_vcf}:MANTA ${lumpy_vcf}:LUMPY ${cnvkit_vcf}:CNVKIT ${delly_vcf}:DELLY \
-    --priority LUMPY,MANTA,CNVKIT,DELLY > ${meta.id}.4callerNEW.SVDB.5pctAF.60pctOverlap.vcf
+    --priority LUMPY,MANTA,CNVKIT,DELLY > ${metaID}.4callerNEW.SVDB.5pctAF.60pctOverlap.vcf
 
     singularity exec  \
     --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
     --merge \
     --overlap 0.8 \
     --vcf ${manta_vcf}:MANTA ${lumpy_vcf}:LUMPY ${cnvkit_vcf}:CNVKIT ${delly_vcf}:DELLY \
-    --priority LUMPY,MANTA,CNVKIT,DELLY > ${meta.id}.4callerNEW.SVDB.5pctAF.80pctOverlap.vcf
+    --priority LUMPY,MANTA,CNVKIT,DELLY > ${metaID}.4callerNEW.SVDB.5pctAF.80pctOverlap.vcf
 
 
     singularity exec  \
@@ -1194,7 +1194,7 @@ process merge4callerSVDB {
     --merge \
     --overlap 1.0 \
     --vcf ${manta_vcf}:MANTA ${lumpy_vcf}:LUMPY ${cnvkit_vcf}:CNVKIT ${delly_vcf}:DELLY \
-    --priority LUMPY,MANTA,CNVKIT,DELLY > ${meta.id}.4callerNEW.SVDB.5pctAF.100pctOverlap.vcf
+    --priority LUMPY,MANTA,CNVKIT,DELLY > ${metaID}.4callerNEW.SVDB.5pctAF.100pctOverlap.vcf
     """
 }
 
@@ -1204,14 +1204,14 @@ process expansionHunter {
     publishDir "${outputDir}/repeatExpansions/expansionHunter/", mode: 'copy'
     cpus 10
     input:
-    tuple val(meta), path(aln), path(index)
+    tuple val(meta), path(aln)
 
     output:
     path("*.{vcf,json,bam}")
     script:
     """
     /data/shared/programmer/BIN/ExpansionHunter500 \
-    --reads ${aln} \
+    --reads ${aln[0]} \
     --reference ${genome_fasta} \
     --variant-catalog ${expansionhunter_catalog} \
     -n ${task.cpus} \
@@ -1232,7 +1232,7 @@ process stripy {
 
     
     input:
-    tuple val(meta), path(aln), path(index)
+    tuple val(meta), path(aln)
 
     output:
     path("*.html")
@@ -1247,7 +1247,7 @@ process stripy {
     --reference ${genome_fasta} \
     --locus ABCD3,AFF2,AR,ARX_1,ARX_2,ATN1,ATXN1,ATXN10,ATXN2,ATXN3,ATXN7,ATXN8OS,BEAN1,C9ORF72,CACNA1A,CBL,CNBP,COMP,CSTB,DAB1,DIP2B,DMD,DMPK,EIF4A3,FGF14,FMR1,FOXL2,FXN,GIPC1,GLS,HOXA13_1,HOXA13_2,HOXA13_3,HOXD13,HTT,JPH3,LRP12,MARCHF6,NIPA1,NOP56,NOTCH2NLC,NUTM2B-AS1,PABPN1,PHOX2B,PPP2R2B,PRDM12,PPNP,RAPGEF2,RFC1,RILPL1,RUNX2,SAMD12,SOX3,STARD7,TBP,TBX1,TCF4,THAP11,TNRC6A,VWA1,XYLT1,YEATS2,ZFHX3,ZIC2,ZIC3 \
     --output ${meta.id}.stripy/ \
-    --input ${aln}
+    --input ${aln[0]}
 
     mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.ALL.html
 
@@ -1256,7 +1256,7 @@ process stripy {
     --reference ${genome_fasta} \
     --locus ATN1,ATXN1,ATXN10,ATXN2,ATXN3,ATXN7,ATXN8OS,BEAN1,CACNA1A,CSTB,DAB1,FGF14,FMR1,FXN,NOP56,NOTCH2NLC,PPP2R2B,RFC1,TBP,YEATS2 \
     --output ${meta.id}.stripy/ \
-    --input ${aln}
+    --input ${aln[0]}
 
     mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.ataksi.html
 
@@ -1265,7 +1265,7 @@ process stripy {
     --reference ${genome_fasta} \
     --locus ATN1,ATXN1,ATXN2,ATXN3,ATXN10,ATXN80S,C9ORF72,CACNA1A,FXN,JPH3,NOTCH2NLC,PPP2R2B,TBP \
     --output ${meta.id}.stripy/ \
-    --input ${aln}
+    --input ${aln[0]}
 
     mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.myotoni.html
 
@@ -1274,7 +1274,7 @@ process stripy {
     --reference ${genome_fasta} \
     --locus RFC1 \
     --output ${meta.id}.stripy/ \
-    --input ${aln}
+    --input ${aln[0]}
 
     mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.neuropati.html
 
@@ -1283,7 +1283,7 @@ process stripy {
     --reference ${genome_fasta} \
     --locus AR,ATXN2,C9ORF72,NOP56,NOTCH2NLC \
     --output ${meta.id}.stripy/ \
-    --input ${aln}
+    --input ${aln[0]}
     mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.ALS_FTD.html
 
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
@@ -1291,7 +1291,7 @@ process stripy {
     --reference ${genome_fasta} \
     --locus CNBP,DMD,DMPK,GIPC1,LRP12,NOTCH2NLC,NUTM2B-AS1,PABPN1,RILPL1 \
     --output ${meta.id}.stripy/ \
-    --input ${aln}
+    --input ${aln[0]}
     mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.myopati.html
 
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
@@ -1299,38 +1299,11 @@ process stripy {
     --reference ${genome_fasta} \
     --locus CSTB,MARCHF6,RAPGEF2,SAMD12,STARD7,TNRC6A,YEATS2 \
     --output ${meta.id}.stripy/ \
-    --input ${aln}
+    --input ${aln[0]}
     mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.epilepsi.html
 
     """
 }
-/*
-    mkdir ${meta.id}.stripy_ataksi/ 
-    mkdir ${meta.id}.stripy_myotoni/
-    mkdir ${meta.id}.stripy_neuropati/
-    mkdir ${meta.id}.stripy_ALS_FTD/
-    mkdir ${meta.id}.stripy_myopati/    
-    mkdir ${meta.id}.stripy_epilepsi/  
-
-Basal:
-ATN1,ATXN1,ATXN2,ATXN3,ATXN10,ATXN8OS,C9ORF72,CACNA1A,FXN,JPH3,NOTCH2NLC,PPP2R2B,TBP
-
-
-neuropati:
-RFC1
-
-ALS_AFD:
-AR, ATXN2, C9ORF72, NOP56, NOTCH2NLC
-
-myopati
-CNBP, DMD, DMPK, GIPC1, LRP12, NOTCH2NLC, NUTM2B-AS1, PABPN1, RILPL1
-
-
-epilepsi:
-CSTB, MARCHF6, RAPGEF2, SAMD12, STARD7, TNRC6A, YEATS2
-
-*/
-
 
 process prepareManifestSMN {
     
@@ -1386,6 +1359,9 @@ process vntyper_newRef {
     //tuple val(meta), path("vntyper${meta.id}.vntyper/*")
     tuple val(meta), path("*/*.{tsv,vcf}")
     script:
+    
+    def reads_command = "--fastq1 ${reads[0]} --fastq2 ${reads[1]}"
+    
     """
     singularity run -B ${s_bind} ${simgpath}/vntyper120.sif \
     -ref ${vntyperREF}/chr1.fa \
@@ -1437,22 +1413,7 @@ workflow SUB_PREPROCESS {
     emit:
     finalAln=markDup_cram.out.markDup_output
 }
-/*
-workflow SUB_PREPROCESS {
 
-    take:
-    fq_read_input
-    
-    main:
-    inputFiles_symlinks_fq(fq_read_input)
-    fastp(fq_read_input)
-    align_FAST(fastp.out.trimmed_reads)
-    markDup_cram(align_FAST.out)
-    //markDup_v3_cram.out.markDup_output.view()
-    emit:
-    finalAln=markDup_cram.out.markDup_output
-}
-*/
 
 /////////////////////////////////////////////////////////////
 /// SUBWORKFLOWS meta-aln-index input channel///////
@@ -1575,35 +1536,16 @@ workflow SUB_VARIANTCALL {
     }
 
 }
-/*
-workflow SUB_VARIANTCALL_WGS {
-    take:
-    meta_aln_index
-    main:
-    haplotypecallerSplitIntervals(meta_aln_index.combine(haplotypecallerIntervalList))
-    haplotypecallerSplitIntervals.out.groupTuple()
-    mergeScatteredGVCF(haplotypecallerSplitIntervals.out.groupTuple())
-    
-    mergeScatteredGVCF.out.sample_gvcf_list_scatter
-    .map{" -V "+ it }
-    .set{gvcflist_scatter_done}
-    
-    gvcflist_scatter_done
-    .collectFile(name: "collectfileTEST_scatter.txt", newLine: false)
-    .map {it.text.trim()}.set {gvcfsamples_for_GATK_scatter}
 
-    //    if (!params.single) {
-        jointgenoScatter(gvcfsamples_for_GATK_scatter)
-    //    }
-}
-*/
 
 workflow SUB_VARIANTCALL_WGS {
     take:
     meta_aln_index
     main:
     haplotypecallerSplitIntervals(meta_aln_index.combine(haplotypecallerIntervalList))
-    combineGVCF(haplotypecallerSplitIntervals.out.groupTuple())
+
+
+    combineGVCF(haplotypecallerSplitIntervals.out.groupTuple(size:17))
     genotypeSingle(combineGVCF.out.singleGVCF)
 
     //    if (!params.single) {

@@ -684,6 +684,13 @@ workflow {
         | set {alnInputFinalBranched}
 
     SUB_VARIANTCALL(alnInputFinalBranched.targeted)
+    SUB_VARIANTCALL_WGS(alnInputFinalBranched.WGS)
+    SUB_CNV_SV(alnInputFinalBranched.WGS)
+    SUB_STR(alnInputFinalBranched.WGS)
+}
+    /*
+
+
     haplotypecallerSplitIntervals(alnInputFinalBranched.WGS.combine(haplotypecallerIntervalList))
     haplotypecallerSplitIntervals.out
     //|view
@@ -691,11 +698,9 @@ workflow {
     splitintervalout_test
     .groupTuple(size:17)
     | view    
-    
-    //SUB_VARIANTCALL_WGS(alnInputFinalBranched.WGS)
-   // SUB_STR(alnInputFinalBranched.WGS)
-}
-    /*
+
+
+
         |branch {meta, aln ->
             WGS: (meta.panel=~/WG/ || meta.panel=~/NGC/)
                 return [meta + [datatype:"WGS",roi:"$WES_ROI"],aln]
