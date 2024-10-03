@@ -5,7 +5,7 @@ nextflow.enable.dsl = 2
 date=new Date().format( 'yyMMdd' )
 user="$USER"
 runID="${date}.${user}"
-
+server=
 
 //Unset parameters
 params.help                     =false
@@ -680,7 +680,7 @@ workflow {
 
     SUB_VARIANTCALL(alnInputFinalBranched.targeted)
     SUB_VARIANTCALL_WGS(alnInputFinalBranched.WGS)
-    SUB_STR(alnInputFinalBranched.WGS)
+   // SUB_STR(alnInputFinalBranched.WGS)
 }
     /*
         |branch {meta, aln ->
