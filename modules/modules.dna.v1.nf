@@ -515,7 +515,7 @@ process markDup_bam {
     
     script:
     """
-    samtools view -h ${aln} \
+    samtools view -h ${aln[0]} \
     | samblaster | sambamba view -t 8 -S -f bam /dev/stdin | sambamba sort -t 8 --tmpdir=${tmpDIR} -o ${meta.id}.${genome_version}.BWA.MD.bam /dev/stdin
     sambamba index ${meta.id}.${genome_version}.BWA.MD.bam
     
@@ -542,7 +542,7 @@ process markDup_cram {
     
     script:
     """
-    samtools view -h ${aln} \
+    samtools view -h ${aln[0]} \
     | samblaster | sambamba view -t 8 -S -f bam /dev/stdin | sambamba sort -t 8 --tmpdir=${tmpDIR} -o /dev/stdout /dev/stdin \
     |  samtools view \
     -T ${genome_fasta} \
@@ -1249,7 +1249,7 @@ process stripy {
     --output ${meta.id}.stripy/ \
     --input ${aln[0]}
 
-    mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.ALL.html
+    mv ${meta.id}.stripy/${aln[0]}.html ${meta.id}.stripy.ALL.html
 
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
@@ -1258,7 +1258,7 @@ process stripy {
     --output ${meta.id}.stripy/ \
     --input ${aln[0]}
 
-    mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.ataksi.html
+    mv ${meta.id}.stripy/${aln[0]}.html ${meta.id}.stripy.ataksi.html
 
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
@@ -1267,7 +1267,7 @@ process stripy {
     --output ${meta.id}.stripy/ \
     --input ${aln[0]}
 
-    mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.myotoni.html
+    mv ${meta.id}.stripy/${aln[0]}.html ${meta.id}.stripy.myotoni.html
 
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
@@ -1276,7 +1276,7 @@ process stripy {
     --output ${meta.id}.stripy/ \
     --input ${aln[0]}
 
-    mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.neuropati.html
+    mv ${meta.id}.stripy/${aln[0]}.html ${meta.id}.stripy.neuropati.html
 
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
@@ -1284,7 +1284,7 @@ process stripy {
     --locus AR,ATXN2,C9ORF72,NOP56,NOTCH2NLC \
     --output ${meta.id}.stripy/ \
     --input ${aln[0]}
-    mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.ALS_FTD.html
+    mv ${meta.id}.stripy/${aln[0]}.html ${meta.id}.stripy.ALS_FTD.html
 
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
@@ -1292,7 +1292,7 @@ process stripy {
     --locus CNBP,DMD,DMPK,GIPC1,LRP12,NOTCH2NLC,NUTM2B-AS1,PABPN1,RILPL1 \
     --output ${meta.id}.stripy/ \
     --input ${aln[0]}
-    mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.myopati.html
+    mv ${meta.id}.stripy/${aln[0]}.html ${meta.id}.stripy.myopati.html
 
     python3 /data/shared/programmer/stripy-pipeline-main/stri.py \
     --genome ${params.genome} \
@@ -1300,7 +1300,7 @@ process stripy {
     --locus CSTB,MARCHF6,RAPGEF2,SAMD12,STARD7,TNRC6A,YEATS2 \
     --output ${meta.id}.stripy/ \
     --input ${aln[0]}
-    mv ${meta.id}.stripy/${aln}.html ${meta.id}.stripy.epilepsi.html
+    mv ${meta.id}.stripy/${aln[0]}.html ${meta.id}.stripy.epilepsi.html
 
     """
 }
