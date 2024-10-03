@@ -489,6 +489,12 @@ process align {
     -SO queryname \
     --TMP_DIR ${tmpDIR} \
     -O ${meta.id}.${genome_version}.QNsort.BWA.clean.bam
+
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        GATK: ${gatk_image}
+    END_VERSIONS
     """
 }
 
@@ -544,6 +550,11 @@ process markDup_cram {
     -o ${meta.id}.${genome_version}.BWA.MD.cram -
 
     samtools index ${meta.id}.${genome_version}.BWA.MD.cram
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        GATK: ${gatk_image}
+    END_VERSIONS
     """
 }
 
@@ -609,7 +620,12 @@ process qualimap {
     qualimap --java-mem-size=5G bamqc \
     -nt ${task.cpus} \
     -outdir ${aln.baseName} \
-    -bam ${aln} $use_bed -sd -sdmode 0 
+    -bam ${aln} $use_bed -sd -sdmode 0
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        Qualimap: v.2.2.1' )
+    END_VERSIONS
     """
 }
 
@@ -622,11 +638,17 @@ process fastqc_bam {
     tuple val(meta), path(aln), path(index)
     
     output:
-    path "*_fastqc.{zip,html}", emit: fastqc_bam
-
+    path "*_fastqc.{zip,html}"      , emit: fastqc_bam
+    path  "versions.yml"            , emit: versions
     script:
     """
     singularity run -B ${s_bind} ${simgpath}/fastqc.sif --quiet --threads ${task.cpus} ${aln}
+
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        fastqc: \$( fastqc --version | sed '/FastQC v/!d; s/.*v//' )
+    END_VERSIONS
     """
 }
 // ^^^^^^^NOT WORKING WITH CRAM ^^^^^^ //
@@ -729,6 +751,11 @@ process haplotypecaller{
         -O ${meta.id}.${genome_version}.HC.vcf.gz \
         -G StandardAnnotation \
         -G AS_StandardAnnotation
+
+        cat <<-END_VERSIONS > versions.yml
+        "${task.process}":
+        GATK: ${gatk_image}
+        END_VERSIONS
         """
 }
 
