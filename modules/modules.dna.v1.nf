@@ -566,7 +566,7 @@ process bamtools {
     publishDir "${outputDir}/QC/", mode: 'copy'
 
     input:
-    val(meta),  path(aln)
+    tuple val(meta),  path(aln)
     output:
     path("${meta.id}.bamtools.sample.stats.txt"), emit: bamtools_out
 
