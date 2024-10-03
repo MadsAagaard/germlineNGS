@@ -602,6 +602,7 @@ include {
          collectWGSmetrics;
          multiQC;
          vntyper_newRef;
+         haplotypecallerSplitIntervals;
          //subworkflows:
          SUB_SPRING_DECOMPRESS;
          SUB_PREPROCESS;
