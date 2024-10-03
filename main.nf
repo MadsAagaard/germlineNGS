@@ -671,10 +671,11 @@ workflow {
     }
     alnInputFinal
         |branch {meta, aln ->
-        WGS: (meta.datatype=~/WGS/)
-            return [meta ,aln]
-        targeted: (meta.datatype=~/targeted/)
-            return [meta ,aln]
+            WGS: (meta.datatype=~/WGS/)
+                return [meta ,aln]
+            targeted: (meta.datatype=~/targeted/)
+                return [meta ,aln]
+        }
         | set {alnInputFinalBranched}
 
     SUB_VARIANTCALL(alnInputFinalBranched.targeted)
