@@ -568,7 +568,7 @@ process bamtools {
     input:
     tuple val(meta),  path(aln)
     output:
-    path("${meta.id}.bamtools.sample.stats.txt"), emit: bamtools_out
+    path("${meta.id}.bamtools.sample.stats.txt"), emit: multiqc
 
     script:
     """
@@ -593,7 +593,7 @@ process samtools {
     tuple val(meta), path(aln)
 
     output:
-    path("${meta.id}.samtools.sample.stats.txt"), emit: samtools
+    path("${meta.id}.samtools.sample.stats.txt"), emit: multiqc
 
     script:
     """
@@ -615,8 +615,8 @@ process qualimap {
     tuple val(meta), path(aln)
 
     output:
-    path ("${meta.id}/"), emit: qualimap_out
-    path ("versions.yml")
+    path ("${meta.id}/"), emit: multiqc
+    path ("versions.yml"), emit: versions
 
     script:
     use_bed = qualimap_ROI ? "-gff ${qualimap_ROI}" : ''
@@ -644,7 +644,7 @@ process fastqc_bam {
     tuple val(meta), path(aln)
     
     output:
-    path "*_fastqc.{zip,html}"      , emit: fastqc_bam
+    path "*_fastqc.{zip,html}"      , emit: multiqc
     path  "versions.yml"            , emit: versions
     script:
     """
@@ -670,7 +670,7 @@ process collectWGSmetrics {
     tuple val(meta), path(aln)
     
     output:
-    path("${meta.id}.picardWGSmetrics.txt"), emit: picard
+    path("${meta.id}.picardWGSmetrics.txt"), emit: multiqc
 
     script:
     """
@@ -1421,7 +1421,7 @@ workflow SUB_QC {
     fastqc_bam(meta_aln_index)
     qualimap(meta_aln_index)
     samtools(meta_aln_index)
-    multiQC(samtools.out.ifEmpty([]).mix(qualimap.out.ifEmpty([])).mix(fastqc_bam.out.ifEmpty([])).collect().mix(collectWGSmetrics.out.ifEmpty([])))
+    multiQC(samtools.out.multiqc.ifEmpty([]).mix(qualimap.out.multiqc.ifEmpty([])).mix(fastqc_bam.out.multiqc.ifEmpty([])).collect().mix(collectWGSmetrics.out.multiqc.ifEmpty([])))
 
 }
 
