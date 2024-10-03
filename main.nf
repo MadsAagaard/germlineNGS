@@ -685,7 +685,7 @@ workflow {
     SUB_VARIANTCALL(alnInputFinalBranched.targeted)
     haplotypecallerSplitIntervals(alnInputFinalBranched.WGS.combine(haplotypecallerIntervalList))
     haplotypecallerSplitIntervals.out
-    |view
+    //|view
     |set {splitintervalout_test}
     splitintervalout_test
     | groupTuple
