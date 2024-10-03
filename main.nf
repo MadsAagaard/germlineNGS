@@ -471,7 +471,7 @@ if (params.fastq || params.fastqInput) {
         readsInputReMerged
         | set {readsInputFinal} 
     }
-    readsInputFinal.view()
+   // readsInputFinal.view()
 }
 ////////////////////////////////////////////////////
 ////// INPUT DATA: CRAM AS INPUT //////////////////
@@ -668,7 +668,7 @@ workflow {
         |map {meta, cram,crai ->
             tuple(meta,[cram,crai])}
         |set {alnInputFinal}
-
+        alnInputFinal.view()
     }
 
 
