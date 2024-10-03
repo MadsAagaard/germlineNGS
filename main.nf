@@ -688,7 +688,7 @@ workflow {
     //|view
     |set {splitintervalout_test}
     splitintervalout_test
-    | groupTuple, size:10
+    .groupTuple(size:10)
     | view    
     
     //SUB_VARIANTCALL_WGS(alnInputFinalBranched.WGS)
