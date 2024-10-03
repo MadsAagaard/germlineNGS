@@ -668,9 +668,6 @@ workflow {
         |map {meta, cram,crai ->
             tuple(meta,[cram,crai])}
         |set {alnInputFinal}
-        alnInputFinal
-        | branch 
-
 
     }
 
