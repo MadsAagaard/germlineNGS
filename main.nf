@@ -668,11 +668,18 @@ workflow {
         |map {meta, cram,crai ->
             tuple(meta,[cram,crai])}
         |set {alnInputFinal}
-        alnInputFinal.view()
     }
+    alnInputFinal
+        |branch {meta, aln ->
+        WGS: (meta.datatype=~/WGS/)
+            return [meta ,aln]
+        targeted: (meta.datatype=~/targeted/)
+            return [meta ,aln]
+        | set {alnInputFinalBranched}
 
-
-    SUB_VARIANTCALL(alnInputFinal)
+    SUB_VARIANTCALL(alnInputFinalBranched.targeted)
+    SUB_VARIANTCALL_WGS(alnInputFinalBranched.WGS)
+    SUB_STR(alnInputFinalBranched.WGS)
 }
     /*
         |branch {meta, aln ->
