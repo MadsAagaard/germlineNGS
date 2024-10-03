@@ -813,7 +813,7 @@ process haplotypecallerSplitIntervals {
     }
 
     input:
-    tuple val(meta), path(bam), path(bai), val(sub_intID), path(sub_interval) //from HC_scatter_input_bam.combine(interval_list1)
+    tuple val(meta), path(aln), val(sub_intID), path(sub_interval) //from HC_scatter_input_bam.combine(interval_list1)
 
     output:
     tuple val(meta), path("${meta.id}.${sub_intID}.g.vcf"), path("${meta.id}.${sub_intID}.g.vcf.idx"), emit: hc_split_output
