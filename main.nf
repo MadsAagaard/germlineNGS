@@ -408,7 +408,10 @@ switch (params.genome) {
         break;
 }
 
-
+channel
+    .fromPath(params.intervals_list)
+    .map { it -> tuple(it.baseName,it)}
+    .set { haplotypecallerIntervalList }
 ////////////////////////////////////////////////////
 ////// INPUT DATA: FASTQ AS INPUT //////////////////
 ////////////////////////////////////////////////////
