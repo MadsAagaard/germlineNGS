@@ -679,7 +679,15 @@ workflow {
         | set {alnInputFinalBranched}
 
     SUB_VARIANTCALL(alnInputFinalBranched.targeted)
-    SUB_VARIANTCALL_WGS(alnInputFinalBranched.WGS)
+    haplotypecallerSplitIntervals(alnInputFinalBranched.WGS.combine(haplotypecallerIntervalList))
+    haplotypecallerSplitIntervals.out
+    |view
+    |set {splitintervalout_test}
+    splitintervalout_test
+    | groupTuple
+    | view    
+    
+    //SUB_VARIANTCALL_WGS(alnInputFinalBranched.WGS)
    // SUB_STR(alnInputFinalBranched.WGS)
 }
     /*
