@@ -607,6 +607,7 @@ include {
          //subworkflows:
          SUB_SPRING_DECOMPRESS;
          SUB_PREPROCESS;
+         SUB_QC;
          SUB_VARIANTCALL;
          SUB_VARIANTCALL_WGS;
          SUB_CNV_SV;
@@ -678,15 +679,33 @@ workflow {
         |branch {meta, aln ->
             WGS: (meta.datatype=~/WGS/)
                 return [meta ,aln]
-            targeted: (meta.datatype=~/targeted/)
+            TARGETED: (meta.datatype=~/targeted/)
                 return [meta ,aln]
         }
         | set {alnInputFinalBranched}
 
-    SUB_VARIANTCALL(alnInputFinalBranched.targeted)
-    SUB_VARIANTCALL_WGS(alnInputFinalBranched.WGS)
-    SUB_CNV_SV(alnInputFinalBranched.WGS)
-    SUB_STR(alnInputFinalBranched.WGS)
+    if(!params.skipQC){
+        SUB_QC(alnInputFinalBranched.WGS)
+    }
+
+    if (!params.skipVariants) {
+        SUB_VARIANTCALL(alnInputFinalBranched.TARGETED)
+        SUB_VARIANTCALL_WGS(alnInputFinalBranched.WGS)
+    }
+
+    if (!params.skipSV) {
+        SUB_CNV_SV(alnInputFinalBranched.WGS)
+    }
+    
+    if (!params.skipSTR) {
+        SUB_STR(alnInputFinalBranched.WGS)
+    }
+
+    if (!params.skipSMN) {
+        SUB_SMN(alnInputFinalBranched.WGS)
+    }
+
+
 }
     /*
 

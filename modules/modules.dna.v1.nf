@@ -587,10 +587,10 @@ process samtools {
 
     errorStrategy 'ignore'
     tag "$meta.id"
-    publishDir "${outputDir}/QC/", mode: 'copy'
+    publishDir "${outputDir}/QC/${meta.id}/samtools/", mode: 'copy'
 
     input:  
-    tuple val(meta), path(aln), path(index)
+    tuple val(meta), path(aln)
 
     output:
     path("${meta.id}.samtools.sample.stats.txt"), emit: samtools
@@ -599,7 +599,7 @@ process samtools {
     """
     singularity run -B ${s_bind} ${simgpath}/samtools.sif samtools \
     stats \
-    ${aln} > ${meta.id}.samtools.sample.stats.txt
+    ${aln[]0} > ${meta.id}.samtools.sample.stats.txt
     """
 }
 
@@ -612,11 +612,11 @@ process qualimap {
     publishDir "${outputDir}/QC/${meta.id}/qualimap/", mode: 'copy'
 
     input:
-    tuple val(meta), path(aln), path(index)
+    tuple val(meta), path(aln)
 
     output:
-    path ("${aln.baseName}/"), emit: qualimap_out
-    //path ("*_results.txt") into bamQCReport
+    path ("${meta.id}/"), emit: qualimap_out
+    path ("versions.yml")
 
     script:
     use_bed = qualimap_ROI ? "-gff ${qualimap_ROI}" : ''
@@ -625,8 +625,8 @@ process qualimap {
     singularity run -B ${s_bind} ${simgpath}/qualimap.sif \
     qualimap --java-mem-size=5G bamqc \
     -nt ${task.cpus} \
-    -outdir ${aln.baseName} \
-    -bam ${aln} $use_bed -sd -sdmode 0
+    -outdir ${meta.id} \
+    -bam ${aln[0]} $use_bed -sd -sdmode 0
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -641,14 +641,14 @@ process fastqc_bam {
     cpus 2
     publishDir "${outputDir}/QC/${meta.id}/", mode: 'copy'
     input:
-    tuple val(meta), path(aln), path(index)
+    tuple val(meta), path(aln)
     
     output:
     path "*_fastqc.{zip,html}"      , emit: fastqc_bam
     path  "versions.yml"            , emit: versions
     script:
     """
-    singularity run -B ${s_bind} ${simgpath}/fastqc.sif --quiet --threads ${task.cpus} ${aln}
+    singularity run -B ${s_bind} ${simgpath}/fastqc.sif --quiet --threads ${task.cpus} ${aln[0]}
 
 
     cat <<-END_VERSIONS > versions.yml
@@ -667,7 +667,7 @@ process collectWGSmetrics {
     publishDir "${outputDir}/QC/${meta.id}/picard/", mode: 'copy'
 
     input:
-    tuple val(meta), path(aln), path(index)
+    tuple val(meta), path(aln)
     
     output:
     path("${meta.id}.picardWGSmetrics.txt"), emit: picard
@@ -675,7 +675,7 @@ process collectWGSmetrics {
     script:
     """
     ${gatk_exec} CollectWgsMetrics \
-    -I ${aln} \
+    -I ${aln[0]} \
     -O ${meta.id}.picardWGSmetrics.txt \
     -R ${genome_fasta}
     """
@@ -1412,6 +1412,17 @@ workflow SUB_PREPROCESS {
     //markDup_v3_cram.out.markDup_output
     emit:
     finalAln=markDup_cram.out.markDup_output
+}
+workflow SUB_QC {
+    take:
+    meta_aln_index
+    main:
+    collectWGSmetrics(meta_aln_index)
+    fastqc_bam(meta_aln_index)
+    qualimap(meta_aln_index)
+    samtools(meta_aln_index)
+    multiQC(samtools.out.ifEmpty([]).mix(qualimap.out.ifEmpty([])).mix(fastqc_bam.out.ifEmpty([])).collect().mix(collectWGSmetrics.out.ifEmpty([])))
+
 }
 
 
