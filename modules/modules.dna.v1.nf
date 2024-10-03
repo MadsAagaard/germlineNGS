@@ -1097,8 +1097,8 @@ process cnvkit {
     // touch ${index}
     script:
     """
-    mv ${index} intermediate_crai
-    cp intermediate_crai ${index}
+    mv ${aln[1]} intermediate_crai
+    cp intermediate_crai ${aln[1]}
     rm intermediate_crai
     singularity run -B ${s_bind} ${simgpath}/cnvkit.sif cnvkit.py batch \
     ${aln[0]} \
