@@ -821,7 +821,7 @@ process haplotypecallerSplitIntervals {
     script:
     """
     ${gatk_exec} --java-options "-Xmx4G -XX:+UseParallelGC -XX:ParallelGCThreads=4" HaplotypeCaller \
-    -I ${bam} \
+    -I ${aln[0]} \
     -R ${genome_fasta} \
     -ERC GVCF \
     -L ${sub_interval} \
