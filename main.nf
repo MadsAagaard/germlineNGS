@@ -668,9 +668,10 @@ workflow {
 
     if (params.fastqInput||params.fastq||params.spring || params.preprocessOnly) {
         SUB_PREPROCESS(readsInputFinal)
-        preprocessOutAln=SUB_PREPROCESS.out.finalAln
+   //     preprocessOutAln=SUB_PREPROCESS.out.finalAln
         
-        preprocessOutAln
+     //   preprocessOutAln
+        SUB_PREPROCESS.out.finalAln
         |map {meta, cram,crai ->
             tuple(meta,[cram,crai])}
         |set {alnInputFinal}
