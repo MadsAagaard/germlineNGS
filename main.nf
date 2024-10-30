@@ -685,27 +685,29 @@ workflow {
         }
         | set {alnInputFinalBranched}
 
-    if(!params.skipQC){
-        SUB_QC(alnInputFinalBranched.WGS)
-    }
+    if (!params.preprocessOnly) {
 
-    if (!params.skipVariants) {
-        SUB_VARIANTCALL(alnInputFinalBranched.TARGETED)
-        SUB_VARIANTCALL_WGS(alnInputFinalBranched.WGS)
-    }
+        if(!params.skipQC){
+            SUB_QC(alnInputFinalBranched.WGS)
+        }
 
-    if (!params.skipSV) {
-        SUB_CNV_SV(alnInputFinalBranched.WGS)
-    }
-    
-    if (!params.skipSTR) {
-        SUB_STR(alnInputFinalBranched.WGS)
-    }
+        if (!params.skipVariants) {
+            SUB_VARIANTCALL(alnInputFinalBranched.TARGETED)
+            SUB_VARIANTCALL_WGS(alnInputFinalBranched.WGS)
+        }
 
-    if (!params.skipSMN) {
-        SUB_SMN(alnInputFinalBranched.WGS)
-    }
+        if (!params.skipSV) {
+            SUB_CNV_SV(alnInputFinalBranched.WGS)
+        }
+        
+        if (!params.skipSTR) {
+            SUB_STR(alnInputFinalBranched.WGS)
+        }
 
+        if (!params.skipSMN) {
+            SUB_SMN(alnInputFinalBranched.WGS)
+        }
+    }
 
 }
     /*
