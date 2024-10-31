@@ -534,12 +534,13 @@ process markDup_cram {
     tag "$meta.id"
     publishDir "${outputDir}/${meta.panel}/CRAM/", mode: 'copy', pattern: "*.BWA.MD.cr*"
     publishDir "${outputDir}/${meta.panel}/Variants/Alignment_symlinks/", mode: 'link', pattern: "*.BWA.MD.cr*"
+
     input:
     tuple val(meta), path(aln)
     
     output:
     tuple val(meta),  path("${meta.id}.${genome_version}.BWA.MD.cram"), path("${meta.id}.${genome_version}.BWA.MD*crai"), emit: markDup_output
-    
+    path  "versions.yml"                       , emit: versions
     script:
     """
     samtools view -h ${aln[0]} \
