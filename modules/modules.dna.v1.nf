@@ -505,6 +505,9 @@ process markDup_bam {
     publishDir "${outputDir}/BAM/", mode: 'copy', pattern: "*.BWA.MD.ba*"
     publishDir "${outputDir}/CRAM/", mode: 'copy', pattern: "*.BWA.MD.cr*"
     publishDir "${outputDir}/Variants/Alignment_symlinks/", mode: 'link', pattern: "*.BWA.MD.cr*"
+
+    conda '/lnx01_data3/shared/programmer/miniconda3/envs/sambamvcftools/' 
+
     input:
     tuple val(meta), path(aln) 
     
@@ -534,6 +537,8 @@ process markDup_cram {
     tag "$meta.id"
     publishDir "${outputDir}/${meta.panel}/CRAM/", mode: 'copy', pattern: "*.BWA.MD.cr*"
     publishDir "${outputDir}/${meta.panel}/Variants/Alignment_symlinks/", mode: 'link', pattern: "*.BWA.MD.cr*"
+
+    conda '/lnx01_data3/shared/programmer/miniconda3/envs/sambamvcftools/' 
 
     input:
     tuple val(meta), path(aln)
@@ -566,6 +571,8 @@ process bamtools {
     tag "$meta.id"
     publishDir "${outputDir}/QC/", mode: 'copy'
 
+    conda '/lnx01_data3/shared/programmer/miniconda3/envs/sambamvcftools/' 
+    
     input:
     tuple val(meta),  path(aln)
     output:
@@ -589,6 +596,7 @@ process samtools {
     errorStrategy 'ignore'
     tag "$meta.id"
     publishDir "${outputDir}/QC/${meta.id}/samtools/", mode: 'copy'
+
 
     input:  
     tuple val(meta), path(aln)
