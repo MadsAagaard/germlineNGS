@@ -248,7 +248,7 @@ switch (params.panel) {
     default: 
         ROI="${WES_ROI}";
         panelID="WGS";
-        panelID_storage="WGS"
+        panelID_storage="undetermined"
     break;
 }
 

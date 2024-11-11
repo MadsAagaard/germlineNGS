@@ -199,6 +199,21 @@ switch (params.server) {
         dataArchive="/lnx01_data2/shared/dataArchive";
         refFilesDir="/data/shared/genomes";
     break;
+
+    case 'rgi01':
+        s_bind="/data/:/data/,/lnx01_data2/:/lnx01_data2/,/fast/:/fast/,/lnx01_data3/:/lnx01_data3/";
+        simgpath="/data/shared/programmer/simg";
+        tmpDIR="/fast/TMP/TMP.${user}/";
+        gatk_exec="singularity run -B ${s_bind} ${simgpath}/${gatk_image} gatk";
+        multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
+        tank_storage="/home/mmaj/tank.kga/data/data.storage.archive/";
+
+        dataStorage="/lnx01_data3/storage/";
+        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";
+        dataArchive="/lnx01_data2/shared/dataArchive";
+        refFilesDir="/fast/shared/genomes";
+    break;
+
     case 'kga01':
         modules_dir="/home/mmaj/LNX01_mmaj/scripts_lnx01/nextflow_lnx01/dsl2/modules";
         subworkflow_dir="/home/mmaj/LNX01_mmaj/scripts_lnx01/nextflow_lnx01/dsl2/subworkflows";
