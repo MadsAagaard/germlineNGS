@@ -1175,7 +1175,7 @@ process cnvkitExportFiles {
 }
 
 process merge4callerSVDB {
-    tag "$meta.id"
+    tag "$metaID"
     errorStrategy 'ignore'
 
     //publishDir "${outputDir}/all_callers_merged/", mode: 'copy'
@@ -1607,8 +1607,6 @@ workflow SUB_CNV_SV {
     delly126(meta_aln_index)
     //merge4callerSVDB(filter_manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(tiddit361.out.tidditForSVDB))
     manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(delly126.out.dellyForSVDB)
-    |view
-
     merge4callerSVDB(manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(delly126.out.dellyForSVDB))
 }
 
