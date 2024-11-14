@@ -467,7 +467,7 @@ if (params.fastq || params.fastqInput) {
     readsInputBranched.MV1.concat(readsInputBranched.AV1).concat(readsInputBranched.WES).concat(readsInputBranched.WGS)
     | set {readsInputReMerged}
 
-
+readsInputReMerged.view()
     if (params.samplesheet) {
         readsInputReMerged
         | map { meta,reads -> tuple(meta.npn,meta,reads)}
