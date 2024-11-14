@@ -292,7 +292,7 @@ switch (params.panel) {
     case "NGC":
         reads_pattern_cram="*{-,.,_}{WG4_NGC,NGCWGS}{-,.,_}*.cram";
         reads_pattern_crai="*{-,.,_}{WG4_NGC,NGCWGS}{-,.,_}*.crai";
-        reads_pattern_fastq="*{-,.,_}{WG4_NGC,NGCWGS}{-,.,_}*R{1,2}*{fq,fastq}.gz";
+        reads_pattern_fastq="**{-,.,_}{WG4_NGC,NGCWGS}{-,.,_}*R{1,2}{_,.,-}*{fq,fastq}.gz";
         reads_pattern_spring="*{WG4_NGC,NGCWGS}*.spring";
         panelID="WGS"
     break;
@@ -438,7 +438,7 @@ if (!params.fastq && params.fastqInput) {
 }
 if (params.fastq) {
     inputFastq="${params.fastq}/*.fastq.gz"
-    inputFastq2="${params.fastq}/**{reads_pattern_fastq}"
+    inputFastq2="${params.fastq}/{reads_pattern_fastq}"
     channel.fromFilePairs("${inputFastq2}").view()
 
 }
