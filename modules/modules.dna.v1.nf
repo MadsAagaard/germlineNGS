@@ -294,6 +294,7 @@ RunID        : $runID
 PanelID      : $panelID
 IntervalList : $params.intervals_list
 Script start : $date2
+reads pattern: $reads_pattern_fastq
 """
 
 

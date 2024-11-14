@@ -445,7 +445,7 @@ if (params.fastq) {
 //${reads_pattern_fastq}
 if (params.fastq || params.fastqInput) {
     //(Channel.fromFilePairs("${inputFastq}", checkIfExists: true)
-    Channel.fromFilePairs(inputFastq2, checkIfExists: true)
+    Channel.fromFilePairs("${params.fastq}/{reads_pattern_fastq}", checkIfExists: true)
     | map { id, reads -> 
         (sample, ngstype)   = reads[0].baseName.tokenize("-")
         (panel,subpanel)    = ngstype.tokenize("_")
@@ -471,7 +471,6 @@ if (params.fastq || params.fastqInput) {
     readsInputBranched.MV1.concat(readsInputBranched.AV1).concat(readsInputBranched.WES).concat(readsInputBranched.WGS)
     | set {readsInputReMerged}
 
-readsInputReMerged.view()
     if (params.samplesheet) {
         readsInputReMerged
         | map { meta,reads -> tuple(meta.npn,meta,reads)}
