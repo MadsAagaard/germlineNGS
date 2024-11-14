@@ -290,10 +290,10 @@ switch (params.panel) {
     break;
 
     case "NGC":
-        reads_pattern_cram="*{-,.,_}{WG4_NGC}{-,.,_}*.cram";
-        reads_pattern_crai="*{-,.,_}{WG4_NGC}{-,.,_}*.crai";
-        reads_pattern_fastq="*{-,.,_}{WG4_NGC}{-,.,_}*R{1,2}*{fq,fastq}.gz";
-        reads_pattern_spring="*{WG4_NGC}*.spring";
+        reads_pattern_cram="*{-,.,_}{WG4_NGC,NGCWGS}{-,.,_}*.cram";
+        reads_pattern_crai="*{-,.,_}{WG4_NGC,NGCWGS}{-,.,_}*.crai";
+        reads_pattern_fastq="*{-,.,_}{WG4_NGC,NGCWGS}{-,.,_}*R{1,2}*{fq,fastq}.gz";
+        reads_pattern_spring="*{WG4_NGC,NGCWGS}*.spring";
         panelID="WGS"
     break;
 
