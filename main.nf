@@ -499,37 +499,38 @@ workflow {
         
     }
 
-    if (!params.fastqInput && !params.fastq && !params.spring) {
-        inputFiles_symlinks_cram(meta_aln_index)
+    if (!params.preprocessOnly) {
+        if (!params.fastqInput && !params.fastq && !params.spring) {
+            inputFiles_symlinks_cram(meta_aln_index)
+        }
+
+        if (!params.panel || params.panel =="WGS_CNV"|| params.panel =="NGC") { //i.e. if WGS data
+
+            if (!params.skipVariants) {
+                SUB_VARIANTCALL_WGS(meta_aln_index)
+            }
+            if (!params.skipSV) {
+                SUB_CNV_SV(meta_aln_index)
+            }
+            if (!params.skipSTR) {
+                SUB_STR(meta_aln_index)
+            }
+            
+            if (!params.skipSMN) {
+            SUB_SMN(meta_aln_index)
+            }
+
+        }
+
+        if (params.panel && params.panel!="WGS_CNV"&& params.panel!="NGC") {
+
+            SUB_VARIANTCALL(meta_aln_index)
+
+            if (params.panel=="MV1") {
+                vntyper_newRef(fq_read_input)
+            }
+        }
     }
-
-    if (!params.panel || params.panel =="WGS_CNV"|| params.panel =="NGC") { //i.e. if WGS data
-
-        if (!params.skipVariants) {
-            SUB_VARIANTCALL_WGS(meta_aln_index)
-        }
-        if (!params.skipSV) {
-            SUB_CNV_SV(meta_aln_index)
-        }
-        if (!params.skipSTR) {
-            SUB_STR(meta_aln_index)
-        }
-        
-        if (!params.skipSMN) {
-        SUB_SMN(meta_aln_index)
-        }
-
-    }
-
-    if (params.panel && params.panel!="WGS_CNV"&& params.panel!="NGC") {
-
-        SUB_VARIANTCALL(meta_aln_index)
-
-        if (params.panel=="MV1") {
-            vntyper_newRef(fq_read_input)
-        }
-    }
-    
 }
 
 
