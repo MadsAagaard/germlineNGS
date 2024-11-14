@@ -440,7 +440,7 @@ if (params.fastq) {
     params.reads="${params.fastq}/*{.,_,-}{R1,R2}*.gz"
     inputFastq="${params.fastq}/*.fastq.gz"
     inputFastq2="${params.fastq}/{reads_pattern_fastq}"
-    channel.fromFilePairs(params.reads).view()
+ //   channel.fromFilePairs(params.reads).view()
 }
 //${reads_pattern_fastq}
 if (params.fastq || params.fastqInput) {
@@ -452,7 +452,7 @@ if (params.fastq || params.fastqInput) {
         meta = [id:sample+"_"+ngstype, npn:sample, fullpanel:ngstype,panel:panel, subpanel:subpanel]
         [meta, reads]
     }
-
+    |view
     | branch {meta, reads ->
         WGS: (meta.panel=~/WG/ || meta.panel=~/NGC/)
             return [meta + [datatype:"WGS",roi:"$WES_ROI"],reads]
