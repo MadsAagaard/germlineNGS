@@ -439,13 +439,13 @@ if (!params.fastq && params.fastqInput) {
 if (params.fastq) {
     params.reads="${params.fastq}/*{.,_,-}{R1,R2}*.gz"
     inputFastq="${params.fastq}/*.fastq.gz"
-    inputFastq2="${params.fastq}/{reads_pattern_fastq}"
+    inputFastq2="${params.fastq}/${reads_pattern_fastq}"
  //   channel.fromFilePairs(params.reads).view()
 }
 //${reads_pattern_fastq}
 if (params.fastq || params.fastqInput) {
     //(Channel.fromFilePairs("${inputFastq}", checkIfExists: true)
-    Channel.fromFilePairs("${params.fastq}/{reads_pattern_fastq}", checkIfExists: true)
+    Channel.fromFilePairs(inputFastq2, checkIfExists: true)
     | map { id, reads -> 
         (sample, ngstype)   = reads[0].baseName.tokenize("-")
         (panel,subpanel)    = ngstype.tokenize("_")
