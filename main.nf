@@ -439,7 +439,7 @@ if (!params.fastq && params.fastqInput) {
 if (params.fastq) {
     inputFastq="${params.fastq}/*.fastq.gz"
     inputFastq2="${params.fastq}/{reads_pattern_fastq}"
-    channel.fromFilePairs("${inputFastq}").view()
+    channel.fromFilePairs("${inputFastq2}").view()
 
 }
 //${reads_pattern_fastq}
