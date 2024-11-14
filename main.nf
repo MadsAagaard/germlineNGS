@@ -437,9 +437,9 @@ if (!params.fastq && params.fastqInput) {
     inputFastq="${dataArchive}/{lnx01,lnx02}/**/${reads_pattern_fastq}"
 }
 if (params.fastq) {
-    inputFastq="${params.fastq}/${reads_pattern_fastq}"
+    inputFastq="${params.fastq}/*.fastq.gz"
 }
-
+//${reads_pattern_fastq}
 if (params.fastq || params.fastqInput) {
     Channel.fromFilePairs("${inputFastq}", checkIfExists: true)
     | map { id, reads -> 
