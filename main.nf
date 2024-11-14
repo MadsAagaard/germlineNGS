@@ -445,7 +445,7 @@ if (params.fastq) {
 //${reads_pattern_fastq}
 if (params.fastq || params.fastqInput) {
     //(Channel.fromFilePairs("${inputFastq}", checkIfExists: true)
-    Channel.fromFilePairs(params.reads, checkIfExists: true)
+    Channel.fromFilePairs(inputFastq2, checkIfExists: true)
     | map { id, reads -> 
         (sample, ngstype)   = reads[0].baseName.tokenize("-")
         (panel,subpanel)    = ngstype.tokenize("_")
