@@ -441,7 +441,6 @@ if (params.fastq) {
     inputFastq="${params.fastq}/*.fastq.gz"
     inputFastq2="${params.fastq}/{reads_pattern_fastq}"
     channel.fromFilePairs(params.reads).view()
-
 }
 //${reads_pattern_fastq}
 if (params.fastq || params.fastqInput) {
@@ -452,7 +451,6 @@ if (params.fastq || params.fastqInput) {
         (panel,subpanel)    = ngstype.tokenize("_")
         meta = [id:sample+"_"+ngstype, npn:sample, fullpanel:ngstype,panel:panel, subpanel:subpanel]
         [meta, reads]
-        |view
     }
 
     | branch {meta, reads ->
