@@ -34,7 +34,7 @@ params.copyCram                 =null
 params.single                   =null
 //Preset parameters:
 
-params.server                   = "lnx01"
+params.server                   =null
 params.genome                   = "hg38"
 params.outdir                   = "${launchDir.baseName}.Results"
 params.rundir                   = "${launchDir.baseName}"
@@ -170,27 +170,14 @@ switch (params.gatk) {
 
 
 switch (params.server) {
-    case 'lnx02':
-        s_bind="/data/:/data/,/lnx01_data2/:/lnx01_data2/,/fast/:/fast/,/lnx01_data3/:/lnx01_data3/";
-        simgpath="/data/shared/programmer/simg";
-        tmpDIR="/fast/TMP/TMP.${user}/";
-        gatk_exec="singularity run -B ${s_bind} ${simgpath}/${gatk_image} gatk";
-        multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
-        tank_storage="/home/mmaj/tank.kga/data/data.storage.archive/";
 
-        dataStorage="/lnx01_data3/storage/";
-        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";
-        dataArchive="/lnx01_data2/shared/dataArchive";
-        refFilesDir="/fast/shared/genomes";
-    break;
 
     case 'lnx01':
-        s_bind="/data/:/data/,/lnx01_data2/:/lnx01_data2/";
+        s_bind="/data/:/data/,/lnx01_data2/:/lnx01_data2/",/lnx01_data3/:/lnx01_data3/;
         simgpath="/data/shared/programmer/simg";
         tmpDIR="/data/TMP/TMP.${user}/";
         gatk_exec="singularity run -B ${s_bind} ${simgpath}/${gatk_image} gatk";
         multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
-        tank_storage="/home/mmaj/tank.kga2/data/data.storage.archive/";
         dataStorage="/lnx01_data3/storage/";
         //params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter10_IntervalSubdiv/*.interval_list";
         params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";
@@ -200,25 +187,16 @@ switch (params.server) {
         refFilesDir="/data/shared/genomes";
     break;
 
-    case 'rgi01':
-        s_bind="/data/:/data/,/lnx01_data2/:/lnx01_data2/,/fast/:/fast/,/lnx01_data3/:/lnx01_data3/";
+    default:
+        s_bind="/data/:/data/,/lnx01_data2/:/lnx01_data2/,/fast/:/fast/,/lnx01_data3/:/lnx01_data3/,/lnx01_data4/:/lnx01_data4/";
         simgpath="/data/shared/programmer/simg";
         tmpDIR="/fast/TMP/TMP.${user}/";
         gatk_exec="singularity run -B ${s_bind} ${simgpath}/${gatk_image} gatk";
         multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
-        tank_storage="/home/mmaj/tank.kga/data/data.storage.archive/";
-
         dataStorage="/lnx01_data3/storage/";
         params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";
         dataArchive="/lnx01_data2/shared/dataArchive";
         refFilesDir="/fast/shared/genomes";
-    break;
-
-    case 'kga01':
-        modules_dir="/home/mmaj/LNX01_mmaj/scripts_lnx01/nextflow_lnx01/dsl2/modules";
-        subworkflow_dir="/home/mmaj/LNX01_mmaj/scripts_lnx01/nextflow_lnx01/dsl2/subworkflows";
-        dataArchive="/data/shared/dataArchive";
-
     break;
 }
 
