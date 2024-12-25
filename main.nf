@@ -171,9 +171,8 @@ switch (params.gatk) {
 
 switch (params.server) {
 
-
     case 'lnx01':
-        s_bind="/data/:/data/,/lnx01_data2/:/lnx01_data2/",/lnx01_data3/:/lnx01_data3/;
+        s_bind="/data/:/data/,/lnx01_data2/:/lnx01_data2/,/lnx01_data3/:/lnx01_data3/";
         simgpath="/data/shared/programmer/simg";
         tmpDIR="/data/TMP/TMP.${user}/";
         gatk_exec="singularity run -B ${s_bind} ${simgpath}/${gatk_image} gatk";
