@@ -621,7 +621,7 @@ process samtools {
     """
     singularity run -B ${s_bind} ${simgpath}/samtools.sif samtools \
     stats \
-    ${aln[]0} > ${meta.id}.samtools.sample.stats.txt
+    ${aln[0]} > ${meta.id}.samtools.sample.stats.txt
     """
 }
 
