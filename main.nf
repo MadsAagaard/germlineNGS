@@ -267,9 +267,9 @@ switch (params.panel) {
     break;
 
     case "NGC":
-        reads_pattern_cram="*{-,.,_}{WG4_NGC,WGS,NGCWGS}{-,.,_}*.cram";
-        reads_pattern_crai="*{-,.,_}{WG4_NGC,WGS,NGCWGS}{-,.,_}*.crai";
-        reads_pattern_fastq="**{-,.,_}{WG4_NGC,WGS,NGCWGS}{-,.,_}*R{1,2}{_,.,-}*{fq,fastq}.gz";
+        reads_pattern_cram="*{-,.,_}{WG4_NGC,WGS,NGCWGS,WGSNGC}{-,.,_}*.cram";
+        reads_pattern_crai="*{-,.,_}{WG4_NGC,WGS,NGCWGS,WGSNGC}{-,.,_}*.crai";
+        reads_pattern_fastq="**{-,.,_}{WG4_NGC,WGS,NGCWGS,WGSNGC}{-,.,_}*R{1,2}{_,.,-}*{fq,fastq}.gz";
         reads_pattern_spring="*{WG4_NGC,WGS,NGCWGS}*.spring";
         panelID="WGS"
     break;
@@ -411,7 +411,7 @@ channel
 
 if (!params.fastq && params.fastqInput) {
 
-    inputFastq="${dataArchive}/{lnx01,lnx02}/**/${reads_pattern_fastq}"
+    inputFastq="${dataArchive}/{lnx02,lnx04}/**/${reads_pattern_fastq}"
 }
 if (params.fastq) {
      inputFastq="${params.fastq}/${reads_pattern_fastq}"
@@ -481,8 +481,8 @@ if (!params.fastq && !params.fastqInput && !params.spring){
     }
 
     if (!params.cram) {
-        cramfiles="${dataArchive}/{lnx01,lnx02,tank_kga_external_archive}/**/${reads_pattern_cram}"
-        craifiles="${dataArchive}/{lnx01,lnx02,tank_kga_external_archive}/**/${reads_pattern_crai}"
+        cramfiles="${dataArchive}/{lnx02,lnx04}/**/${reads_pattern_cram}"
+        craifiles="${dataArchive}/{lnx02,lnx04}/**/${reads_pattern_crai}"
     }
     
     if (params.cram && params.subdirs) {
