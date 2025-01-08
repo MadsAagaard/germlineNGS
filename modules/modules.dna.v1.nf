@@ -256,8 +256,7 @@ channel
 
 log.info """\
 ======================================================
-Clinical Genetics Vejle: GermlineNGS FAST revision
-Panels or WGS analysis
+Clinical Genetics Vejle: GermlineNGS v2
 ======================================================
 Genome       : $params.genome
 Genome FASTA : $genome_fasta
