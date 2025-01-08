@@ -803,7 +803,7 @@ process haplotypecallerSplitIntervals {
         maxForks 20
     }
     if (!params.server=="lnx01") {
-        maxForks 50
+        maxForks 10
 
     }
 
