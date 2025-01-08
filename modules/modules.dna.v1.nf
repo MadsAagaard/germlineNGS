@@ -802,6 +802,10 @@ process haplotypecallerSplitIntervals {
     if (params.server=="lnx01"){
         maxForks 20
     }
+    if (!params.server=="lnx01") {
+        maxForks 50
+
+    }
 
     input:
     tuple val(meta), path(aln), val(sub_intID), path(sub_interval) //from HC_scatter_input_bam.combine(interval_list1)
