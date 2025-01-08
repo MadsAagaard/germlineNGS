@@ -830,7 +830,7 @@ process combineGVCF {
     tag "$meta.id"
     //publishDir "${outputDir}/Variants/", mode: 'copy', pattern:
     publishDir "${variantStorage}/gVCF/${panelID_storage}/", mode: 'copy', pattern:'*.g.*' // storageDir= /lnx01_data3/storage/alignedData/hg38/
-    maxForks 9
+    maxForks 30
 
     input:
 
@@ -853,7 +853,7 @@ process genotypeSingle {
     errorStrategy 'ignore'
     tag "$meta.id"
     publishDir "${outputDir}/Variants/", mode: 'copy'
-    maxForks 9
+    maxForks 30
 
     input:
     tuple val(meta), path(gvcf),path(index)
@@ -864,11 +864,11 @@ process genotypeSingle {
     ${gatk_exec} --java-options "-Xmx4G -XX:+UseParallelGC -XX:ParallelGCThreads=30" GenotypeGVCFs \
     -R ${genome_fasta} \
     -V ${gvcf} \
-    -O ${meta.id}.HC.vcf.gz 
+    -O ${meta.id}.fullWGS.vcf.gz 
 
     ${gatk_exec} SelectVariants \
     -R ${genome_fasta} \
-    -V ${meta.id}.HC.vcf.gz \
+    -V ${meta.id}.fullWGS.vcf.gz \
     -L ${ROI} \
     -O ${meta.id}.WES_ROI.vcf.gz
 
@@ -886,7 +886,7 @@ process jointgenoScatter{
     val x //from gvcfsamples_for_GATK_scatter
 
     output:
-    path("*.merged.RAW.*")// into merged_RAW_vcf_scatter
+    path("*.merged.fullWGS.*")// into merged_RAW_vcf_scatter
     path("*.merged.WES_ROI.*")
     
     script:
@@ -899,12 +899,12 @@ process jointgenoScatter{
     ${gatk_exec} GenotypeGVCFs \
     -R ${genome_fasta} \
     -V ${params.rundir}.merged.g.vcf.gz \
-    -O ${params.rundir}.merged.RAW.vcf.gz  \
+    -O ${params.rundir}.merged.fullWGS.vcf.gz  \
     -G StandardAnnotation -G AS_StandardAnnotation -A SampleList -D ${dbsnp}
     
     ${gatk_exec} SelectVariants \
     -R ${genome_fasta} \
-    -V ${params.rundir}.merged.RAW.vcf.gz \
+    -V ${params.rundir}.merged.fullWGS.vcf.gz \
     -L ${ROI} \
     -O ${params.rundir}.merged.WES_ROI.vcf.gz
 
