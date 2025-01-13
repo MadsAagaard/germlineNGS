@@ -710,12 +710,14 @@ process haplotypecaller{
         publishDir "${outputDir}/Variants/per_sample/", mode: 'copy', pattern: "*.HC.*"
         publishDir "${outputDir}/Variants/GVCF_files/", mode: 'copy', pattern: "*.g.*"
         publishDir "${outputDir}/HaplotypeCallerBAMout/", mode: 'copy', pattern: "*.HCbamout.*"
-        publishDir "${variantStorage}/gVCF/${panelID_storage}/", mode: 'copy', pattern:'*.g.vc*' //
-
+        
+        if (!params.panel=="CV5") {
+            publishDir "${variantStorage}/gVCF/${panelID_storage}/", mode: 'copy', pattern:'*.g.vc*' //
+        }
         if (params.server=="lnx01"){
             maxForks 10
         }
-
+        else {maxForks 50} 
 
         input:
         tuple val(meta), path(aln)
