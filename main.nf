@@ -515,6 +515,8 @@ if (!params.fastq && !params.fastqInput && !params.spring){
                 return [meta + [datatype:"targeted",roi:"$AV1_ROI"],aln]
             MV1: (meta.panel=~/MV1/)
                 return [meta + [datatype:"targeted",roi:"$MV1_ROI"],aln]
+            CV5: (meta.panel=~/CV5/)
+                return [meta + [datatype:"targeted",roi:"$CV5_ROI"],aln]
             WES: (meta.panel=~/EV8/ ||meta.panel=~/EV7/)
                 return [meta + [datatype:"targeted",roi:"$WES_ROI"],aln]
             undetermined: true
@@ -523,7 +525,7 @@ if (!params.fastq && !params.fastqInput && !params.spring){
     }
     | set {cramInputBranched}
 
-    cramInputBranched.MV1.concat(cramInputBranched.AV1).concat(cramInputBranched.WES).concat(cramInputBranched.WGS)
+    cramInputBranched.MV1.concat(cramInputBranched.AV1).concat(cramInputBranched.WES).concat(cramInputBranched.WGS).concat(cramInputBranched.CV5)
     |set {cramInputReMerged}
     cramInputReMerged.view()
     if (params.samplesheet) {
