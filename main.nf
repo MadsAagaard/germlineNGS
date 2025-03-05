@@ -273,7 +273,7 @@ switch (params.panel) {
         reads_pattern_spring="*{WG4_NGC,WGS,NGCWGS}*.spring";
         panelID="WGS"
     break;
-    params.reads="${params.fastq}/*{.,_,-}{R1,R2}*.gz"
+    //params.reads="${params.fastq}/*{.,_,-}{R1,R2}*.gz"
     default: 
         reads_pattern_cram="*.cram";
         reads_pattern_crai="*.crai";
