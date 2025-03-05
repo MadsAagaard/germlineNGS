@@ -277,7 +277,7 @@ switch (params.panel) {
     default: 
         reads_pattern_cram="*.cram";
         reads_pattern_crai="*.crai";
-        reads_pattern_fastq="*{fq,fastq}.gz";
+        reads_pattern_fastq="*.fastq.gz";
         reads_pattern_spring="*.spring";
         panelID="ALL"
     break;
