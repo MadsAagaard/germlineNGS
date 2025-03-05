@@ -1228,6 +1228,8 @@ process stripy {
     publishDir "${outputDir}/repeatExpansions/STRipy_myopati/", mode: 'copy',pattern:"*.myopati.html"
     publishDir "${outputDir}/repeatExpansions/STRipy_epilepsi/", mode: 'copy',pattern:"*.epilepsi.html"
 
+    conda '/data/shared/programmer/miniconda3/envs/py38' // contains python modules required by stripy
+
     
     input:
     tuple val(meta), path(aln)
