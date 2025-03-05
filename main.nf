@@ -427,6 +427,7 @@ if (params.fastq || params.fastqInput) {
         meta = [id:sample+"_"+ngstype, npn:sample, fullpanel:ngstype,panel:panel, subpanel:subpanel]
         [meta, reads]
     }
+    |view
     | branch {meta, reads ->
         WGS: (meta.panel=~/WG/ || meta.panel=~/NGC/)
             return [meta + [datatype:"WGS",roi:"$WES_ROI"],reads]
@@ -440,6 +441,7 @@ if (params.fastq || params.fastqInput) {
             return [meta + [datatype:"unset",analyzed:"NO"],reads]
         [meta, reads]
     }
+    
     | set {readsInputBranched}
 
     readsInputBranched.MV1.concat(readsInputBranched.AV1).concat(readsInputBranched.WES).concat(readsInputBranched.WGS)
