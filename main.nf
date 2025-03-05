@@ -588,13 +588,13 @@ channel
 include { 
          // Symlinks:
          inputFiles_symlinks_cram;
-         inputFiles_cramCopy;
+         //inputFiles_cramCopy;
          // Preprocess tools:
          //QC tools
          samtools;
          bamtools;
          qualimap;
-         fastqc_bam;
+         //fastqc_bam;
          collectWGSmetrics;
          multiQC;
          vntyper_newRef;
