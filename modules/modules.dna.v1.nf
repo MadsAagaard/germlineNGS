@@ -1326,6 +1326,9 @@ process smnCopyNumberCaller {
     errorStrategy "ignore"
     cpus 12
 
+    conda '/data/shared/programmer/miniconda3/envs/py38' // contains python modules required by smncopynumbercaller
+
+
     input:
     path(manifest)// from SMN_manifest_ch
 
