@@ -702,7 +702,7 @@ workflow {
         if (!params.skipSMN) {
             
             alnInputFinalBranched.WGS
-            |map {meta, aln -> tuple(meta,aln[0])}
+            |map {meta, aln -> tuple(meta.id,aln[0])}
 
             |view
             //.collectFile(name: "smncaller_manifest.txt", newLine: true, storeDir: "${launchDir}/")

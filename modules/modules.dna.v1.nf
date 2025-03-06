@@ -1226,7 +1226,7 @@ process stripy {
     publishDir "${meta.panel}/repeatExpansions/STRipy_myopati/", mode: 'copy',pattern:"*.myopati.html"
     publishDir "${meta.panel}/repeatExpansions/STRipy_epilepsi/", mode: 'copy',pattern:"*.epilepsi.html"
 
-    conda '/data/shared/programmer/miniconda3/envs/py38/' // contains python modules required by stripy
+    conda '/lnx01_data3/shared/programmer/miniconda3/envs/py38/' // contains python modules required by stripy
 
     
     input:
@@ -1324,7 +1324,7 @@ process smnCopyNumberCaller {
     errorStrategy "ignore"
     cpus 12
 
-    conda '/data/shared/programmer/miniconda3/envs/py38/' // contains python modules required by smncopynumbercaller
+    conda '/lnx01_data3/shared/programmer/miniconda3/envs/py38/' // contains python modules required by smncopynumbercaller
 
 
     input:
@@ -1369,7 +1369,7 @@ process smnCopyNumberCaller {
     errorStrategy "ignore"
     cpus 12
 
-    conda '/data/shared/programmer/miniconda3/envs/py38/' // contains python modules required by smncopynumbercaller
+    conda '/lnx01_data3/shared/programmer/miniconda3/envs/py38/' // contains python modules required by smncopynumbercaller
 
 
     input:
