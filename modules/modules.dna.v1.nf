@@ -1640,11 +1640,12 @@ workflow SUB_CNV_SV {
     //tiddit361(meta_aln_index)
     delly126(meta_aln_index)
     //merge4callerSVDB(filter_manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(tiddit361.out.tidditForSVDB))
-    
+    /*
     manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(delly126.out.dellyForSVDB)
     |view
     |set {4callerMerge_ch}
     merge4callerSVDB(4callerMerge_ch)
+*/
 }
 
 workflow SUB_STR {

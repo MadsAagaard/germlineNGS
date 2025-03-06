@@ -663,9 +663,9 @@ workflow {
 
     if (params.fastqInput||params.fastq||params.spring || params.preprocessOnly) {
         SUB_PREPROCESS(readsInputFinal)
-   //     preprocessOutAln=SUB_PREPROCESS.out.finalAln
+
         
-     //   preprocessOutAln
+
         SUB_PREPROCESS.out.finalAln
         |map {meta, cram,crai ->
             tuple(meta,[cram,crai])}
@@ -711,7 +711,6 @@ workflow {
             | set{smn_input_ch}
             
             smn_input_ch
-            |view
             //SUB_SMN(alnInputFinalBranched.WGS)
             SUB_SMN(smn_input_ch)
         }
