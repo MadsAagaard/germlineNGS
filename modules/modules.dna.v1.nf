@@ -1350,7 +1350,7 @@ process smnCopyNumberCaller {
 */
 process prepareManifestSMN {
     
-    publishDir "${meta.panel}/SMNcaller/", mode: 'copy'
+    //publishDir "${meta.panel}/SMNcaller/", mode: 'copy'
     
     input:
     path(samplesheet) // from smn_input_ch
@@ -1373,7 +1373,7 @@ process smnCopyNumberCaller {
 
 
     input:
-    tuple val(meta), path(cram)
+    path(manifest)
 
     output:
     path("*.{tsv,pdf,json}")

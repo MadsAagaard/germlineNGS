@@ -702,12 +702,14 @@ workflow {
         if (!params.skipSMN) {
             
             alnInputFinalBranched.WGS
-            |map {meta, aln -> tuple(meta.id,aln[0])}
-            |map {it -> it[0]+'\t'+it[1]}
+            //|map {meta, aln -> tuple(meta.id,aln[0])}
+            |map {meta, aln -> tuple(meta,aln[0])}
+            //|map {it -> it[0]+'\t'+it[1]}
             |collectFile(name: "smncaller_manifest.txt", newLine: true, storeDir: "${launchDir}/")
             | set{smn_input_ch}
             
-            
+            smn_input_ch
+            |view
             //SUB_SMN(alnInputFinalBranched.WGS)
             SUB_SMN(smn_input_ch)
         }
