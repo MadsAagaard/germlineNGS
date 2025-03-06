@@ -705,7 +705,8 @@ workflow {
             //|map {meta, aln -> tuple(meta.id,aln[0])}
             |map {meta, aln -> tuple(meta,aln[0])}
             //|map {it -> it[0]+'\t'+it[1]}
-            |collectFile(name: "smncaller_manifest.txt", newLine: true, storeDir: "${launchDir}/")
+            |collectFile(name: "smncaller_manifest.txt", newLine: true)
+            //|collectFile(name: "smncaller_manifest.txt", newLine: true, storeDir: "${launchDir}/")
             | set{smn_input_ch}
             
             smn_input_ch
