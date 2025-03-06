@@ -681,7 +681,7 @@ workflow {
         | set {alnInputFinalBranched}
 
     if (!params.preprocessOnly) {
-
+        inputFiles_symlinks_cram(alnInputFinal) 
         if(!params.skipQC){
             SUB_QC(alnInputFinalBranched.WGS)
         }
