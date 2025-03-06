@@ -1645,7 +1645,7 @@ workflow SUB_CNV_SV {
     manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(delly126.out.dellyForSVDB)
     |set {4callerMerge_ch}
 
-    merge4callerSVDB(4callerMerge_ch)
+    merge4callerSVDB(manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(delly126.out.dellyForSVDB))
     /*
 */
 }
