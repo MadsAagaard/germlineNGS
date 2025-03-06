@@ -1181,14 +1181,14 @@ process merge4callerSVDB {
     --merge \
     --overlap 0.6 \
     --vcf ${manta_vcf}:MANTA ${lumpy_vcf}:LUMPY ${cnvkit_vcf}:CNVKIT ${delly_vcf}:DELLY \
-    --priority LUMPY,MANTA,CNVKIT,DELLY > ${metaID}.4callerNEW.SVDB.5pctAF.60pctOverlap.vcf
+    --priority LUMPY,MANTA,CNVKIT,DELLY > ${meta.id}.4callerNEW.SVDB.5pctAF.60pctOverlap.vcf
 
     singularity exec  \
     --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
     --merge \
     --overlap 0.8 \
     --vcf ${manta_vcf}:MANTA ${lumpy_vcf}:LUMPY ${cnvkit_vcf}:CNVKIT ${delly_vcf}:DELLY \
-    --priority LUMPY,MANTA,CNVKIT,DELLY > ${metaID}.4callerNEW.SVDB.5pctAF.80pctOverlap.vcf
+    --priority LUMPY,MANTA,CNVKIT,DELLY > ${meta.id}.4callerNEW.SVDB.5pctAF.80pctOverlap.vcf
 
 
     singularity exec  \
@@ -1196,7 +1196,7 @@ process merge4callerSVDB {
     --merge \
     --overlap 1.0 \
     --vcf ${manta_vcf}:MANTA ${lumpy_vcf}:LUMPY ${cnvkit_vcf}:CNVKIT ${delly_vcf}:DELLY \
-    --priority LUMPY,MANTA,CNVKIT,DELLY > ${metaID}.4callerNEW.SVDB.5pctAF.100pctOverlap.vcf
+    --priority LUMPY,MANTA,CNVKIT,DELLY > ${meta.id}.4callerNEW.SVDB.5pctAF.100pctOverlap.vcf
     """
 }
 
