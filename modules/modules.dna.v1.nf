@@ -1371,7 +1371,7 @@ process prepareManifestSMN {
 }
 
 process smnCopyNumberCaller {
-    publishDir "${meta.panel}/SMNcaller/", mode: 'copy'
+    publishDir "${params.rundir}/SMNcaller/", mode: 'copy'
     errorStrategy "ignore"
     cpus 12
 
