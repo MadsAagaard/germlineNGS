@@ -620,7 +620,7 @@ process qualimap {
     script:
     use_bed = qualimap_ROI ? "-gff ${qualimap_ROI}" : ''
     """
-    qualimap --java-mem-size=40G \
+    qualimap --java-mem-size=40G bamqc\
     -nt ${task.cpus} \
     -outdir ${meta.id} \
     -bam ${aln[0]} $use_bed -sd -sdmode 0
@@ -1371,7 +1371,7 @@ process prepareManifestSMN {
 }
 
 process smnCopyNumberCaller {
-    publishDir "${params.rundir}/SMNcallerWGS/", mode: 'copy'
+    publishDir "${outputDir}/SMNcallerWGS/", mode: 'copy'
     errorStrategy "ignore"
     cpus 12
 
@@ -1473,7 +1473,7 @@ workflow SUB_QC {
     main:
     collectWGSmetrics(meta_aln_index)
     //fastqc_bam(meta_aln_index)
-    qualimap(meta_aln_index)
+    //qualimap(meta_aln_index)
     samtools(meta_aln_index)
     //multiQC(samtools.out.multiqc.ifEmpty([]).mix(qualimap.out.multiqc.ifEmpty([])).mix(collectWGSmetrics.out.multiqc.ifEmpty([])))
 
@@ -1640,8 +1640,11 @@ workflow SUB_CNV_SV {
     //tiddit361(meta_aln_index)
     delly126(meta_aln_index)
     //merge4callerSVDB(filter_manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(tiddit361.out.tidditForSVDB))
+    
     manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(delly126.out.dellyForSVDB)
-    merge4callerSVDB(manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(delly126.out.dellyForSVDB))
+    |view
+    |set {4callerMerge_ch}
+    merge4callerSVDB(4callerMerge_ch)
 }
 
 workflow SUB_STR {
