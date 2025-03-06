@@ -703,7 +703,7 @@ workflow {
             
             alnInputFinalBranched.WGS
             |map {meta, aln -> tuple(meta.id,aln[0])}
-
+            |map {it -> it[0]+'\t'+it[1]}
             |view
             //.collectFile(name: "smncaller_manifest.txt", newLine: true, storeDir: "${launchDir}/")
             | set{smn_input_ch}
