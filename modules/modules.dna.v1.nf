@@ -1155,7 +1155,7 @@ process cnvkitExportFiles {
 }
 
 process merge4callerSVDB {
-    tag "$metaID"
+    tag "$meta.id"
     errorStrategy 'ignore'
 
     //publishDir "${outputDir}/all_callers_merged/", mode: 'copy'
@@ -1169,10 +1169,10 @@ process merge4callerSVDB {
     maxForks 12
     input:
     // tuple val(meta), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(tiddit_vcf) // from single_4caller_for_svdb
-    tuple val(metaID), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(delly_vcf)
+    tuple val(meta), path(manta_vcf), path(lumpy_vcf),path(cnvkit_vcf),path(delly_vcf)
     output:
-    path("${metaID}.4callerNEW.SVDB.*")
-    path("${metaID}.*.SVDB.*")
+    path("${meta.id}.4callerNEW.SVDB.*")
+    path("${meta.id}.*.SVDB.*")
 
     script:
     """
