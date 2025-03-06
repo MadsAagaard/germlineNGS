@@ -1348,7 +1348,52 @@ process smnCopyNumberCaller {
     """
 }
 */
+process prepareManifestSMN {
+    
+    publishDir "${meta.panel}/SMNcaller/", mode: 'copy'
+    
+    input:
+    path(samplesheet) // from smn_input_ch
+    
+    output:
+    path("SMNmanifest.txt")//, emit: SMN_manifest_ch
 
+    shell:
+    '''
+    cat !{samplesheet} | cut -f2 > SMNmanifest.txt
+    '''
+}
+
+process smnCopyNumberCaller {
+    publishDir "${meta.panel}/SMNcaller/", mode: 'copy'
+    errorStrategy "ignore"
+    cpus 12
+
+    conda '/data/shared/programmer/miniconda3/envs/py38/' // contains python modules required by smncopynumbercaller
+
+
+    input:
+    tuple val(meta), path(cram)
+
+    output:
+    path("*.{tsv,pdf,json}")
+    
+    script:
+    """
+    
+    
+    python /data/shared/programmer/SMNCopyNumberCaller-1.1.2/smn_caller.py \
+    --manifest ${manifest} \
+    --genome ${smncaller_assembly} \
+    --prefix ${params.rundir} \
+    --threads ${task.cpus} \
+    --outDir .
+
+    python /data/shared/programmer/SMNCopyNumberCaller-1.1.2/smn_charts.py \
+    -s ${params.rundir}.json \
+    -o .
+    """
+}
 
 process vntyper_newRef {
     errorStrategy 'ignore'
