@@ -703,7 +703,7 @@ workflow {
             alnInputFinalBranched.WGS
             |map {meta, aln -> $meta.id+'\t'+aln[0]}
             |view
-            .collectFile(name: "smncaller_manifest.txt", newLine: true, storeDir: "${launchDir}/")
+            //.collectFile(name: "smncaller_manifest.txt", newLine: true, storeDir: "${launchDir}/")
             .set{smn_input_ch}
             //SUB_SMN(alnInputFinalBranched.WGS)
             SUB_SMN(smn_input_ch)
