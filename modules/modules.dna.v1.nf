@@ -1422,7 +1422,7 @@ workflow SUB_QC {
     //fastqc_bam(meta_aln_index)
     qualimap(meta_aln_index)
     samtools(meta_aln_index)
-    multiQC(samtools.out.multiqc.ifEmpty([]).mix(qualimap.out.multiqc.ifEmpty([]))..mix(collectWGSmetrics.out.multiqc.ifEmpty([])))
+    multiQC(samtools.out.multiqc.ifEmpty([]).mix(qualimap.out.multiqc.ifEmpty([])).mix(collectWGSmetrics.out.multiqc.ifEmpty([])))
 
 }
 
