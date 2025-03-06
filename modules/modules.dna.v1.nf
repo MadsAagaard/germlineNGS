@@ -295,7 +295,7 @@ process inputFiles_symlinks_cram{
     publishDir "${meta.panel}/input_symlinks/", mode: 'link', pattern: '*.{ba,cr}*'
     publishDir "${meta.panel}/Variants/CRAM_symlinks/", mode: 'link', pattern: '*.{ba,cr}*'
     input:
-    tuple tuple val(meta), path(aln)// from symlink_input
+    tuple val(meta), path(aln)// from symlink_input
     
     output:
     tuple val(meta), path(aln)
