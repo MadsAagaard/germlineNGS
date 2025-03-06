@@ -934,8 +934,8 @@ process manta {
 
     output:
     path("${meta.id}.manta.*.{vcf,vcf.gz,gz.tbi}")
-    tuple val("${meta.id}"), path("${meta.id}.manta.AFanno.frq_below5pct.vcf"), emit: mantaForSVDB
-
+  //  tuple val("${meta.id}"), path("${meta.id}.manta.AFanno.frq_below5pct.vcf"), emit: mantaForSVDB
+    tuple val(meta), path("${meta.id}.manta.AFanno.frq_below5pct.vcf"), emit: mantaForSVDB
     script:
     """
     singularity run -B ${s_bind} ${simgpath}/manta1.6_strelka2.9.10.sif configManta.py \
@@ -995,9 +995,10 @@ process lumpy {
     tuple val(meta), path(aln)
 
     output:
-    tuple val("${meta.id}"), path("${meta.id}.lumpy.AFanno.frq_below5pct.vcf"), emit: lumpyForSVDB
+   // tuple val("${meta.id}"), path("${meta.id}.lumpy.AFanno.frq_below5pct.vcf"), emit: lumpyForSVDB
     path("*.Lumpy_altmode_step1.vcf.gz") 
-
+    tuple val(meta), path("${meta.id}.lumpy.AFanno.frq_below5pct.vcf"), emit: lumpyForSVDB
+    path("*.Lumpy_altmode_step1.vcf.gz") 
     script:
     """
     singularity run -B ${s_bind} ${simgpath}/smoove.sif smoove call -d \
@@ -1045,7 +1046,8 @@ process delly126 {
 
     output:
     tuple val(meta), path("${meta.id}.${genome_version}.delly.raw.vcf")
-    tuple val("${meta.id}"), path("${meta.id}.${genome_version}.delly.AFanno.frq_below5pct.vcf"), emit: dellyForSVDB
+    //tuple val("${meta.id}"), path("${meta.id}.${genome_version}.delly.AFanno.frq_below5pct.vcf"), emit: dellyForSVDB
+    tuple val(meta), path("${meta.id}.${genome_version}.delly.AFanno.frq_below5pct.vcf"), emit: dellyForSVDB
     script:
     """
     /data/shared/programmer/BIN/delly126 call \
@@ -1086,8 +1088,9 @@ process cnvkit {
     output:
     path("${meta.id}.cnvkit/*")
     path("*.targetcoverage.cnn"), emit: cnvkit_cnn_out
-    tuple val(meta), path("${meta.id}.cnvkit/*.call.cns"), emit: CNVcalls
-    tuple val(meta), path("${meta.id}.cnvkit/*.cnr"), emit: CNVcnr
+//    tuple val(meta), path("${meta.id}.cnvkit/*.call.cns"), emit: CNVcalls
+//    tuple val(meta), path("${meta.id}.cnvkit/*.cnr"), emit: CNVcnr
+    tuple val(meta), path("${meta.id}.cnvkit/*.call.cns"),path("${meta.id}.cnvkit/*.cnr"), emit: CNVcalls
     //path("${meta.id}.cnvkit/*.cnn")
     
     // touch ${index}
@@ -1114,12 +1117,15 @@ process cnvkitExportFiles {
     publishDir "${meta.panel}/structuralVariants/cnvkit/", mode: 'copy'
 
     input:
-    tuple val(meta), path(cnvkit_calls)// from cnvkit_calls_out
-    tuple val(meta), path(cnvkit_cnr)// from cnvkit_cnr_out
+//    tuple val(meta), path(cnvkit_calls)// from cnvkit_calls_out
+  //  tuple val(meta), path(cnvkit_cnr)// from cnvkit_cnr_out
+
+    tuple val(meta), path(cnvkit_calls),path(cnvkit_cnr)// from cnvkit_calls_out
 
     output:
     path("*.vcf")
     path("*.seg")
+    //tuple val("${meta.id}"), path("${meta.id}.cnvkit.AFanno.frq_below5pct.vcf"), emit: cnvkitForSVDB
     tuple val("${meta.id}"), path("${meta.id}.cnvkit.AFanno.frq_below5pct.vcf"), emit: cnvkitForSVDB
 
     script:
@@ -1628,7 +1634,9 @@ workflow SUB_CNV_SV {
    // filter_manta(manta.out.manta)   // mantafiltered for SVDB
     lumpy(meta_aln_index)
     cnvkit(meta_aln_index)
-    cnvkitExportFiles(cnvkit.out.CNVcalls, cnvkit.out.CNVcnr)
+    //cnvkitExportFiles(cnvkit.out.CNVcalls, cnvkit.out.CNVcnr)
+    cnvkitExportFiles(cnvkit.out.CNVcalls)
+
     //tiddit361(meta_aln_index)
     delly126(meta_aln_index)
     //merge4callerSVDB(filter_manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(tiddit361.out.tidditForSVDB))
