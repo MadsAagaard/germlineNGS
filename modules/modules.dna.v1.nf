@@ -1335,7 +1335,7 @@ process smnCopyNumberCaller {
     
     script:
     """
-    python3 /data/shared/programmer/SMNCopyNumberCaller-1.1.2/smn_caller.py \
+    python /data/shared/programmer/SMNCopyNumberCaller-1.1.2/smn_caller.py \
     --manifest ${manifest} \
     --genome ${smncaller_assembly} \
     --prefix ${params.rundir} \
@@ -1599,14 +1599,24 @@ workflow SUB_STR {
 
 workflow SUB_SMN {
     take:
-    meta_aln_index
+    smn_input_ch 
+    main:
+
+    prepareManifestSMN(smn_input_ch)
+    smnCopyNumberCaller(prepareManifestSMN.out)
+}
+/*
+workflow SUB_SMN {
+    take:
+    meta_aln_index //meta, data
     main:
     
     meta_aln_index
-    .map {"TEST"+'\t'+it[1]}
+    .map {$meta.id+'\t'+it[1]}
     .collectFile(name: "smncaller_manifest.txt", newLine: true, storeDir: "${launchDir}/")
     .set{smn_input_ch}
     
     prepareManifestSMN(smn_input_ch)
     smnCopyNumberCaller(prepareManifestSMN.out)
 }
+*/
