@@ -1126,7 +1126,7 @@ process cnvkitExportFiles {
     path("*.vcf")
     path("*.seg")
     //tuple val("${meta.id}"), path("${meta.id}.cnvkit.AFanno.frq_below5pct.vcf"), emit: cnvkitForSVDB
-    tuple val("${meta.id}"), path("${meta.id}.cnvkit.AFanno.frq_below5pct.vcf"), emit: cnvkitForSVDB
+    tuple val(meta), path("${meta.id}.cnvkit.AFanno.frq_below5pct.vcf"), emit: cnvkitForSVDB
 
     script:
     """
