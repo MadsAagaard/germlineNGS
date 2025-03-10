@@ -885,7 +885,7 @@ process genotypeSingle {
 
 process jointgenoScatter{
     errorStrategy 'ignore'
-    publishDir "${meta.outdir}/Variants/", mode: 'copy'
+    publishDir "${outputDir}/Variants/", mode: 'copy'
 
     input:
     val x //from gvcfsamples_for_GATK_scatter
