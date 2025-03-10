@@ -277,7 +277,7 @@ Script start : $date2
 
 process inputFiles_symlinks_fq{
     errorStrategy 'ignore'
-    publishDir "${meta.panel}/input_symlinks/", mode: 'link', pattern:'*.{fastq,fq}.gz'
+    publishDir "${meta.outdir}/input_symlinks/", mode: 'link', pattern:'*.{fastq,fq}.gz'
     input:
     tuple val(meta), path(reads)// from read_input2
     
@@ -292,8 +292,8 @@ process inputFiles_symlinks_fq{
 
 process inputFiles_symlinks_cram{
     errorStrategy 'ignore'
-    publishDir "${meta.panel}/input_symlinks/", mode: 'link', pattern: '*.{ba,cr}*'
-    publishDir "${meta.panel}/Variants/CRAM_symlinks/", mode: 'link', pattern: '*.{ba,cr}*'
+    publishDir "${meta.outdir}/input_symlinks/", mode: 'link', pattern: '*.{ba,cr}*'
+    publishDir "${meta.outdir}/Variants/CRAM_symlinks/", mode: 'link', pattern: '*.{ba,cr}*'
     input:
     tuple val(meta), path(aln)// from symlink_input
     
@@ -307,7 +307,7 @@ process inputFiles_symlinks_cram{
 
 process inputFiles_symlinks_spring{
     errorStrategy 'ignore'
-    publishDir "${meta.panel}/input_symlinks/", mode: 'link', pattern: '*.spring'
+    publishDir "${meta.outdir}/input_symlinks/", mode: 'link', pattern: '*.spring'
 
     input:
     tuple val(meta), path(spring)    
@@ -367,7 +367,7 @@ process spring_compression {
 process spring_decompress {
     tag "$meta.id"
     errorStrategy 'ignore'
-    publishDir "${meta.panel}/fastqFromSpring/", mode: 'copy', pattern:"*.fastq.gz"
+    publishDir "${meta.outdir}/fastqFromSpring/", mode: 'copy', pattern:"*.fastq.gz"
 
     cpus 8
     maxForks 12
@@ -490,9 +490,9 @@ process markDup_bam {
     errorStrategy 'ignore'
     maxForks 6
     tag "$meta.id"
-    publishDir "${meta.panel}/BAM/", mode: 'copy', pattern: "*.BWA.MD.ba*"
-    publishDir "${meta.panel}/CRAM/", mode: 'copy', pattern: "*.BWA.MD.cr*"
-    publishDir "${meta.panel}/Variants/Alignment_symlinks/", mode: 'link', pattern: "*.BWA.MD.cr*"
+    publishDir "${meta.outdir}/BAM/", mode: 'copy', pattern: "*.BWA.MD.ba*"
+    publishDir "${meta.outdir}/CRAM/", mode: 'copy', pattern: "*.BWA.MD.cr*"
+    publishDir "${meta.outdir}/Variants/Alignment_symlinks/", mode: 'link', pattern: "*.BWA.MD.cr*"
 
     conda '/lnx01_data3/shared/programmer/miniconda3/envs/sambamvcftools/' 
 
@@ -523,8 +523,8 @@ process markDup_cram {
     errorStrategy 'ignore'
     maxForks 6
     tag "$meta.id"
-    publishDir "${meta.panel}/CRAM/", mode: 'copy', pattern: "*.BWA.MD.cr*"
-    //publishDir "${meta.panel}/${meta.panel}/Variants/Alignment_symlinks/", mode: 'link', pattern: "*.BWA.MD.cr*"
+    publishDir "${meta.outdir}/CRAM/", mode: 'copy', pattern: "*.BWA.MD.cr*"
+    //publishDir "${meta.outdir}/${meta.outdir}/Variants/Alignment_symlinks/", mode: 'link', pattern: "*.BWA.MD.cr*"
 
     conda '/lnx01_data3/shared/programmer/miniconda3/envs/sambamvcftools/' 
 
@@ -557,7 +557,7 @@ process markDup_cram {
 process bamtools {
     errorStrategy 'ignore'
     tag "$meta.id"
-    publishDir "${meta.panel}/QC/", mode: 'copy'
+    publishDir "${meta.outdir}/QC/", mode: 'copy'
 
     conda '/lnx01_data3/shared/programmer/miniconda3/envs/sambamvcftools/' 
     
@@ -583,7 +583,7 @@ process samtools {
 
     errorStrategy 'ignore'
     tag "$meta.id"
-    publishDir "${meta.panel}/QC/samtools/", mode: 'copy'
+    publishDir "${meta.outdir}/QC/samtools/", mode: 'copy'
 
 
     input:  
@@ -606,7 +606,7 @@ process qualimap {
     tag "$meta.id"
     cpus 10
     maxForks 8
-    publishDir "${meta.panel}/QC/qualimap/", mode: 'copy'
+    publishDir "${meta.outdir}/QC/qualimap/", mode: 'copy'
 
     conda '/lnx01_data3/shared/programmer/miniconda3/envs/qualimapSamtools/' 
 
@@ -659,7 +659,7 @@ process collectWGSmetrics {
     errorStrategy 'ignore'
     tag "$meta.id"
     cpus 5
-    publishDir "${meta.panel}/QC/picard/", mode: 'copy'
+    publishDir "${meta.outdir}/QC/picard/", mode: 'copy'
 
     input:
     tuple val(meta), path(aln)
@@ -679,7 +679,7 @@ process collectWGSmetrics {
 process multiQC {
     
     errorStrategy 'ignore'
-    publishDir "${meta.panel}/QC/", mode: 'copy'
+    publishDir "${meta.outdir}/QC/", mode: 'copy'
 
     input:
     path(inputfiles)
@@ -705,9 +705,9 @@ process haplotypecaller{
 
         cpus 4
         tag "$meta.id"
-        publishDir "${meta.panel}/Variants/per_sample/", mode: 'copy', pattern: "*.HC.*"
-        publishDir "${meta.panel}/Variants/GVCF_files/", mode: 'copy', pattern: "*.g.*"
-        publishDir "${meta.panel}/HaplotypeCallerBAMout/", mode: 'copy', pattern: "*.HCbamout.*"
+        publishDir "${meta.outdir}/Variants/per_sample/", mode: 'copy', pattern: "*.HC.*"
+        publishDir "${meta.outdir}/Variants/GVCF_files/", mode: 'copy', pattern: "*.g.*"
+        publishDir "${meta.outdir}/HaplotypeCallerBAMout/", mode: 'copy', pattern: "*.HCbamout.*"
         
         if (!params.panel=="CV5") {
             publishDir "${variantStorage}/gVCF/${panelID_storage}/", mode: 'copy', pattern:'*.g.vc*' //
@@ -764,8 +764,8 @@ process haplotypecaller{
 process jointgenotyping {
         errorStrategy 'ignore'
         cpus 4
-        publishDir "${meta.panel}/Variants/", mode: 'copy', pattern: "*.VarSeq.*"
-        publishDir "${meta.panel}/Variants/GVCF_files/", mode: 'copy', pattern: "*.merged.g.*"
+        publishDir "${meta.outdir}/Variants/", mode: 'copy', pattern: "*.VarSeq.*"
+        publishDir "${meta.outdir}/Variants/GVCF_files/", mode: 'copy', pattern: "*.merged.g.*"
         //publishDir "tumorBoard_files", mode: 'copy', pattern: "*.VarSeq.*"
 
         input:
@@ -857,7 +857,7 @@ process combineGVCF {
 process genotypeSingle {
     errorStrategy 'ignore'
     tag "$meta.id"
-    publishDir "${meta.panel}/Variants/", mode: 'copy'
+    publishDir "${meta.outdir}/Variants/", mode: 'copy'
     maxForks 30
 
     input:
@@ -885,7 +885,7 @@ process genotypeSingle {
 
 process jointgenoScatter{
     errorStrategy 'ignore'
-    publishDir "${meta.panel}/Variants/", mode: 'copy'
+    publishDir "${meta.outdir}/Variants/", mode: 'copy'
 
     input:
     val x //from gvcfsamples_for_GATK_scatter
@@ -924,8 +924,8 @@ process manta {
     errorStrategy 'ignore'
     tag "$meta.id"
     publishDir "${inhouse_SV}/manta/raw_calls/", mode: 'copy', pattern: " ${meta.id}.manta.diploidSV.*"
-    publishDir "${meta.panel}/structuralVariants/manta/allOutput/", mode: 'copy'
-    publishDir "${meta.panel}/structuralVariants/manta/", mode: 'copy', pattern: "*.{AFanno,filtered}.*"
+    publishDir "${meta.outdir}/structuralVariants/manta/allOutput/", mode: 'copy'
+    publishDir "${meta.outdir}/structuralVariants/manta/", mode: 'copy', pattern: "*.{AFanno,filtered}.*"
     cpus 10
     maxForks 3
 
@@ -986,7 +986,7 @@ process lumpy {
     errorStrategy 'ignore'
     tag "$meta.id"
     publishDir "${inhouse_SV}/lumpy/raw_calls/", mode: 'copy', pattern: "*.Lumpy_altmode_step1.vcf"
-    publishDir "${meta.panel}/structuralVariants/lumpy/", mode: 'copy'
+    publishDir "${meta.outdir}/structuralVariants/lumpy/", mode: 'copy'
     
     cpus 10
     maxForks 3
@@ -1036,7 +1036,7 @@ process delly126 {
     errorStrategy 'ignore'
     tag "$meta.id"
     publishDir "${inhouse_SV}/delly/raw_calls/", mode: 'copy', pattern: "*.raw.*"
-    publishDir "${meta.panel}/structuralVariants/delly/", mode: 'copy'
+    publishDir "${meta.outdir}/structuralVariants/delly/", mode: 'copy'
     //publishDir "${outputDir}/structuralVariants/manta/", mode: 'copy', pattern: "*.{AFanno,filtered}.*"
     cpus 1
     maxForks 3
@@ -1079,7 +1079,7 @@ process cnvkit {
     cpus 10
     maxForks 3
 
-    publishDir "${meta.panel}/structuralVariants/cnvkit/", mode: 'copy'
+    publishDir "${meta.outdir}/structuralVariants/cnvkit/", mode: 'copy'
     publishDir "${inhouse_SV}/CNVkit/CNNfiles/", mode: 'copy', pattern: '*.cnn'
 
     input:
@@ -1114,7 +1114,7 @@ process cnvkitExportFiles {
     errorStrategy 'ignore'
     tag "$meta.id"
     publishDir "${inhouse_SV}/CNVkit/raw_calls/", mode: 'copy', pattern: '*.cnvkit.vcf'
-    publishDir "${meta.panel}/structuralVariants/cnvkit/", mode: 'copy'
+    publishDir "${meta.outdir}/structuralVariants/cnvkit/", mode: 'copy'
 
     input:
 //    tuple val(meta), path(cnvkit_calls)// from cnvkit_calls_out
@@ -1160,9 +1160,9 @@ process merge4callerSVDB {
 
     //publishDir "${outputDir}/all_callers_merged/", mode: 'copy'
    // publishDir "${outputDir}/structuralVariants/SVDB_merged/", mode: 'copy', pattern: "*.4caller.SVDB.merged.*"
-    publishDir "${meta.panel}/structuralVariants/SVDB_merged/60pctOverlap/", mode: 'copy', pattern: "*.60pctOverlap.*"
-    publishDir "${meta.panel}/structuralVariants/SVDB_merged/80pctOverlap/", mode: 'copy', pattern: "*.80pctOverlap.*"
-    publishDir "${meta.panel}/structuralVariants/SVDB_merged/100pctOverlap/", mode: 'copy', pattern: "*.100pctOverlap.*"
+    publishDir "${meta.outdir}/structuralVariants/SVDB_merged/60pctOverlap/", mode: 'copy', pattern: "*.60pctOverlap.*"
+    publishDir "${meta.outdir}/structuralVariants/SVDB_merged/80pctOverlap/", mode: 'copy', pattern: "*.80pctOverlap.*"
+    publishDir "${meta.outdir}/structuralVariants/SVDB_merged/100pctOverlap/", mode: 'copy', pattern: "*.100pctOverlap.*"
 
     //publishDir "${outputDir}/", mode: 'copy', pattern: '*.vcf'
     //container 'kfdrc/manta:1.6.0'
@@ -1203,7 +1203,7 @@ process merge4callerSVDB {
 process expansionHunter {
     errorStrategy 'ignore'
     tag "$meta.id"
-    publishDir "${meta.panel}/repeatExpansions/expansionHunter/", mode: 'copy'
+    publishDir "${meta.outdir}/repeatExpansions/expansionHunter/", mode: 'copy'
     cpus 10
     input:
     tuple val(meta), path(aln)
@@ -1224,13 +1224,13 @@ process expansionHunter {
 process stripy {
     errorStrategy 'ignore'
     tag "$meta.id"
-    publishDir "${meta.panel}/repeatExpansions/STRipy_ALL/", mode: 'copy',pattern:"*.ALL.html"
-    publishDir "${meta.panel}/repeatExpansions/STRipy_ataksi/", mode: 'copy',pattern:"*.ataksi.html"
-    publishDir "${meta.panel}/repeatExpansions/STRipy_myotoni/", mode: 'copy',pattern:"*.myotoni.html"
-    publishDir "${meta.panel}/repeatExpansions/STRipy_neuropati/", mode: 'copy',pattern:"*.neuropati.html"
-    publishDir "${meta.panel}/repeatExpansions/STRipy_ALS_FTD/", mode: 'copy',pattern:"*.ALS_FTD.html"
-    publishDir "${meta.panel}/repeatExpansions/STRipy_myopati/", mode: 'copy',pattern:"*.myopati.html"
-    publishDir "${meta.panel}/repeatExpansions/STRipy_epilepsi/", mode: 'copy',pattern:"*.epilepsi.html"
+    publishDir "${meta.outdir}/repeatExpansions/STRipy_ALL/", mode: 'copy',pattern:"*.ALL.html"
+    publishDir "${meta.outdir}/repeatExpansions/STRipy_ataksi/", mode: 'copy',pattern:"*.ataksi.html"
+    publishDir "${meta.outdir}/repeatExpansions/STRipy_myotoni/", mode: 'copy',pattern:"*.myotoni.html"
+    publishDir "${meta.outdir}/repeatExpansions/STRipy_neuropati/", mode: 'copy',pattern:"*.neuropati.html"
+    publishDir "${meta.outdir}/repeatExpansions/STRipy_ALS_FTD/", mode: 'copy',pattern:"*.ALS_FTD.html"
+    publishDir "${meta.outdir}/repeatExpansions/STRipy_myopati/", mode: 'copy',pattern:"*.myopati.html"
+    publishDir "${meta.outdir}/repeatExpansions/STRipy_epilepsi/", mode: 'copy',pattern:"*.epilepsi.html"
 
     conda '/lnx01_data3/shared/programmer/miniconda3/envs/py38/' // contains python modules required by stripy
 
@@ -1311,7 +1311,7 @@ process stripy {
 /*
 process prepareManifestSMN {
     
-    publishDir "${meta.panel}/SMNcaller/", mode: 'copy'
+    publishDir "${meta.outdir}/SMNcaller/", mode: 'copy'
     
     input:
     path(samplesheet) // from smn_input_ch
@@ -1326,7 +1326,7 @@ process prepareManifestSMN {
 }
 
 process smnCopyNumberCaller {
-    publishDir "${meta.panel}/SMNcaller/", mode: 'copy'
+    publishDir "${meta.outdir}/SMNcaller/", mode: 'copy'
     errorStrategy "ignore"
     cpus 12
 
@@ -1356,7 +1356,7 @@ process smnCopyNumberCaller {
 */
 process prepareManifestSMN {
     
-    //publishDir "${meta.panel}/SMNcaller/", mode: 'copy'
+    //publishDir "${meta.outdir}/SMNcaller/", mode: 'copy'
     
     input:
     path(samplesheet) // from smn_input_ch
@@ -1403,7 +1403,7 @@ process smnCopyNumberCaller {
 
 process vntyper_newRef {
     errorStrategy 'ignore'
-    publishDir "${meta.panel}/MUC1-VNTR_kestrel/", mode: 'copy'
+    publishDir "${meta.outdir}/MUC1-VNTR_kestrel/", mode: 'copy'
     cpus 16
 
     input:

@@ -516,11 +516,11 @@ if (!params.fastq && !params.fastqInput && !params.spring){
             AV1: (meta.panel=~/AV1/)
                 return [meta + [outdir:meta.panel, datatype:"targeted",roi:"$AV1_ROI"],aln]
             MV1: (meta.panel=~/MV1/)
-                return [meta + [datatype:"targeted",roi:"$MV1_ROI"],aln]
+                return [meta + [outdir:meta.panel, datatype:"targeted",roi:"$MV1_ROI"],aln]
             CV5: (meta.panel=~/CV5/)
-                return [meta + [datatype:"targeted",roi:"$CV5_ROI"],aln]
+                return [meta + [outdir:meta.panel, datatype:"targeted",roi:"$CV5_ROI"],aln]
             WES: (meta.panel=~/EV8/ ||meta.panel=~/EV7/)
-                return [meta + [datatype:"targeted",roi:"$WES_ROI"],aln]
+                return [meta + [,outdir:meta.panel, datatype:"targeted",roi:"$WES_ROI"],aln]
             undetermined: true
                 return [meta + [datatype:"unset",analyzed:"NO"],aln]
             [meta, aln]
@@ -529,7 +529,7 @@ if (!params.fastq && !params.fastqInput && !params.spring){
 
     cramInputBranched.MV1.concat(cramInputBranched.AV1).concat(cramInputBranched.WES).concat(cramInputBranched.WGS).concat(cramInputBranched.CV5)
     |set {cramInputReMerged}
-    cramInputReMerged.view()
+
     if (params.samplesheet) {
         cramInputReMerged
         | map { meta,aln -> tuple(meta.npn,meta,aln)}
