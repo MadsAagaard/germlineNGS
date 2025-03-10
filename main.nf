@@ -493,7 +493,6 @@ if (!params.fastq && !params.fastqInput && !params.spring){
 
     Channel.fromPath(cramfiles,checkIfExists:true)
     |map {tuple (it.simpleName,it)}
-    |view
     |set {cramfiles}
     
     Channel.fromPath(craifiles,checkIfExists:true)
