@@ -526,7 +526,7 @@ if (!params.fastq && !params.fastqInput && !params.spring){
             [meta, aln]
     }
     | set {cramInputBranched}
-
+    cramInputBranched.WGS.view()
     cramInputBranched.MV1.concat(cramInputBranched.AV1).concat(cramInputBranched.WES).concat(cramInputBranched.WGS).concat(cramInputBranched.CV5)
     |set {cramInputReMerged}
 
