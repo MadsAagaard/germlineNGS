@@ -520,7 +520,7 @@ if (!params.fastq && !params.fastqInput && !params.spring){
             CV5: (meta.panel=~/CV5/)
                 return [meta + [outdir:meta.panel, datatype:"targeted",roi:"$CV5_ROI"],aln]
             WES: (meta.panel=~/EV8/ ||meta.panel=~/EV7/)
-                return [meta + [,outdir:meta.panel, datatype:"targeted",roi:"$WES_ROI"],aln]
+                return [meta + [outdir:meta.panel, datatype:"targeted",roi:"$WES_ROI"],aln]
             undetermined: true
                 return [meta + [datatype:"unset",analyzed:"NO"],aln]
             [meta, aln]
