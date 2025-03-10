@@ -529,7 +529,7 @@ if (!params.fastq && !params.fastqInput && !params.spring){
 
     cramInputBranched.MV1.concat(cramInputBranched.AV1).concat(cramInputBranched.WES).concat(cramInputBranched.WGS).concat(cramInputBranched.CV5)
     |set {cramInputReMerged}
-    cramInputReMerged,view()
+    cramInputReMerged.view()
     if (params.samplesheet) {
         cramInputReMerged
         | map { meta,aln -> tuple(meta.npn,meta,aln)}
