@@ -512,9 +512,9 @@ if (!params.fastq && !params.fastqInput && !params.spring){
     cram_all
     |branch {meta, aln ->
             WGS: (meta.panel=~/WG/ || meta.panel=~/NGC/)
-                return [meta + [datatype:"WGS",roi:"$WES_ROI"],aln]
+                return [meta + [outdir:meta.fullpanel, datatype:"WGS",roi:"$WES_ROI"],aln]
             AV1: (meta.panel=~/AV1/)
-                return [meta + [datatype:"targeted",roi:"$AV1_ROI"],aln]
+                return [meta + [outdir:meta.panel, datatype:"targeted",roi:"$AV1_ROI"],aln]
             MV1: (meta.panel=~/MV1/)
                 return [meta + [datatype:"targeted",roi:"$MV1_ROI"],aln]
             CV5: (meta.panel=~/CV5/)
