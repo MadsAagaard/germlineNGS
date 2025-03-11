@@ -33,7 +33,36 @@ switch (params.gatk) {
     break;
 }
 
+switch (params.server) {
 
+    case 'lnx01':
+        s_bind="/data/:/data/,/lnx01_data2/:/lnx01_data2/";
+        simgpath="/data/shared/programmer/simg";
+        tmpDIR="/data/TMP/TMP.${user}/";
+        gatk_exec="singularity run -B ${s_bind} ${simgpath}/${gatk_image} gatk";
+        multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
+        tank_storage="/home/mmaj/tank.kga2/data/data.storage.archive/";
+        dataStorage="/lnx01_data3/storage/";
+        refFilesDir="/data/shared/genomes";
+        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter10_IntervalSubdiv/*.interval_list";
+    break;
+
+    default:
+        s_bind="/data/:/data/,/lnx01_data2/:/lnx01_data2/,/fast/:/fast/,/lnx01_data3/:/lnx01_data3/,/lnx01_data4/:/lnx01_data4/";
+        simgpath="/data/shared/programmer/simg";
+        tmpDIR="/fast/TMP/TMP.${user}/";
+        gatk_exec="singularity run -B ${s_bind} ${simgpath}/${gatk_image} gatk";
+        multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
+        dataStorage="/lnx01_data3/storage/";
+        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";
+        dataArchive="/lnx01_data2/shared/dataArchive";
+        refFilesDir="/fast/shared/genomes";
+    break;
+}
+
+
+
+/*
 switch (params.server) {
     case 'lnx02':
         s_bind="/data/:/data/,/lnx01_data2/:/lnx01_data2/,/fast/:/fast/,/lnx01_data3/:/lnx01_data3/";
@@ -61,6 +90,9 @@ switch (params.server) {
         params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter10_IntervalSubdiv/*.interval_list";
 //        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/wgs_splitinterval_BWI_subdivision3/*.interval_list";
 
+
+
+
     break;
     case 'kga01':
         simgpath="/data/shared/programmer/simg";
@@ -72,6 +104,7 @@ switch (params.server) {
         refFilesDir="/data/shared/genomes";
     break;
 }
+*/
 
 switch (params.genome) {
     case 'hg19':
@@ -800,7 +833,7 @@ process jointgenotyping {
 process haplotypecallerSplitIntervals {
     errorStrategy 'ignore'
     
-    if (params.server=="lnx02"){
+    if (!params.server=="lnx01"){
         maxForks 50
     }
     if (params.server=="lnx01"){
