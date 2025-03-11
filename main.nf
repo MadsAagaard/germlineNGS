@@ -148,6 +148,30 @@ def FastqCRAM_error() {
 if (params.cram && params.fastq) exit 0, FastqCRAM_error()
 
 
+
+switch (params.gatk) {
+
+    case 'danak':
+    gatk_image="gatk419.sif";
+    break;
+    case 'new':
+    gatk_image="gatk4400.sif";
+    break;
+    case 'v45':
+    gatk_image="gatk4500.sif";
+    default:
+        if (params.panel=="AV1" || params.panel=="GV3" || params.panel=="CV5"){
+            gatk_image="gatk419.sif";
+        }
+        else {
+            gatk_image="gatk4400.sif";
+        }
+    break;
+}
+
+
+
+
 switch (params.server) {
 
     case 'lnx01':
