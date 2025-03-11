@@ -1259,7 +1259,8 @@ process stripy {
     publishDir "${outputDir}/repeatExpansions/STRipy_myopati/", mode: 'copy',pattern:"*.myopati.html"
     publishDir "${outputDir}/repeatExpansions/STRipy_epilepsi/", mode: 'copy',pattern:"*.epilepsi.html"
 
-    
+        conda '/lnx01_data3/shared/programmer/miniconda3/envs/py38/' // contains python modules required by stripy
+
     input:
     tuple val(sampleID), path(aln), path(index)
 
@@ -1382,6 +1383,8 @@ process smnCopyNumberCaller {
     publishDir "${outputDir}/SMNcaller/", mode: 'copy'
     errorStrategy "ignore"
     cpus 12
+
+    conda '/lnx01_data3/shared/programmer/miniconda3/envs/py38/' // contains python modules required by smncopynumbercaller
 
     input:
     path(manifest)// from SMN_manifest_ch
