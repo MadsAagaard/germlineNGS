@@ -764,8 +764,11 @@ process haplotypecaller{
 process jointgenotyping {
         errorStrategy 'ignore'
         cpus 4
-        publishDir "${meta.outdir}/Variants/", mode: 'copy', pattern: "*.VarSeq.*"
-        publishDir "${meta.outdir}/Variants/GVCF_files/", mode: 'copy', pattern: "*.merged.g.*"
+        //publishDir "${meta.outdir}/Variants/", mode: 'copy', pattern: "*.VarSeq.*"
+        //publishDir "${meta.outdir}/Variants/GVCF_files/", mode: 'copy', pattern: "*.merged.g.*"
+       
+        publishDir "${outputDir}/Variants/", mode: 'copy', pattern: "*.VarSeq.*"
+        publishDir "${outputDir}/Variants/GVCF_files/", mode: 'copy', pattern: "*.merged.g.*"
         //publishDir "tumorBoard_files", mode: 'copy', pattern: "*.VarSeq.*"
 
         input:
