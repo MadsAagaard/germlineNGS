@@ -292,18 +292,18 @@ switch (params.panel) {
     break;
 
     case "NGC":
-        reads_pattern_cram="*{-,.,_}{WG4_NGC}{-,.,_}*.cram";
-        reads_pattern_crai="*{-,.,_}{WG4_NGC}{-,.,_}*.crai";
-        reads_pattern_fastq="*{-,.,_}{WG4_NGC}{-,.,_}*R{1,2}*{fq,fastq}.gz";
-        reads_pattern_spring="*{WG4_NGC}*.spring";
+        reads_pattern_cram="*{-,.,_}{WG4_NGC,WGSNGC}{-,.,_}*.cram";
+        reads_pattern_crai="*{-,.,_}{WG4_NGC,WGSNGC}{-,.,_}*.crai";
+        reads_pattern_fastq="*{-,.,_}{WG4_NGC,WGSNGC}{-,.,_}*R{1,2}*{fq,fastq}.gz";
+        reads_pattern_spring="*{WG4_NGC,WGSNGC}*.spring";
         panelID="WGS"
     break;
 
     default: 
-        reads_pattern_cram="*{-,.,_}{WG3,WG4,A_WG4,LIB,WG4_CNV,WGSmerged,WG4_NGC}{-,.,_}*.cram";
-        reads_pattern_crai="*{-,.,_}{WG3,WG4,A_WG4,LIB,WG4_CNV,WGSmerged,WG4_NGC}{-,.,_}*.crai";
-        reads_pattern_fastq="*{-,.,_}{WG3,WG4,A_WG4,LIB,WG4_CNV,WGSmerged,WG4_NGC}{-,.,_}*R{1,2}*{fq,fastq}.gz";
-        reads_pattern_spring="*{WG3,WG4,A_WG4,LIB,WG4_CNV,WGSmerged,WGS,nova,WG4_NGC}*.spring";
+        reads_pattern_cram="*{-,.,_}{WG3,WG4,A_WG4,LIB,WG4_CNV,WGSmerged,WG4_NGC,WGSNGC}{-,.,_}*.cram";
+        reads_pattern_crai="*{-,.,_}{WG3,WG4,A_WG4,LIB,WG4_CNV,WGSmerged,WG4_NGC,WGSNGC}{-,.,_}*.crai";
+        reads_pattern_fastq="*{-,.,_}{WG3,WG4,A_WG4,LIB,WG4_CNV,WGSmerged,WG4_NGC,WGSNGC}{-,.,_}*R{1,2}*{fq,fastq}.gz";
+        reads_pattern_spring="*{WG3,WG4,A_WG4,LIB,WG4_CNV,WGSmerged,WGS,nova,WG4_NGC,WGSNGC}*.spring";
         panelID="WGS"
     break;
 }
