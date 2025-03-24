@@ -282,6 +282,22 @@ switch (params.panel) {
     break;
 }
 
+
+switch (params.genome) {
+    case 'hg19':
+    
+    break;
+    case 'hg38':
+        WES_ROI                 ="/data/shared/genomes/hg38/interval.files/exome.ROIs/211130.hg38.refseq.gencode.fullexons.50bp.SM.bed"
+    break;
+    case 't2t':
+        WES_ROI                 = "/data/shared/genomes/t2t/interval.files/250314.T2T.RefSeq.fullExons+50bp.bed"
+    break;
+
+
+
+}
+
 /*
 switch (params.genome) {
     case 'hg19':
