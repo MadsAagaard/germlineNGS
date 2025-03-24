@@ -180,7 +180,7 @@ switch (params.genome) {
         genome_fasta_fai        = "/data/shared/genomes/t2t/pacbio_t2t/chm13v2p0_maskedY_rCRS.fasta.fai"
         genome_fasta_dict       = "/data/shared/genomes/t2t/pacbio_t2t/chm13v2p0_maskedY_rCRS.dict"
         genome_version          = "T2Tv1"
-        intervalList_GATK_GATK  ="/data/shared/genomes/t2t/interval.files/WGS_splitIntervals/t2t_15intervals_BWI_OVERFLOW/*.interval_list"
+        intervalList_GATK       ="/data/shared/genomes/t2t/interval.files/WGS_splitIntervals/t2t_15intervals_BWI_OVERFLOW/*.interval_list"
 
         pbSV_trf                = "/data/shared/genomes/t2t/pacbio_t2t/chm13v2p0_maskedY_rCRS.trf.bed"
         ROI                     = "/data/shared/genomes/t2t/interval.files/250314.T2T.RefSeq.fullExons+50bp.bed"
