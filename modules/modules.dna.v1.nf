@@ -8,7 +8,7 @@ user="$USER"
 runID="${date}.${user}"
 
 
-
+// Server and reference independent variables
 multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
 vntyperREF="/data/shared/genomes/hg19/program_DBs/vntyper"
 //////////////////////////// SWITCHES ///////////////////////////////// 
@@ -42,10 +42,8 @@ switch (params.server) {
         tmpDIR="/data/TMP/TMP.${user}/";
         gatk_exec="singularity run -B ${s_bind} ${simgpath}/${gatk_image} gatk";
         multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
-        tank_storage="/home/mmaj/tank.kga2/data/data.storage.archive/";
         dataStorage="/lnx01_data3/storage/";
         refFilesDir="/data/shared/genomes";
-        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter10_IntervalSubdiv/*.interval_list";
     break;
 
     default:
@@ -55,7 +53,6 @@ switch (params.server) {
         gatk_exec="singularity run -B ${s_bind} ${simgpath}/${gatk_image} gatk";
         multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
         dataStorage="/lnx01_data3/storage/";
-        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";
         dataArchive="/lnx01_data2/shared/dataArchive";
         refFilesDir="/fast/shared/genomes";
     break;
@@ -68,7 +65,7 @@ switch (params.genome) {
         genome_fasta            ="/data/shared/genomes/hg19/human_g1k_v37.fasta"
         genome_fasta_fai        ="/data/shared/genomes/hg19/human_g1k_v37.fasta.fai"
         genome_fasta_dict       ="/data/shared/genomes/hg19/human_g1k_v37.dict"
-        genome_version          ="V1"
+        genome_version          ="hg19v1"
     break;
 
 
@@ -113,7 +110,7 @@ switch (params.genome) {
      
         //Program  files:
         msisensor_list          ="${refFilesDir}/hg38/program_DBs/msisensor/hg38_msisensor_scan.txt"
-        
+        intervalList_GATK_GATK  ="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";             
       
         //Structural variants
         delly_exclude           ="/data/shared/genomes/hg38/program_DBs/delly/human.hg38.excl.tsv"
@@ -183,6 +180,7 @@ switch (params.genome) {
         genome_fasta_fai        = "/data/shared/genomes/t2t/pacbio_t2t/chm13v2p0_maskedY_rCRS.fasta.fai"
         genome_fasta_dict       = "/data/shared/genomes/t2t/pacbio_t2t/chm13v2p0_maskedY_rCRS.dict"
         genome_version          = "T2Tv1"
+        intervalList_GATK_GATK  ="/data/shared/genomes/t2t/interval.files/WGS_splitIntervals/t2t_15intervals_BWI_OVERFLOW/*.interval_list"
 
         pbSV_trf                = "/data/shared/genomes/t2t/pacbio_t2t/chm13v2p0_maskedY_rCRS.trf.bed"
         ROI                     = "/data/shared/genomes/t2t/interval.files/250314.T2T.RefSeq.fullExons+50bp.bed"
@@ -263,7 +261,7 @@ cramStorage="${dataStorage}/alignedData/${params.genome}/"
 
 
 channel
-    .fromPath(params.intervals_list)
+    .fromPath(intervalList_GATK)
     .map { it -> tuple(it.baseName,it)}
     .set { haplotypecallerIntervalList }
 
@@ -280,7 +278,7 @@ GATK ver.    : $gatk_image
 Server       : $params.server
 RunID        : $runID
 PanelID      : $panelID
-IntervalList : $params.intervals_list
+IntervalList : $intervalList_GATK
 Script start : $date2
 """
 

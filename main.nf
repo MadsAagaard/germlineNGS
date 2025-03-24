@@ -167,8 +167,6 @@ switch (params.gatk) {
     break;
 }
 
-
-
 switch (params.server) {
 
     case 'lnx01':
@@ -178,10 +176,6 @@ switch (params.server) {
         gatk_exec="singularity run -B ${s_bind} ${simgpath}/${gatk_image} gatk";
         multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
         dataStorage="/lnx01_data3/storage/";
-        //params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter10_IntervalSubdiv/*.interval_list";
-        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";
-        modules_dir="/home/mmaj/scripts_lnx01/nextflow_lnx01/dsl2/modules";
-        subworkflow_dir="/home/mmaj/scripts_lnx01/nextflow_lnx01/dsl2/subworkflows";
         dataArchive="/lnx01_data2/shared/dataArchive";
         refFilesDir="/data/shared/genomes";
     break;
@@ -191,9 +185,7 @@ switch (params.server) {
         simgpath="/data/shared/programmer/simg";
         tmpDIR="/fast/TMP/TMP.${user}/";
         gatk_exec="singularity run -B ${s_bind} ${simgpath}/${gatk_image} gatk";
-        multiqc_config="/data/shared/programmer/configfiles/multiqc_config.yaml"
         dataStorage="/lnx01_data3/storage/";
-        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";
         dataArchive="/lnx01_data2/shared/dataArchive";
         refFilesDir="/fast/shared/genomes";
     break;
@@ -290,7 +282,7 @@ switch (params.panel) {
     break;
 }
 
-
+/*
 switch (params.genome) {
     case 'hg19':
         assembly="hg19"
@@ -306,35 +298,38 @@ switch (params.genome) {
         assembly="hg38"
         spliceai_assembly="grch38"
         smncaller_assembly="38"
-        svdb_databases="/data/shared/genomes/hg38/inhouse_DBs/hg38v3/svdb_AF"
+
         // Genome assembly files:
         if (params.hg38v1) {
-        genome_fasta = "${refFilesDir}/hg38/GRCh38.primary.fa"
-        genome_fasta_fai = "${refFilesDir}/hg38/GRCh38.primary.fa.fai"
-        genome_fasta_dict = "${refFilesDir}/hg38/GRCh38.primary.dict"
-        genome_version="hg38v1"
-        cnvkit_germline_reference_PON="/data/shared/genomes/hg38/inhouse_DBs/hg38v1_primary/cnvkit/wgs_germline_PON/jgmr_45samples.reference.cnn"
-        cnvkit_inhouse_cnn_dir="/data/shared/genomes/hg38/inhouse_DBs/hg38v1_primary/cnvkit/wgs_persample_cnn/"
-        inhouse_SV="/data/shared/genomes/hg38/inhouse_DBs/hg38v1_primary/"
+            genome_fasta = "${refFilesDir}/hg38/GRCh38.primary.fa"
+            genome_fasta_fai = "${refFilesDir}/hg38/GRCh38.primary.fa.fai"
+            genome_fasta_dict = "${refFilesDir}/hg38/GRCh38.primary.dict"
+            genome_version="hg38v1"
+            cnvkit_germline_reference_PON="/data/shared/genomes/hg38/inhouse_DBs/hg38v1_primary/cnvkit/wgs_germline_PON/jgmr_45samples.reference.cnn"
+            cnvkit_inhouse_cnn_dir="/data/shared/genomes/hg38/inhouse_DBs/hg38v1_primary/cnvkit/wgs_persample_cnn/"
+            inhouse_SV="/data/shared/genomes/hg38/inhouse_DBs/hg38v1_primary/"
         }
         
         if (params.hg38v2){
-        genome_fasta = "${refFilesDir}/hg38/ucsc.hg38.NGS.analysisSet.fa"
-        genome_fasta_fai = "${refFilesDir}/hg38/ucsc.hg38.NGS.analysisSet.fa.fai"
-        genome_fasta_dict = "${refFilesDir}/hg38/ucsc.hg38.NGS.analysisSet.dict"
-        genome_version="hg38v2"
+            genome_fasta = "${refFilesDir}/hg38/ucsc.hg38.NGS.analysisSet.fa"
+            genome_fasta_fai = "${refFilesDir}/hg38/ucsc.hg38.NGS.analysisSet.fa.fai"
+            genome_fasta_dict = "${refFilesDir}/hg38/ucsc.hg38.NGS.analysisSet.dict"
+            genome_version="hg38v2"
         }
 
         // Current hg38 version (v3): NGC with masks and decoys.
         if (!params.hg38v2 && !params.hg38v1){
-        genome_fasta = "${refFilesDir}/hg38/GRCh38_masked_v2_decoy_exclude.fa"
-        genome_fasta_fai = "${refFilesDir}/hg38/GRCh38_masked_v2_decoy_exclude.fa.fai"
-        genome_fasta_dict = "${refFilesDir}/hg38/GRCh38_masked_v2_decoy_exclude.dict"
-        genome_version="hg38v3"
-        cnvkit_germline_reference_PON="/data/shared/genomes/hg38/inhouse_DBs/hg38v3_primary/cnvkit/hg38v3_109samples.cnvkit.reference.cnn"
-        cnvkit_inhouse_cnn_dir="/data/shared/genomes/hg38/inhouse_DBs/hg38v3_primary/cnvkit/wgs_persample_cnn/"
-        inhouse_SV="/data/shared/genomes/hg38/inhouse_DBs/hg38v3/"
+            genome_fasta = "${refFilesDir}/hg38/GRCh38_masked_v2_decoy_exclude.fa"
+            genome_fasta_fai = "${refFilesDir}/hg38/GRCh38_masked_v2_decoy_exclude.fa.fai"
+            genome_fasta_dict = "${refFilesDir}/hg38/GRCh38_masked_v2_decoy_exclude.dict"
+            genome_version="hg38v3"
+            cnvkit_germline_reference_PON="/data/shared/genomes/hg38/inhouse_DBs/hg38v3_primary/cnvkit/hg38v3_109samples.cnvkit.reference.cnn"
+            cnvkit_inhouse_cnn_dir="/data/shared/genomes/hg38/inhouse_DBs/hg38v3_primary/cnvkit/wgs_persample_cnn/"
+            inhouse_SV="/data/shared/genomes/hg38/inhouse_DBs/hg38v3/"
         }
+
+
+
 
         // Gene and transcript annotation files:
 
@@ -342,8 +337,10 @@ switch (params.genome) {
         gencode_gff3 = "${refFilesDir}/hg38/gene.annotations/gencode.v36.annotation.gff3"
      
         //Program  files:
+
         msisensor_list="${refFilesDir}/hg38/program_DBs/msisensor/hg38_msisensor_scan.txt"
         
+        params.intervals_list="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";        
       
         //Structural variants
         delly_exclude="/data/shared/genomes/hg38/program_DBs/delly/human.hg38.excl.tsv"
@@ -351,6 +348,7 @@ switch (params.genome) {
         smoove_exclude="/data/shared/genomes/hg38/interval.files/smoove/smoove.hg38.excluderegions.bed"
         smoove_gff="/data/shared/genomes/hg38/gene.annotations/GRCh38_latest_genomic.gff.gz"
 
+        svdb_databases="/data/shared/genomes/hg38/inhouse_DBs/hg38v3/svdb_AF"
 
         //inhouse SV AF databases: 
         mantaSVDB="${svdb_databases}/mantaSVDB315.db"
@@ -422,7 +420,7 @@ switch (params.genome) {
     break;
 
 }
-
+*/
 
 
 
