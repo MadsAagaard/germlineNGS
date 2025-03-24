@@ -429,18 +429,17 @@ if (params.fastq || params.fastqInput) {
     }
     | branch {meta, reads ->
         WGS: (meta.panel=~/WG/ || meta.panel=~/NGC/)
-            return [meta + [datatype:"WGS",roi:"$WES_ROI"],reads]
+            return [meta + [outdir:meta.panel,datatype:"WGS",roi:"$WES_ROI"],reads]
         AV1: (meta.panel=~/AV1/)
-            return [meta + [datatype:"targeted",roi:"$AV1_ROI"],reads]
+            return [meta + [outdir:meta.panel,datatype:"targeted",roi:"$AV1_ROI"],reads]
         MV1: (meta.panel=~/MV1/)
-            return [meta + [datatype:"targeted",roi:"$MV1_ROI"],reads]
+            return [meta + [outdir:meta.panel,datatype:"targeted",roi:"$MV1_ROI"],reads]
         WES: (meta.panel=~/EV8/ ||meta.panel=~/EV7/)
-            return [meta + [datatype:"targeted",roi:"$WES_ROI"],reads]
+            return [meta + [outdir:meta.panel,datatype:"targeted",roi:"$WES_ROI"],reads]
         undetermined: true
-            return [meta + [datatype:"unset",analyzed:"NO"],reads]
+            return [meta + [outdir:meta.panel,datatype:"unset",analyzed:"NO"],reads]
         [meta, reads]
     }
-    
     | set {readsInputBranched}
 
     readsInputBranched.MV1.concat(readsInputBranched.AV1).concat(readsInputBranched.WES).concat(readsInputBranched.WGS)
@@ -691,15 +690,15 @@ workflow {
             SUB_VARIANTCALL_WGS(alnInputFinalBranched.WGS)
         }
 
-        if (!params.skipSV) {
+        if (!params.skipSV && meta.datatype=="WGS") {
             SUB_CNV_SV(alnInputFinalBranched.WGS)
         }
         
-        if (!params.skipSTR) {
+        if (!params.skipSTR && meta.datatype=="WGS") {
             SUB_STR(alnInputFinalBranched.WGS)
         }
 
-        if (!params.skipSMN) {
+        if (!params.skipSMN && meta.datatype=="WGS") {
             
             alnInputFinalBranched.WGS
             //|map {meta, aln -> tuple(meta.id,aln[0])}
