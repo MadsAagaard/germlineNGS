@@ -690,15 +690,15 @@ workflow {
             SUB_VARIANTCALL_WGS(alnInputFinalBranched.WGS)
         }
 
-        if (!params.skipSV && meta.datatype=="WGS") {
+        if (!params.skipSV && panelID=="WGS") {
             SUB_CNV_SV(alnInputFinalBranched.WGS)
         }
         
-        if (!params.skipSTR && meta.datatype=="WGS") {
+        if (!params.skipSTR && panelID=="WGS") {
             SUB_STR(alnInputFinalBranched.WGS)
         }
 
-        if (!params.skipSMN && meta.datatype=="WGS") {
+        if (!params.skipSMN && panelID=="WGS") {
             
             alnInputFinalBranched.WGS
             //|map {meta, aln -> tuple(meta.id,aln[0])}
