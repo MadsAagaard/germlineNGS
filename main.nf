@@ -429,7 +429,7 @@ if (params.fastq || params.fastqInput) {
     }
     | branch {meta, reads ->
         WGS: (meta.panel=~/WG/ || meta.panel=~/NGC/)
-            return [meta + [outdir:meta.panel,datatype:"WGS",roi:"$WES_ROI"],reads]
+            return [meta + [outdir:meta.fullpanel,datatype:"WGS",roi:"$WES_ROI"],reads]
         AV1: (meta.panel=~/AV1/)
             return [meta + [outdir:meta.panel,datatype:"targeted",roi:"$AV1_ROI"],reads]
         MV1: (meta.panel=~/MV1/)
