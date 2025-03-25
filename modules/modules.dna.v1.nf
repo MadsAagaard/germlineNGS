@@ -1624,8 +1624,13 @@ workflow SUB_VARIANTCALL_WGS {
     main:
     haplotypecallerSplitIntervals(meta_aln_index.combine(haplotypecallerIntervalList))
 
-
+    if (params.genome=="hg38") {
     combineGVCF(haplotypecallerSplitIntervals.out.groupTuple(size:17))
+    }
+    if (params.genome=="t2t") {
+    combineGVCF(haplotypecallerSplitIntervals.out.groupTuple(size:15))
+    }
+
     genotypeSingle(combineGVCF.out.singleGVCF)
 
     //    if (!params.single) {
