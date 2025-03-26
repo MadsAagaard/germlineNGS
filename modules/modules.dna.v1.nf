@@ -60,15 +60,17 @@ switch (params.server) {
 
 switch (params.genome) {
     case 'hg19':
-        assembly                ="hg19"
+        assembly                   ="hg19"
         // Genome assembly files:
       //  genome_fasta            ="/data/shared/genomes/hg19/human_g1k_v37.fasta"
       //  genome_fasta_fai        ="/data/shared/genomes/hg19/human_g1k_v37.fasta.fai"
       //  genome_fasta_dict       ="/data/shared/genomes/hg19/human_g1k_v37.dict"
-            genome_fasta         = "/data/shared/genomes/hg19/pacbio_hg19/human_hs37d5.fasta"
-            genome_fasta_fai     = "/data/shared/genomes/hg19/pacbio_hg19/human_hs37d5.fasta.fai"
-            genome_fasta_dict    = "/data/shared/genomes/hg19/pacbio_hg19/human_hs37d5.fasta.dict"
-        genome_version          ="hg19v2"
+            genome_fasta           = "/data/shared/genomes/hg19/pacbio_hg19/human_hs37d5.fasta"
+            genome_fasta_fai       = "/data/shared/genomes/hg19/pacbio_hg19/human_hs37d5.fasta.fai"
+            genome_fasta_dict      = "/data/shared/genomes/hg19/pacbio_hg19/human_hs37d5.fasta.dict"
+        genome_version             = "hg19v2"
+            ROI                    ="/data/shared/genomes/hg19/interval.files/200108.NCBIrefseq.codingexons.nocontig.20bp.merged.sorted.bed"
+            WES_ROI                ="/data/shared/genomes/hg19/interval.files/200108.NCBIrefseq.codingexons.nocontig.20bp.merged.sorted.bed"
     break;
 
 
@@ -177,17 +179,17 @@ switch (params.genome) {
     break;
 
     case 't2t':
-        assembly                = "t2t"
-        genome_mmi              = "/data/shared/genomes/t2t/pacbio_t2t/chm13v2p0_maskedY_rCRS.mmi"
-        genome_fasta            = "/data/shared/genomes/t2t/pacbio_t2t/chm13v2p0_maskedY_rCRS.fasta"
-        genome_fasta_fai        = "/data/shared/genomes/t2t/pacbio_t2t/chm13v2p0_maskedY_rCRS.fasta.fai"
-        genome_fasta_dict       = "/data/shared/genomes/t2t/pacbio_t2t/chm13v2p0_maskedY_rCRS.dict"
-        genome_version          = "T2Tv1"
-        intervalList_GATK       ="/data/shared/genomes/t2t/interval.files/WGS_splitIntervals/t2t_15intervals_BWI_OVERFLOW/*.interval_list"
+        assembly                   = "t2t"
+        genome_mmi                 = "/data/shared/genomes/t2t/pacbio_t2t/chm13v2p0_maskedY_rCRS.mmi"
+        genome_fasta               = "/data/shared/genomes/t2t/pacbio_t2t/chm13v2p0_maskedY_rCRS.fasta"
+        genome_fasta_fai           = "/data/shared/genomes/t2t/pacbio_t2t/chm13v2p0_maskedY_rCRS.fasta.fai"
+        genome_fasta_dict          = "/data/shared/genomes/t2t/pacbio_t2t/chm13v2p0_maskedY_rCRS.dict"
+        genome_version             = "T2Tv1"
+        intervalList_GATK          ="/data/shared/genomes/t2t/interval.files/WGS_splitIntervals/t2t_15intervals_BWI_OVERFLOW/*.interval_list"
 
-        pbSV_trf                = "/data/shared/genomes/t2t/pacbio_t2t/chm13v2p0_maskedY_rCRS.trf.bed"
-        ROI                     = "/data/shared/genomes/t2t/interval.files/250314.T2T.RefSeq.fullExons+50bp.bed"
-        WES_ROI                 = "/data/shared/genomes/t2t/interval.files/250314.T2T.RefSeq.fullExons+50bp.bed"
+        pbSV_trf                   = "/data/shared/genomes/t2t/pacbio_t2t/chm13v2p0_maskedY_rCRS.trf.bed"
+        ROI                        = "/data/shared/genomes/t2t/interval.files/250314.T2T.RefSeq.fullExons+50bp.bed"
+        WES_ROI                    = "/data/shared/genomes/t2t/interval.files/250314.T2T.RefSeq.fullExons+50bp.bed"
 
     break;
 
