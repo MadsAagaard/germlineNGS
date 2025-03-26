@@ -283,10 +283,10 @@ GATK ver.    : $gatk_image
 Server       : $params.server
 RunID        : $runID
 PanelID      : $panelID
-IntervalList : $intervalList_GATK
+
 Script start : $date2
 """
-
+//IntervalList : $intervalList_GATK
 
 /*********************************************
 ********** SYMLINKS (fastq or CRAM) **********
