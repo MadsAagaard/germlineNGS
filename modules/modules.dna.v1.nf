@@ -62,10 +62,13 @@ switch (params.genome) {
     case 'hg19':
         assembly                ="hg19"
         // Genome assembly files:
-        genome_fasta            ="/data/shared/genomes/hg19/human_g1k_v37.fasta"
-        genome_fasta_fai        ="/data/shared/genomes/hg19/human_g1k_v37.fasta.fai"
-        genome_fasta_dict       ="/data/shared/genomes/hg19/human_g1k_v37.dict"
-        genome_version          ="hg19v1"
+      //  genome_fasta            ="/data/shared/genomes/hg19/human_g1k_v37.fasta"
+      //  genome_fasta_fai        ="/data/shared/genomes/hg19/human_g1k_v37.fasta.fai"
+      //  genome_fasta_dict       ="/data/shared/genomes/hg19/human_g1k_v37.dict"
+            genome_fasta         = "/data/shared/genomes/hg19/pacbio_hg19/human_hs37d5.fasta"
+            genome_fasta_fai     = "/data/shared/genomes/hg19/pacbio_hg19/human_hs37d5.fasta.fai"
+            genome_fasta_dict    = "/data/shared/genomes/hg19/pacbio_hg19/human_hs37d5.fasta.dict"
+        genome_version          ="hg19v2"
     break;
 
 
