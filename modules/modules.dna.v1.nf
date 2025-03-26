@@ -71,6 +71,14 @@ switch (params.genome) {
         genome_version             = "hg19v2"
             ROI                    ="/data/shared/genomes/hg19/interval.files/200108.NCBIrefseq.codingexons.nocontig.20bp.merged.sorted.bed"
             WES_ROI                ="/data/shared/genomes/hg19/interval.files/200108.NCBIrefseq.codingexons.nocontig.20bp.merged.sorted.bed"
+
+        //sv databases wont work, but output not used. Required to get single sample SV calls:
+        svdb_databases          ="/data/shared/genomes/hg38/inhouse_DBs/hg38v3/svdb_AF"    
+        mantaSVDB               ="${svdb_databases}/mantaSVDB315.db"
+        lumpySVDB               ="${svdb_databases}/lumpySVDB218.db"
+        cnvkitSVDB              ="${svdb_databases}/cnvkitSVDB313.db"
+        dellySVDB               ="${svdb_databases}/dellySVDB112.db"
+    
     break;
 
 
@@ -944,7 +952,7 @@ process jointgenoScatter{
 process manta {
     errorStrategy 'ignore'
     tag "$meta.id"
-    publishDir "${inhouse_SV}/manta/raw_calls/", mode: 'copy', pattern: " ${meta.id}.manta.diploidSV.*"
+    publishDir "${inhouse_SV}/manta/raw_calls/", mode: 'copy', pattern: " ${meta.id}.${genome_version}.manta.diploidSV.*"
     publishDir "${outputDir}/structuralVariants/manta/allOutput/", mode: 'copy'
     publishDir "${outputDir}/structuralVariants/manta/", mode: 'copy', pattern: "*.{AFanno,filtered}.*"
     cpus 10
@@ -954,9 +962,9 @@ process manta {
     tuple val(meta), path(aln)
 
     output:
-    path("${meta.id}.manta.*.{vcf,vcf.gz,gz.tbi}")
-  //  tuple val("${meta.id}"), path("${meta.id}.manta.AFanno.frq_below5pct.vcf"), emit: mantaForSVDB
-    tuple val(meta), path("${meta.id}.manta.AFanno.frq_below5pct.vcf"), emit: mantaForSVDB
+    path("${meta.id}.${genome_version}.manta.*.{vcf,vcf.gz,gz.tbi}")
+  //  tuple val("${meta.id}"), path("${meta.id}.${genome_version}.manta.AFanno.frq_below5pct.vcf"), emit: mantaForSVDB
+    tuple val(meta), path("${meta.id}.${genome_version}.manta.AFanno.frq_below5pct.vcf"), emit: mantaForSVDB
     script:
     """
     singularity run -B ${s_bind} ${simgpath}/manta1.6_strelka2.9.10.sif configManta.py \
@@ -968,37 +976,37 @@ process manta {
     singularity run -B ${s_bind} ${simgpath}/manta1.6_strelka2.9.10.sif ./manta/runWorkflow.py -j ${task.cpus}
 
     mv manta/results/variants/candidateSmallIndels.vcf.gz \
-    ${meta.id}.manta.candidateSmallIndels.vcf.gz
+    ${meta.id}.${genome_version}.manta.candidateSmallIndels.vcf.gz
     
     mv manta/results/variants/candidateSmallIndels.vcf.gz.tbi \
-    ${meta.id}.manta.candidateSmallIndels.vcf.gz.tbi
+    ${meta.id}.${genome_version}.manta.candidateSmallIndels.vcf.gz.tbi
     
     mv manta/results/variants/candidateSV.vcf.gz \
-    ${meta.id}.manta.candidateSV.vcf.gz
+    ${meta.id}.${genome_version}.manta.candidateSV.vcf.gz
     
     mv manta/results/variants/candidateSV.vcf.gz.tbi \
-    ${meta.id}.manta.candidateSV.vcf.gz.tbi
+    ${meta.id}.${genome_version}.manta.candidateSV.vcf.gz.tbi
 
     mv manta/results/variants/diploidSV.vcf.gz \
-    ${meta.id}.manta.diploidSV.vcf.gz
+    ${meta.id}.${genome_version}.manta.diploidSV.vcf.gz
     
     mv manta/results/variants/diploidSV.vcf.gz.tbi \
-    ${meta.id}.manta.diploidSV.vcf.gz.tbi
+    ${meta.id}.${genome_version}.manta.diploidSV.vcf.gz.tbi
 
-    gzip -dc ${meta.id}.manta.diploidSV.vcf.gz > ${meta.id}.manta.diploidSV.vcf
+    gzip -dc ${meta.id}.${genome_version}.manta.diploidSV.vcf.gz > ${meta.id}.${genome_version}.manta.diploidSV.vcf
 
     singularity exec  \
     --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
     --query \
-    --query_vcf ${meta.id}.manta.diploidSV.vcf \
-    --sqdb ${mantaSVDB} > ${meta.id}.manta.AFanno.vcf 
+    --query_vcf ${meta.id}.${genome_version}.manta.diploidSV.vcf \
+    --sqdb ${mantaSVDB} > ${meta.id}.${genome_version}.manta.AFanno.vcf 
 
     ${gatk_exec} SelectVariants -R ${genome_fasta} \
-    -V ${meta.id}.manta.AFanno.vcf \
+    -V ${meta.id}.${genome_version}.manta.AFanno.vcf \
     --exclude-filtered \
     -select "FRQ>0.05" \
     -invert-select \
-    -O ${meta.id}.manta.AFanno.frq_below5pct.vcf
+    -O ${meta.id}.${genome_version}.manta.AFanno.frq_below5pct.vcf
 
     """
 }
@@ -1018,37 +1026,37 @@ process lumpy {
     output:
    // tuple val("${meta.id}"), path("${meta.id}.lumpy.AFanno.frq_below5pct.vcf"), emit: lumpyForSVDB
     path("*.Lumpy_altmode_step1.vcf.gz") 
-    tuple val(meta), path("${meta.id}.lumpy.AFanno.frq_below5pct.vcf"), emit: lumpyForSVDB
+    tuple val(meta), path("${meta.id}.${genome_version}.lumpy.AFanno.frq_below5pct.vcf"), emit: lumpyForSVDB
     path("*.Lumpy_altmode_step1.vcf.gz") 
     script:
     """
     singularity run -B ${s_bind} ${simgpath}/smoove.sif smoove call -d \
     --outdir ${params.rundir}.LumpyAltSingle \
     --exclude ${smoove_exclude} \
-    --name ${meta.id} \
+    --name ${meta.id}.${genome_version} \
     --fasta ${genome_fasta} \
     -p ${task.cpus} \
     --genotype ${aln[0]}
     
-    mv ${params.rundir}.LumpyAltSingle/${meta.id}*.genotyped.vcf.gz \
-    ${meta.id}.Lumpy_altmode_step1.vcf.gz
+    mv ${params.rundir}.LumpyAltSingle/${meta.id}.${genome_version}*.genotyped.vcf.gz \
+    ${meta.id}.${genome_version}.Lumpy_altmode_step1.vcf.gz
 
-    gzip -dc  ${meta.id}.Lumpy_altmode_step1.vcf.gz >  ${meta.id}.Lumpy_altmode_step1.vcf
+    gzip -dc  ${meta.id}.${genome_version}.Lumpy_altmode_step1.vcf.gz >  ${meta.id}.${genome_version}.Lumpy_altmode_step1.vcf
 
-    mv ${params.rundir}.LumpyAltSingle/${meta.id}*.csi \
-    ${meta.id}.Lumpy_altmode_step1.vcf.gz.csi
+    mv ${params.rundir}.LumpyAltSingle/${meta.id}.${genome_version}*.csi \
+    ${meta.id}.${genome_version}.Lumpy_altmode_step1.vcf.gz.csi
 
     singularity exec  \
     --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
     --query \
-    --query_vcf ${meta.id}.Lumpy_altmode_step1.vcf \
-    --sqdb ${lumpySVDB} > ${meta.id}.lumpy.AFanno.vcf 
+    --query_vcf ${meta.id}.${genome_version}.Lumpy_altmode_step1.vcf \
+    --sqdb ${lumpySVDB} > ${meta.id}.${genome_version}.lumpy.AFanno.vcf 
 
     ${gatk_exec} SelectVariants -R ${genome_fasta} \
-    -V ${meta.id}.lumpy.AFanno.vcf  \
+    -V ${meta.id}.${genome_version}.lumpy.AFanno.vcf  \
     -select "FRQ>0.05" \
     -invert-select \
-    -O ${meta.id}.lumpy.AFanno.frq_below5pct.vcf
+    -O ${meta.id}.${genome_version}.lumpy.AFanno.frq_below5pct.vcf
 
     """
 }
@@ -1107,11 +1115,11 @@ process cnvkit {
     tuple val(meta), path(aln)
 
     output:
-    path("${meta.id}.cnvkit/*")
+    path("${meta.id}.${genome_version}.cnvkit/*")
     path("*.targetcoverage.cnn"), emit: cnvkit_cnn_out
 //    tuple val(meta), path("${meta.id}.cnvkit/*.call.cns"), emit: CNVcalls
 //    tuple val(meta), path("${meta.id}.cnvkit/*.cnr"), emit: CNVcnr
-    tuple val(meta), path("${meta.id}.cnvkit/*.call.cns"),path("${meta.id}.cnvkit/*.cnr"), emit: CNVcalls
+    tuple val(meta), path("${meta.id}.${genome_version}.cnvkit/*.call.cns"),path("${meta.id}.${genome_version}.cnvkit/*.cnr"), emit: CNVcalls
     //path("${meta.id}.cnvkit/*.cnn")
     
     // touch ${index}
@@ -1126,8 +1134,8 @@ process cnvkit {
     -p ${task.cpus} \
     -r ${cnvkit_germline_reference_PON} \
     --scatter --diagram \
-    -d ${meta.id}.cnvkit/
-    cp ${meta.id}.cnvkit/*.targetcoverage.cnn .
+    -d ${meta.id}.${genome_version}.cnvkit/
+    cp ${meta.id}.${genome_version}.cnvkit/*.targetcoverage.cnn .
     """
 }
 
@@ -1147,30 +1155,30 @@ process cnvkitExportFiles {
     path("*.vcf")
     path("*.seg")
     //tuple val("${meta.id}"), path("${meta.id}.cnvkit.AFanno.frq_below5pct.vcf"), emit: cnvkitForSVDB
-    tuple val(meta), path("${meta.id}.cnvkit.AFanno.frq_below5pct.vcf"), emit: cnvkitForSVDB
+    tuple val(meta), path("${meta.id}.${genome_version}.cnvkit.AFanno.frq_below5pct.vcf"), emit: cnvkitForSVDB
 
     script:
     """
     singularity run -B ${s_bind} ${simgpath}/cnvkit.sif cnvkit.py export vcf \
     ${cnvkit_calls} \
     -i ${meta.id} \
-    -o ${meta.id}.cnvkit.vcf
+    -o ${meta.id}.${genome_version}.cnvkit.vcf
 
     singularity run -B ${s_bind} ${simgpath}/cnvkit.sif cnvkit.py export seg \
     ${cnvkit_cnr} \
-    -o ${meta.id}.cnvkit.cnr.seg
+    -o ${meta.id}.${genome_version}.cnvkit.cnr.seg
 
     singularity exec  \
     --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
     --query \
-    --query_vcf ${meta.id}.cnvkit.vcf \
+    --query_vcf ${meta.id}.${genome_version}.cnvkit.vcf \
     --sqdb ${cnvkitSVDB} > ${meta.id}.cnvkit.AFanno.vcf 
 
     ${gatk_exec} SelectVariants -R ${genome_fasta} \
-    -V ${meta.id}.cnvkit.AFanno.vcf  \
+    -V ${meta.id}.${genome_version}.cnvkit.AFanno.vcf  \
     -select "FRQ>0.05" \
     -invert-select \
-    -O ${meta.id}.cnvkit.AFanno.frq_below5pct.vcf
+    -O ${meta.id}.${genome_version}.cnvkit.AFanno.frq_below5pct.vcf
 
     """
 }
@@ -1659,12 +1667,14 @@ workflow SUB_CNV_SV {
     manta(meta_aln_index)
    // filter_manta(manta.out.manta)   // mantafiltered for SVDB
     lumpy(meta_aln_index)
-    cnvkit(meta_aln_index)
-    //cnvkitExportFiles(cnvkit.out.CNVcalls, cnvkit.out.CNVcnr)
-    cnvkitExportFiles(cnvkit.out.CNVcalls)
-
-    //tiddit361(meta_aln_index)
     delly126(meta_aln_index)
+    if (params.genome=="hg38") { 
+    cnvkit(meta_aln_index)
+    cnvkitExportFiles(cnvkit.out.CNVcalls)
+    merge4callerSVDB(manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(delly126.out.dellyForSVDB))
+    }
+
+
 
     //merge4callerSVDB(filter_manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(tiddit361.out.tidditForSVDB))
     /*
@@ -1672,7 +1682,6 @@ workflow SUB_CNV_SV {
     manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(delly126.out.dellyForSVDB)
     |set {4callerMerge_ch}
 */
-    merge4callerSVDB(manta.out.mantaForSVDB.join(lumpy.out.lumpyForSVDB).join(cnvkitExportFiles.out.cnvkitForSVDB).join(delly126.out.dellyForSVDB))
 
 }
 
