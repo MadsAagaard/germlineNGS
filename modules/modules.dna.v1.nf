@@ -857,14 +857,14 @@ process combineGVCF {
     tuple val(meta), path(sub_gvcf), path(sub_gvcf_idx)// from hc_split_output.groupTuple()
     
     output:
-    tuple val(meta), path("${meta.id}.g.vcf.gz"), path("${meta.id}.*.tbi"), emit: singleGVCF
-    path("${meta.id}.g.vcf.gz"), emit: sample_gvcf_list_scatter
+    tuple val(meta), path("${meta.id}.${genome_version}.g.vcf.gz"), path("${meta.id}.*.tbi"), emit: singleGVCF
+    path("${meta.id}.${genome_version}.g.vcf.gz"), emit: sample_gvcf_list_scatter
     script:
     """
     ${gatk_exec} CombineGVCFs \
     -R ${genome_fasta} \
     ${sub_gvcf.collect { "-V $it " }.join()} \
-    -O ${meta.id}.g.vcf.gz
+    -O ${meta.id}.${genome_version}.g.vcf.gz
 
         """
 }
@@ -884,16 +884,16 @@ process genotypeSingle {
     ${gatk_exec} --java-options "-Xmx4G -XX:+UseParallelGC -XX:ParallelGCThreads=30" GenotypeGVCFs \
     -R ${genome_fasta} \
     -V ${gvcf} \
-    -O ${meta.id}.fullWGS.vcf.gz 
+    -O ${meta.id}.${genome_version}.fullWGS.vcf.gz 
 
     ${gatk_exec} SelectVariants \
     -R ${genome_fasta} \
-    -V ${meta.id}.fullWGS.vcf.gz \
+    -V ${meta.id}.${genome_version}.fullWGS.vcf.gz \
     -L ${ROI} \
-    -O ${meta.id}.WES_ROI.vcf.gz
+    -O ${meta.id}.${genome_version}.WES_ROI.vcf.gz
 
     ${gatk_exec} IndexFeatureFile \
-    -I ${meta.id}.WES_ROI.vcf.gz
+    -I ${meta.id}.${genome_version}.WES_ROI.vcf.gz
     """
 }
 
@@ -914,20 +914,20 @@ process jointgenoScatter{
     """
     ${gatk_exec} CombineGVCFs \
     -R ${genome_fasta} ${x} \
-    -O ${params.rundir}.merged.g.vcf.gz \
+    -O ${params.rundir}.${genome_version}.merged.g.vcf.gz \
     -G StandardAnnotation -G AS_StandardAnnotation 
 
     ${gatk_exec} GenotypeGVCFs \
     -R ${genome_fasta} \
-    -V ${params.rundir}.merged.g.vcf.gz \
-    -O ${params.rundir}.merged.fullWGS.vcf.gz  \
+    -V ${params.rundir}.${genome_version}.merged.g.vcf.gz \
+    -O ${params.rundir}.${genome_version}.merged.fullWGS.vcf.gz  \
     -G StandardAnnotation -G AS_StandardAnnotation -A SampleList 
     
     ${gatk_exec} SelectVariants \
     -R ${genome_fasta} \
-    -V ${params.rundir}.merged.fullWGS.vcf.gz \
+    -V ${params.rundir}.${genome_version}.merged.fullWGS.vcf.gz \
     -L ${ROI} \
-    -O ${params.rundir}.merged.WES_ROI.vcf.gz
+    -O ${params.rundir}.${genome_version}.merged.WES_ROI.vcf.gz
 
     """     
 }
