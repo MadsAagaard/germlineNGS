@@ -910,6 +910,7 @@ process jointgenoScatter{
     path("*.merged.WES_ROI.*")
     
     script:
+
     """
     ${gatk_exec} CombineGVCFs \
     -R ${genome_fasta} ${x} \
@@ -920,7 +921,7 @@ process jointgenoScatter{
     -R ${genome_fasta} \
     -V ${params.rundir}.merged.g.vcf.gz \
     -O ${params.rundir}.merged.fullWGS.vcf.gz  \
-    -G StandardAnnotation -G AS_StandardAnnotation -A SampleList -D ${dbsnp}
+    -G StandardAnnotation -G AS_StandardAnnotation -A SampleList 
     
     ${gatk_exec} SelectVariants \
     -R ${genome_fasta} \
@@ -930,7 +931,7 @@ process jointgenoScatter{
 
     """     
 }
-
+//-D ${dbsnp}
 
 
 /////////////////////////////// SV CALLING MODULES //////////////////////
