@@ -961,7 +961,6 @@ process manta {
 
     input:
     tuple val(meta), path(aln)
-    //    --callRegions ${manta_callable_regions} \
 
     output:
     path("${meta.id}.${genome_version}.manta.*.{vcf,vcf.gz,gz.tbi}")
@@ -972,6 +971,7 @@ process manta {
     singularity run -B ${s_bind} ${simgpath}/manta1.6_strelka2.9.10.sif configManta.py \
     --bam ${aln[0]} \
     --referenceFasta ${genome_fasta} \
+    --callRegions ${manta_callable_regions} \
     --runDir manta
 
     singularity run -B ${s_bind} ${simgpath}/manta1.6_strelka2.9.10.sif ./manta/runWorkflow.py -j ${task.cpus}
