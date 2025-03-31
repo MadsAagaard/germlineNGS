@@ -71,6 +71,7 @@ switch (params.genome) {
         genome_version             = "hg19v2"
             ROI                    ="/data/shared/genomes/hg19/interval.files/200108.NCBIrefseq.codingexons.nocontig.20bp.merged.sorted.bed"
             WES_ROI                ="/data/shared/genomes/hg19/interval.files/200108.NCBIrefseq.codingexons.nocontig.20bp.merged.sorted.bed"
+        smoove_exclude          ="/data/shared/genomes/hg19/interval.files/smoove.hg19.excluderegions.bed"
 
         //sv databases wont work, but output not used. Required to get single sample SV calls:
         svdb_databases          ="/data/shared/genomes/hg38/inhouse_DBs/hg38v3/svdb_AF"    
