@@ -537,6 +537,7 @@ process markDup_bam {
     publishDir "${outputDir}/BAM/", mode: 'copy', pattern: "*.BWA.MD.ba*"
     publishDir "${outputDir}/CRAM/", mode: 'copy', pattern: "*.BWA.MD.cr*"
     publishDir "${outputDir}/Variants/Alignment_symlinks/", mode: 'link', pattern: "*.BWA.MD.cr*"
+    conda '/lnx01_data3/shared/programmer/miniconda3/envs/sambamvcftools/' 
     input:
     tuple val(sampleID), path(aln) 
     
@@ -566,6 +567,7 @@ process markDup_cram {
     tag "$sampleID"
     publishDir "${outputDir}/CRAM/", mode: 'copy', pattern: "*.BWA.MD.cr*"
     publishDir "${outputDir}/Variants/Alignment_symlinks/", mode: 'link', pattern: "*.BWA.MD.cr*"
+    conda '/lnx01_data3/shared/programmer/miniconda3/envs/sambamvcftools/' 
     input:
     tuple val(sampleID), path(aln)
     
