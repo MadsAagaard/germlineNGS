@@ -273,11 +273,12 @@ variantStorage="${dataStorage}/variantStorage/${params.genome}/"
 cramStorage="${dataStorage}/alignedData/${params.genome}/"
 
 
-/*
+
 channel
     .fromPath(intervalList_GATK)
     .map { it -> tuple(it.baseName,it)}
     .set { haplotypecallerIntervalList }
+/*
 */
 
 log.info """\
