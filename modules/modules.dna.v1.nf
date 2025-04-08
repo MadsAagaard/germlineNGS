@@ -124,7 +124,7 @@ switch (params.genome) {
      
         //Program  files:
         msisensor_list          ="${refFilesDir}/hg38/program_DBs/msisensor/hg38_msisensor_scan.txt"
-        intervalList_GATK_GATK  ="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";             
+        intervalList_GATK       ="/data/shared/genomes/hg38/interval.files/WGS_splitIntervals/hg38v3/hg38v3_scatter20_BWI/*.interval_list";             
       
         //Structural variants
         delly_exclude           ="/data/shared/genomes/hg38/program_DBs/delly/human.hg38.excl.tsv"
