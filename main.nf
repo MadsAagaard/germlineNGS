@@ -278,7 +278,7 @@ switch (params.panel) {
         reads_pattern_crai="*.crai";
         reads_pattern_fastq="*{.,_,-}{R1,R2}*.gz";
         reads_pattern_spring="*.spring";
-        panelID="ALL"
+        panelID="WGS"
     break;
 }
 
