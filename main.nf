@@ -467,9 +467,10 @@ if (params.fastq || params.fastqInput) {
     //(Channel.fromFilePairs("${inputFastq}", checkIfExists: true)
     Channel.fromFilePairs(inputFastq, checkIfExists: true)
     | map { id, reads -> 
-        (sample, ngstype)   = reads[0].baseName.tokenize("-")
+        (sample, ngstype, materialAndRead)   = reads[0].baseName.tokenize("-")
         (panel,subpanel)    = ngstype.tokenize("_")
-        meta = [id:sample+"_"+ngstype, npn:sample, fullpanel:ngstype,panel:panel, subpanel:subpanel]
+        (material,sID,read,lane) =materialAndRead.tokenize("_")
+        meta = [id:sample+"_"+ngstype+"_"+material, npn:sample, fullpanel:ngstype,panel:panel, subpanel:subpanel]
         [meta, reads]
     }
     | branch {meta, reads ->
