@@ -1180,7 +1180,7 @@ process cnvkitExportFiles {
     --bind ${s_bind} /data/shared/programmer/FindSV/FindSV.simg svdb \
     --query \
     --query_vcf ${meta.id}.${genome_version}.cnvkit.vcf \
-    --sqdb ${cnvkitSVDB} > ${meta.id}.cnvkit.AFanno.vcf 
+    --sqdb ${cnvkitSVDB} > ${meta.id}.${genome_version}.cnvkit.AFanno.vcf 
 
     ${gatk_exec} SelectVariants -R ${genome_fasta} \
     -V ${meta.id}.${genome_version}.cnvkit.AFanno.vcf  \
